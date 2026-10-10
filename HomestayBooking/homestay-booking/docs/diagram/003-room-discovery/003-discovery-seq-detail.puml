@@ -1,0 +1,56 @@
+@startuml 003-discovery-seq-detail
+title View Room Detail & Availability Calendar
+
+actor "Guest/Customer" as User
+participant "DiscoveryController" as Ctrl
+participant "DiscoveryService" as Svc
+database "Database" as DB
+
+== View Room Detail ==
+User -> Ctrl: GET /api/v1/rooms/{id}
+activate Ctrl
+
+Ctrl -> Svc: getRoomDetail(id)
+activate Svc
+
+Svc -> DB: findRoomById(id)
+activate DB
+DB --> Svc: Room Entity (or null)
+deactivate DB
+
+alt Room Not Found or Property Inactive
+    Svc --> Ctrl: throw ResourceNotFoundException
+    Ctrl --> User: 404 Not Found
+else Room Found
+    Svc -> DB: load Gallery & Amenities
+    activate DB
+    DB --> Svc: RoomImages, Amenities
+    deactivate DB
+    
+    Svc -> Svc: map to RoomDetail DTO
+    Svc --> Ctrl: RoomDetail
+    Ctrl --> User: 200 OK (Room Details)
+end
+deactivate Svc
+deactivate Ctrl
+
+== View Calendar Availability ==
+User -> Ctrl: GET /api/v1/rooms/{id}/availability?month=6&year=2026
+activate Ctrl
+
+Ctrl -> Svc: getRoomAvailability(id, year, month)
+activate Svc
+
+Svc -> DB: findOverlappingBookings(roomId, startOfMonth, endOfMonth)
+note right of Svc: Filters blocking statuses:\nPENDING_DEPOSIT, CONFIRMED,\nRESERVED, OCCUPIED
+activate DB
+DB --> Svc: List<Booking>
+deactivate DB
+
+Svc -> Svc: calculate bookedDates[] from Bookings
+Svc --> Ctrl: RoomAvailability (bookedDates)
+
+Ctrl --> User: 200 OK (Availability Data)
+deactivate Svc
+deactivate Ctrl
+@enduml

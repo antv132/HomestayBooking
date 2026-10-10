@@ -1,0 +1,113 @@
+@startuml 013-maintenance-class-diagram
+title Maintenance Management - Class Diagram
+
+package "Controllers" {
+    class CustomerMaintenanceController {
+        + createTicketFromBooking(...) : Map
+        + getMyTickets(...) : Map
+        + getTicketDetail(...) : Map
+        + updateTicket(...) : Map
+        + deleteTicket(...) : void
+    }
+    note right of CustomerMaintenanceController
+        /api/v1/customers/me/maintenance-tickets
+        @PreAuthorize("hasRole('CUSTOMER')")
+        SCR-31
+    end note
+
+    class ManagerMaintenanceV1Controller {
+        + listTasks(manager, propertyId, status, search, page, size) : PageResponse
+        + assignTask(manager, ticketId, req) : MaintenanceTaskSummaryResponse
+        + updateTaskStatus(manager, ticketId, req) : MaintenanceTaskSummaryResponse
+    }
+    note right of ManagerMaintenanceV1Controller
+        /api/v1/manager/maintenance-tasks
+        @PreAuthorize("hasRole('MANAGER')")
+        SCR-41
+    end note
+
+    class EmployeeMaintenanceController {
+        + list(employee, status, page, size) : PageResponse
+        + updateStatus(employee, ticketId, req) : EmployeeMaintenanceTicketResponse
+    }
+    note right of EmployeeMaintenanceController
+        /api/v1/employee/maintenance-tickets
+        @PreAuthorize("hasRole('EMPLOYEE')")
+        SCR-61
+    end note
+}
+
+package "Services" {
+    class MaintenanceTicketService {
+        - ticketRepository: MaintenanceTicketRepository
+        - bookingRepository: BookingRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        + createTicketFromBooking(...) : Map
+        + getCustomerTicketsPaged(...) : Map
+        + updateTicketContent(...) : Map
+        + deleteTicket(...) : void
+    }
+    note bottom of MaintenanceTicketService
+        Handles Customer CRUD operations.
+        Soft-delete via deleted_at.
+    end note
+
+    class MaintenanceTaskManagerService {
+        - ticketRepository: MaintenanceTicketRepository
+        - employeeAssignmentRepository: EmployeePropertyAssignmentRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        + listForManager(...) : PageResponse
+        + assignForManager(manager, ticketId, assigneeId) : MaintenanceTaskSummaryResponse
+        + updateStatusForManager(manager, ticketId, req) : MaintenanceTaskSummaryResponse
+    }
+    note bottom of MaintenanceTaskManagerService
+        Manager operations (Assign, Verify & Close).
+        Validates Employee scope.
+    end note
+
+    class EmployeeMaintenanceService {
+        - maintenanceTicketRepository: MaintenanceTicketRepository
+        + list(employee, status, pageable) : PageResponse
+        + updateStatus(employee, ticketId, req) : EmployeeMaintenanceTicketResponse
+    }
+    note bottom of EmployeeMaintenanceService
+        Transitions: ASSIGNED → IN_PROGRESS → RESOLVED.
+    end note
+}
+
+package "Repositories" {
+    interface MaintenanceTicketRepository {
+        + findByCustomerPaged(customer, status, pageable) : Page
+        + findForManagerBoard(propertyId, status, search, pageable) : Page
+        + findForEmployee(employeeId, status, pageable) : Page
+        + findByIdAndAssignedEmployeeId(ticketId, employeeId) : Optional
+    }
+}
+
+package "Entities" {
+    class MaintenanceTicket {
+        - id : UUID
+        - customer_id : UUID
+        - room_id : UUID
+        - booking_id : UUID
+        - title : String
+        - description : String
+        - photo_urls : String (JSON array)
+        - assigned_employee_id : UUID
+        - status : Status {OPEN, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED}
+        - resolution_note : String
+        - work_note : String
+        - deleted_at : LocalDateTime
+    }
+}
+
+CustomerMaintenanceController ..> MaintenanceTicketService
+ManagerMaintenanceV1Controller ..> MaintenanceTaskManagerService
+EmployeeMaintenanceController ..> EmployeeMaintenanceService
+
+MaintenanceTicketService --> MaintenanceTicketRepository
+MaintenanceTaskManagerService --> MaintenanceTicketRepository
+EmployeeMaintenanceService --> MaintenanceTicketRepository
+
+MaintenanceTicketRepository --> MaintenanceTicket
+@enduml

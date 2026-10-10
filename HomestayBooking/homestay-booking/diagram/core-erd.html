@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entity Relationship Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f5f5f5;
+      --paper-2: #ffffff;
+      --ink: #2d3142;
+      --muted: #4f5d75;
+      --soft: #7a8399;
+      --accent: #eb6c36;
+      --rule: rgba(45,49,66,0.12);
+    }
+    body {
+      margin: 0;
+      padding: 40px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      max-width: 900px;
+      margin: 0 auto 32px;
+    }
+    .eyebrow {
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 2.5rem;
+      font-weight: 400;
+      margin: 0 0 16px;
+      line-height: 1.1;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.5;
+      max-width: 600px;
+      margin: 0;
+    }
+    .diagram-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Data Model</div>
+    <h1>Homestay ERD (Core Domain)</h1>
+    <p class="subtitle">A focused Entity-Relationship Diagram exactly matching the physical database schema, correcting Foreign Keys such as Room/Contract and removing phantom ones.</p>
+  </header>
+  <div class="diagram-container">
+    <svg viewBox="0 0 860 800" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- Paths -->
+      <g fill="none" stroke="#7a8399" stroke-width="1.2">
+        <!-- User -> Booking -->
+        <path d="M 240,148 H 340" />
+        <!-- Property -> Room -->
+        <path d="M 240,368 H 262 Q 270,368 270,376 V 400 Q 270,408 278,408 H 340" />
+        <!-- Room -> Booking -->
+        <path d="M 430,340 V 244" />
+        <!-- Room -> MaintenanceTicket -->
+        <path d="M 430,504 V 560" />
+        <!-- Booking -> Payment -->
+        <path d="M 520,148 H 620" />
+        <!-- Booking -> Contract -->
+        <path d="M 520,228 H 550 Q 558,228 558,236 V 320 Q 558,328 566,328 H 620" />
+        <!-- Booking -> RoomInspection -->
+        <path d="M 520,208 H 574 Q 582,208 582,216 V 500 Q 582,508 590,508 H 620" />
+        <!-- Booking -> MaintenanceTicket -->
+        <path d="M 340,228 H 318 Q 310,228 310,236 V 660 Q 310,668 318,668 H 340" />
+        <!-- User -> MaintenanceTicket -->
+        <path d="M 240,188 H 282 Q 290,188 290,196 V 640 Q 290,648 298,648 H 340" />
+        <!-- User -> Contract -->
+        <path d="M 240,168 H 262 Q 270,168 270,176 V 312 Q 270,320 278,320 H 590 Q 598,320 598,328 V 340 Q 598,348 606,348 H 620" />
+        <!-- Room -> Contract -->
+        <path d="M 520,448 H 534 Q 542,448 542,440 V 376 Q 542,368 550,368 H 620" />
+      </g>
+
+      <!-- Cardinality Labels -->
+      <g fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">
+        <!-- User -> Booking -->
+        <text x="248" y="142">1</text>
+        <text x="332" y="142">N</text>
+        <!-- Property -> Room -->
+        <text x="248" y="362">1</text>
+        <text x="332" y="402">N</text>
+        <!-- Room -> Booking -->
+        <text x="438" y="332">1</text>
+        <text x="438" y="256">N</text>
+        <!-- Room -> MaintenanceTicket -->
+        <text x="438" y="516">1</text>
+        <text x="438" y="552">N</text>
+        <!-- Booking -> Payment -->
+        <text x="528" y="142">1</text>
+        <text x="612" y="142">N</text>
+        <!-- Booking -> Contract -->
+        <text x="528" y="222">1</text>
+        <text x="602" y="322">0..1</text>
+        <!-- Booking -> RoomInspection -->
+        <text x="528" y="202">1</text>
+        <text x="602" y="502">0..1</text>
+        <!-- Booking -> MaintenanceTicket -->
+        <text x="332" y="222">1</text>
+        <text x="332" y="662">N</text>
+        <!-- User -> MaintenanceTicket -->
+        <text x="248" y="182">1</text>
+        <text x="332" y="642">N</text>
+        <!-- User -> Contract -->
+        <text x="248" y="162">1</text>
+        <text x="612" y="342">N</text>
+        <!-- Room -> Contract -->
+        <text x="528" y="442">1</text>
+        <text x="612" y="362">N</text>
+      </g>
+
+      <!-- N1: User -->
+      <rect x="60" y="60" width="180" height="144" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <path d="M 60,66 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(45,49,66,0.03)"/>
+      <path d="M 60,92 H 240" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="72" y="74" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="72" y="86" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">User</text>
+      <text x="72" y="112" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="72" y="132" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">email</text>
+      <text x="72" y="152" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">full_name</text>
+      <text x="72" y="172" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">role</text>
+      <text x="72" y="192" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- N2: Property -->
+      <rect x="60" y="260" width="180" height="124" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <path d="M 60,266 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(45,49,66,0.03)"/>
+      <path d="M 60,292 H 240" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="72" y="274" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="72" y="286" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Property</text>
+      <text x="72" y="312" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="72" y="332" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">name</text>
+      <text x="72" y="352" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">address</text>
+      <text x="72" y="372" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- N3: Booking (FOCAL) -->
+      <rect x="340" y="60" width="180" height="184" rx="6" fill="#ffffff" stroke="#eb6c36" stroke-width="1.2"/>
+      <path d="M 340,66 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(235,108,54,0.05)"/>
+      <path d="M 340,92 H 520" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="352" y="74" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="352" y="86" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Booking</text>
+      <text x="352" y="112" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="352" y="132" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ customer_id</text>
+      <text x="352" y="152" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ room_id</text>
+      <text x="352" y="172" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">check_in_date</text>
+      <text x="352" y="192" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">check_out_date</text>
+      <text x="352" y="212" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">total_amount</text>
+      <text x="352" y="232" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- N4: Room -->
+      <rect x="340" y="340" width="180" height="164" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <path d="M 340,346 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(45,49,66,0.03)"/>
+      <path d="M 340,372 H 520" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="352" y="354" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="352" y="366" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Room</text>
+      <text x="352" y="392" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="352" y="412" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ property_id</text>
+      <text x="352" y="432" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ floor_id</text>
+      <text x="352" y="452" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">room_number</text>
+      <text x="352" y="472" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">price_per_night</text>
+      <text x="352" y="492" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- N5: MaintenanceTicket -->
+      <rect x="340" y="560" width="180" height="144" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <path d="M 340,566 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(45,49,66,0.03)"/>
+      <path d="M 340,592 H 520" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="352" y="574" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="352" y="586" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">MaintenanceTicket</text>
+      <text x="352" y="612" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="352" y="632" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ room_id</text>
+      <text x="352" y="652" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ customer_id</text>
+      <text x="352" y="672" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ booking_id</text>
+      <text x="352" y="692" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- N6: Payment -->
+      <rect x="620" y="60" width="180" height="124" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <path d="M 620,66 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(45,49,66,0.03)"/>
+      <path d="M 620,92 H 800" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="632" y="74" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="632" y="86" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Payment</text>
+      <text x="632" y="112" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="632" y="132" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ booking_id</text>
+      <text x="632" y="152" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">amount</text>
+      <text x="632" y="172" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- N7: Contract -->
+      <rect x="620" y="260" width="180" height="144" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <path d="M 620,266 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(45,49,66,0.03)"/>
+      <path d="M 620,292 H 800" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="632" y="274" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="632" y="286" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Contract</text>
+      <text x="632" y="312" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="632" y="332" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ booking_id</text>
+      <text x="632" y="352" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ customer_id</text>
+      <text x="632" y="372" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ room_id</text>
+      <text x="632" y="392" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- N8: RoomInspection -->
+      <rect x="620" y="440" width="180" height="124" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <path d="M 620,446 a 6,6 0 0 1 6,-6 h 168 a 6,6 0 0 1 6,6 v 26 h -180 z" fill="rgba(45,49,66,0.03)"/>
+      <path d="M 620,472 H 800" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="632" y="454" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.08em">ENTITY</text>
+      <text x="632" y="466" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">RoomInspection</text>
+      <text x="632" y="492" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># id</text>
+      <text x="632" y="512" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ booking_id</text>
+      <text x="632" y="532" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">→ inspector_id</text>
+      <text x="632" y="552" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">status</text>
+
+      <!-- Legend -->
+      <line x1="60" y1="740" x2="800" y2="740" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="60" y="756" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+      <text x="120" y="758" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace"># Primary Key</text>
+      <text x="240" y="758" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">→ Foreign Key</text>
+
+      <line x1="360" y1="754" x2="384" y2="754" stroke="rgba(45,49,66,0.30)" stroke-width="1.2"/>
+      <text x="392" y="758" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif">1 : N Relationship</text>
+    </svg>
+  </div>
+</body>
+</html>

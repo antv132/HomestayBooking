@@ -1,0 +1,267 @@
+openapi: 3.0.3
+info:
+  title: FR-15 Notification Engine API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-15 In-app notifications, inbox, unread count, mark read.
+    Screens: SCR-13 (Notification Center), SCR-14 (Notification Detail) — ALL AUTH roles.
+    Admin: SCR-56 Outbox failure monitor (notification worker events).
+    Real-time push: STOMP `/topic/users/{userId}/notifications` (see quickstart.md).
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    NotificationType:
+      type: string
+      enum:
+        - BOOKING_CONFIRMED
+        - CONTRACT_GENERATED
+        - PAYMENT_CONFIRMED
+        - PAYMENT_PENDING_VERIFICATION
+        - MAINTENANCE_UPDATED
+        - AVAILABILITY_UPDATED
+        - SYSTEM
+
+    NotificationSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        type: { $ref: '#/components/schemas/NotificationType' }
+        title: { type: string }
+        content: { type: string, description: Truncated in list UI }
+        isRead: { type: boolean }
+        relatedEntityId: { type: string, format: uuid, nullable: true }
+        relatedEntityType: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    NotificationDetail:
+      allOf:
+        - $ref: '#/components/schemas/NotificationSummary'
+        - type: object
+          properties:
+            content: { type: string, description: Full text }
+
+    NotificationPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/NotificationSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    UnreadCount:
+      type: object
+      properties:
+        count: { type: integer, example: 3 }
+
+    MarkAllReadResult:
+      type: object
+      properties:
+        updated: { type: integer, example: 5 }
+
+    OutboxEventSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        eventType: { type: string }
+        status: { type: string, enum: [PENDING, PROCESSED, FAILED] }
+        retryCount: { type: integer }
+        errorSummary: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        processedAt: { type: string, format: date-time, nullable: true }
+
+    OutboxEventPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/OutboxEventSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+security:
+  - bearerAuth: []
+
+paths:
+  /notifications:
+    get:
+      summary: SCR-13 — List notifications for current user
+      tags: [Notifications]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20, maximum: 50 }
+        - name: unreadOnly
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Paginated notification list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/NotificationPage' }
+
+  /notifications/unread-count:
+    get:
+      summary: SCR-13 — Unread badge count
+      tags: [Notifications]
+      responses:
+        '200':
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UnreadCount' }
+
+  /notifications/mark-all-read:
+    patch:
+      summary: SCR-13 — Mark all notifications as read
+      tags: [Notifications]
+      responses:
+        '200':
+          description: All marked read
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/MarkAllReadResult' }
+
+  /notifications/{id}:
+    get:
+      summary: SCR-14 — Notification detail (auto mark read by default)
+      tags: [Notifications]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: markRead
+          in: query
+          schema: { type: boolean, default: true }
+      responses:
+        '200':
+          description: Notification detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/NotificationDetail' }
+        '404':
+          description: Not found or not owned
+
+  /notifications/{id}/read:
+    patch:
+      summary: SCR-14 — Mark single notification as read
+      tags: [Notifications]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccess'
+        '404':
+          description: Not found or not owned
+
+  /admin/outbox-events:
+    get:
+      summary: SCR-56 — List failed notification outbox events
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [FAILED, PENDING, PROCESSED], default: FAILED }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Outbox events (notification worker types only)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/OutboxEventPage' }
+        '403':
+          description: Admin only
+
+  /admin/outbox-events/{id}/retry:
+    post:
+      summary: SCR-56 — Manual retry failed outbox event
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Reset to PENDING for worker
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccess'
+        '400':
+          description: Event not in FAILED status
+        '403':
+          description: Admin only

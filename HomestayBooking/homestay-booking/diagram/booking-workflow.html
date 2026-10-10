@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking & Payment Workflow · BPMN Swimlane</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1880px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--color-muted);
+      margin-bottom: 1.5rem;
+      max-width: 72ch;
+      line-height: 1.45;
+    }
+
+    svg { width: 100%; min-width: 1760px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Booking &amp; Inventory · FR-04 · FR-12 · FR-23 · FR-10</p>
+    <h1>Booking &amp; Payment Workflow (BPMN Swimlane)</h1>
+    <p class="subtitle">
+      Main stay lifecycle: create → deposit 40% → confirm + contract → remaining 60% → check-in →
+      employee inspection → (damage fee if any) → check-out. Alternatives: hold timeout, customer cancel tiers, no-show.
+    </p>
+
+    <svg viewBox="0 0 1780 700" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+        </pattern>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+        </marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+        </marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+      <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+      <!-- Pool / lane dividers -->
+      <line x1="36" y1="56" x2="1744" y2="56" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <line x1="36" y1="156" x2="1744" y2="156" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="36" y1="286" x2="1744" y2="286" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="36" y1="416" x2="1744" y2="416" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+      <line x1="36" y1="546" x2="1744" y2="546" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <line x1="148" y1="56" x2="148" y2="546" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+
+      <!-- Lane labels -->
+      <text x="52" y="110" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" letter-spacing="0.16em">CUSTOMER</text>
+      <text x="52" y="226" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" letter-spacing="0.16em">SYSTEM</text>
+      <text x="52" y="356" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" letter-spacing="0.16em">MANAGER</text>
+      <text x="52" y="486" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" letter-spacing="0.16em">EMPLOYEE</text>
+
+      <!-- ===== FLOW ARROWS ===== -->
+      <!-- Start → Submit -->
+      <path d="M 88,106 H 128" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Submit → Lock -->
+      <path d="M 230,106 H 248 Q 256,106 256,114 V 198 Q 256,206 264,206 H 278" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Lock → Pay Deposit -->
+      <path d="M 382,206 H 400 Q 408,206 408,198 V 114 Q 408,106 416,106 H 430" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Pay Deposit → Paid? -->
+      <path d="M 534,130 V 206 Q 534,214 542,214 H 568" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Paid? YES → Confirm -->
+      <path d="M 648,214 H 678" fill="none" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+      <!-- Paid? NO → Hold Cancel -->
+      <path d="M 608,254 V 268 Q 608,276 616,276 H 678" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Hold Cancel → End timeout -->
+      <path d="M 782,276 H 818" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Confirm → Contract -->
+      <path d="M 782,214 H 818" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Contract → Pay Remaining (Customer) -->
+      <path d="M 900,214 H 916 Q 924,214 924,206 V 114 Q 924,106 932,106 H 948" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Contract → No-show (System alt) -->
+      <path d="M 860,238 V 258" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Confirm also: Customer Cancel alt from CONFIRMED -->
+      <path d="M 730,190 V 78 Q 730,70 738,70 H 788" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Pay Remaining → Check-in -->
+      <path d="M 1052,130 V 330 Q 1052,338 1060,338 H 1098" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Check-in → Inspect (Employee, after stay) -->
+      <path d="M 1202,350 H 1218 Q 1226,350 1226,358 V 458 Q 1226,466 1234,466 H 1268" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Inspect → Inspect OK? -->
+      <path d="M 1372,466 H 1408" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Inspect OK? YES → Check-out -->
+      <path d="M 1488,466 H 1510 Q 1520,466 1520,458 V 358 Q 1520,350 1528,350 H 1588" fill="none" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+      <!-- Inspect OK? NO → Damage Report -->
+      <path d="M 1448,506 V 520" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Damage Report → Approve Fee (Manager; route around Pass? diamond) -->
+      <path d="M 1500,532 H 1548 V 366 H 1500" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Approve → Pay Damage (Customer) -->
+      <path d="M 1448,342 V 130 Q 1448,122 1456,122 H 1482" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Pay Damage → Check-out (merge from top) -->
+      <path d="M 1534,130 V 150 Q 1534,158 1542,158 H 1640 Q 1640,158 1640,166 V 326" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Check-out → End -->
+      <path d="M 1692,350 H 1706" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- No-show → End (left of confirm area) -->
+      <path d="M 910,276 H 818" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Customer Cancel → End (shared release end) -->
+      <path d="M 788,78 H 760 Q 752,78 752,86 V 258 Q 752,276 760,276 H 818" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- ===== ARROW LABELS ===== -->
+      <rect x="448" y="148" width="40" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="468" y="157" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.1em">VNPAY</text>
+
+      <rect x="652" y="198" width="24" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="664" y="207" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.1em">YES</text>
+
+      <rect x="628" y="268" width="20" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="638" y="277" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.1em">NO</text>
+
+      <rect x="744" y="58" width="40" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="764" y="67" fill="#4f5d75" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ALT</text>
+
+      <rect x="868" y="244" width="52" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="894" y="253" fill="#4f5d75" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">NO-SHOW</text>
+
+      <rect x="1068" y="250" width="48" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1092" y="259" fill="#4f5d75" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ARRIVE</text>
+
+      <rect x="1228" y="400" width="40" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1248" y="409" fill="#4f5d75" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STAY</text>
+
+      <rect x="1496" y="450" width="24" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1508" y="459" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.1em">YES</text>
+
+      <rect x="1456" y="508" width="20" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="1466" y="517" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.1em">NO</text>
+
+      <!-- ===== NODES ===== -->
+      <!-- Start -->
+      <circle cx="72" cy="106" r="14" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+      <text x="72" y="134" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">Start</text>
+
+      <!-- Submit Booking -->
+      <rect x="128" y="82" width="102" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="179" y="104" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Submit Booking</text>
+      <text x="179" y="118" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">dates · guests</text>
+
+      <!-- Lock Inventory -->
+      <rect x="278" y="182" width="104" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="330" y="202" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Lock Inventory</text>
+      <text x="330" y="216" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PENDING_DEPOSIT</text>
+
+      <!-- Pay 40% Deposit -->
+      <rect x="430" y="82" width="104" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="482" y="104" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pay 40% Deposit</text>
+      <text x="482" y="118" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">vnpay return</text>
+
+      <!-- Paid? -->
+      <polygon points="608,214 648,238 608,262 568,238" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+      <text x="608" y="241" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Paid?</text>
+
+      <!-- Confirm Booking (focal) -->
+      <rect x="678" y="190" width="104" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="730" y="210" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Confirm Booking</text>
+      <text x="730" y="224" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">CONFIRMED</text>
+
+      <!-- Hold timeout Cancel -->
+      <rect x="678" y="252" width="104" height="48" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="730" y="272" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Hold Timeout</text>
+      <text x="730" y="286" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">CANCELLED · 10m</text>
+
+      <!-- End timeout / cancel / no-show -->
+      <circle cx="840" cy="276" r="14" fill="#ffffff" stroke="#2d3142" stroke-width="3"/>
+      <text x="840" y="304" fill="#4f5d75" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle">End · release</text>
+
+      <!-- Contract -->
+      <path d="M 818,190 H 900 V 226 Q 880,238 860,226 T 818,226 Z" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="859" y="210" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Contract</text>
+      <text x="859" y="224" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">pdf · email</text>
+
+      <!-- No-show job -->
+      <rect x="818" y="248" width="92" height="28" rx="4" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="864" y="266" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">No-show 24h</text>
+
+      <!-- Customer Cancel (alt) — above Confirm -->
+      <rect x="788" y="58" width="118" height="40" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="847" y="76" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Cancel Booking</text>
+      <text x="847" y="90" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">≥7d 100% · 3–7 50% · &lt;3 0%</text>
+
+      <!-- Pay Remaining 60% -->
+      <rect x="948" y="82" width="104" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1000" y="102" fill="#2d3142" font-size="10.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pay Remaining 60%</text>
+      <text x="1000" y="116" fill="#4f5d75" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle">vnpay | cash desk</text>
+
+      <!-- Check-in -->
+      <rect x="1098" y="326" width="104" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1150" y="346" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Check-in</text>
+      <text x="1150" y="360" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">CHECKED_IN · CMND</text>
+
+      <!-- Inspect Room (Employee) -->
+      <rect x="1268" y="442" width="104" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1320" y="462" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Inspect Room</text>
+      <text x="1320" y="476" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PENDING_INSPECTION</text>
+
+      <!-- Inspect OK? -->
+      <polygon points="1448,466 1488,490 1448,514 1408,490" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+      <text x="1448" y="488" fill="#2d3142" font-size="8.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pass?</text>
+      <text x="1448" y="500" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">FR-23</text>
+
+      <!-- Damage Report -->
+      <rect x="1396" y="520" width="104" height="22" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1448" y="535" fill="#2d3142" font-size="9" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Damage Report</text>
+
+      <!-- Approve Damage Fee (Manager) — damage branch only -->
+      <rect x="1396" y="342" width="104" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1448" y="362" fill="#2d3142" font-size="10.5" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Approve Damage</text>
+      <text x="1448" y="376" fill="#4f5d75" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle">fee · &gt;5M admin</text>
+
+      <!-- Pay Damage (Customer) -->
+      <rect x="1482" y="82" width="104" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="1534" y="102" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pay Damage Fee</text>
+      <text x="1534" y="116" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">DAMAGE_FEE · vnpay</text>
+
+      <!-- Check-out -->
+      <rect x="1588" y="326" width="104" height="48" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="1640" y="346" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Check-out</text>
+      <text x="1640" y="360" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">CHECKED_OUT · HK</text>
+
+      <!-- End success -->
+      <circle cx="1720" cy="350" r="14" fill="#ffffff" stroke="#2d3142" stroke-width="3"/>
+      <text x="1720" y="378" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">End</text>
+
+      <!-- ===== LEGEND ===== -->
+      <line x1="36" y1="560" x2="1744" y2="560" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="36" y="580" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <circle cx="44" cy="600" r="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+      <text x="58" y="603" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Start</text>
+
+      <rect x="100" y="595" width="14" height="10" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="122" y="603" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Task</text>
+
+      <polygon points="178,593 188,599 178,605 168,599" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+      <text x="198" y="603" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Decision</text>
+
+      <rect x="268" y="595" width="14" height="10" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="290" y="603" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Focal</text>
+
+      <rect x="340" y="595" width="14" height="10" rx="2" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="362" y="603" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Alt / async (timeout · cancel · no-show)</text>
+
+      <circle cx="588" cy="600" r="6" fill="#ffffff" stroke="#2d3142" stroke-width="2.5"/>
+      <text x="604" y="603" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">End</text>
+
+      <text x="660" y="603" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">Statuses: PENDING_DEPOSIT → CONFIRMED → CHECKED_IN → PENDING_INSPECTION → (PENDING_DAMAGE_PAYMENT) → CHECKED_OUT | CANCELLED | NO_SHOW</text>
+
+      <text x="36" y="632" fill="#4f5d75" font-size="8" font-family="'Geist', sans-serif">
+        Notes: Remaining 60% gate before check-in (VNPay or cash desk). Inspection by Employee at checkout. Damage: report → Manager approve (Admin if &gt;5M) → Customer pays DAMAGE_FEE → checkout. Housekeeping auto after CHECKED_OUT.
+      </text>
+      <text x="36" y="650" fill="#4f5d75" font-size="8" font-family="'Geist', sans-serif">
+        Cancel tiers on deposit only (FR-010). Manager cancel = 100% refund (not drawn). Bank transfer / receipt = out of edu scope (TD-011).
+      </text>
+    </svg>
+  </div>
+</body>
+</html>

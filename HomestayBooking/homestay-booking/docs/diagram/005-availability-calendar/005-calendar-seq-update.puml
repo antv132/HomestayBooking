@@ -1,0 +1,51 @@
+@startuml 005-calendar-seq-update
+title Manager Update Room Status (Manual Block)
+
+actor Manager
+participant "ManagerCalendarController" as Ctrl
+participant "RoomStatusBlockService" as Svc
+database "Database" as DB
+
+Manager -> Ctrl: POST /rooms/{id}/blocks (Maintenance, 1-5 July)
+activate Ctrl
+
+Ctrl -> Svc: addBlock(roomId, request)
+activate Svc
+
+Svc -> DB: findOverlappingBookings(roomId, start, end)
+note right of Svc: Must check half-open overlap\nfor blocking booking statuses
+activate DB
+DB --> Svc: List<Booking>
+deactivate DB
+
+alt Has Active Overlapping Bookings
+    Svc --> Ctrl: throw ConflictException
+    Ctrl --> Manager: 409 Conflict
+else No Overlap
+    alt request.status == AVAILABLE
+        Svc -> DB: findOpenTasksByRoom(roomId)
+        activate DB
+        DB --> Svc: List<HousekeepingTask>
+        deactivate DB
+        
+        alt Has open tasks
+            Svc --> Ctrl: throw ConflictException
+            Ctrl --> Manager: 409 Conflict
+        end
+    else
+        Svc -> Svc: Create RoomStatusBlock entity
+        Svc -> Svc: set active = true
+        
+        Svc -> DB: save(RoomStatusBlock)
+        activate DB
+        DB --> Svc: Entity
+        deactivate DB
+        
+        Svc --> Ctrl: RoomStatusBlockResponse
+        Ctrl --> Manager: 201 Created
+    end
+end
+
+deactivate Svc
+deactivate Ctrl
+@enduml

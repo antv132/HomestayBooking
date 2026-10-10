@@ -1,0 +1,296 @@
+openapi: 3.0.3
+info:
+  title: FR-05 Availability Calendar API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-05 availability calendar endpoints.
+    Screens: SCR-09 (Guest/Customer), SCR-33 (Manager status management).
+    Extends api-spec-by-screen.md SCR-09 with full 8-status day grid.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    RoomCalendarStatus:
+      type: string
+      enum:
+        - AVAILABLE
+        - PENDING_DEPOSIT
+        - RESERVED
+        - OCCUPIED
+        - PENDING_CLEANING
+        - CLEANING_IN_PROGRESS
+        - MAINTENANCE
+        - OUT_OF_SERVICE
+
+    CalendarDay:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        status: { $ref: '#/components/schemas/RoomCalendarStatus' }
+        bookable: { type: boolean }
+
+    CalendarDayManager:
+      allOf:
+        - $ref: '#/components/schemas/CalendarDay'
+        - type: object
+          properties:
+            bookingId: { type: string, format: uuid, nullable: true }
+            blockId: { type: string, format: uuid, nullable: true }
+
+    RoomMonthCalendar:
+      type: object
+      properties:
+        roomId: { type: string, format: uuid }
+        month: { type: integer, minimum: 1, maximum: 12 }
+        year: { type: integer }
+        roomStatus: { $ref: '#/components/schemas/RoomCalendarStatus' }
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarDay'
+        bookedDates:
+          type: array
+          description: FR-03 backward compatibility — dates where bookable is false
+          items:
+            type: string
+            format: date
+
+    ManagerRoomMonthCalendar:
+      allOf:
+        - $ref: '#/components/schemas/RoomMonthCalendar'
+        - type: object
+          properties:
+            days:
+              type: array
+              items:
+                $ref: '#/components/schemas/CalendarDayManager'
+
+    RangeAvailability:
+      type: object
+      properties:
+        available: { type: boolean }
+        bookedRanges:
+          type: array
+          items:
+            type: object
+            properties:
+              checkIn: { type: string, format: date }
+              checkOut: { type: string, format: date }
+              bookingStatus: { type: string }
+
+    UpdateRoomStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [AVAILABLE, MAINTENANCE, OUT_OF_SERVICE]
+        startDate:
+          type: string
+          format: date
+          description: Required for MAINTENANCE and OUT_OF_SERVICE
+        endDate:
+          type: string
+          format: date
+          description: Required for MAINTENANCE and OUT_OF_SERVICE
+        reason:
+          type: string
+          maxLength: 1000
+
+paths:
+  /rooms/{id}/availability:
+    get:
+      tags: [Public Calendar]
+      summary: SCR-09 — Room availability (month or range)
+      description: |
+        Mode 1: `?month=6&year=2026` → full month calendar (FR-05).
+        Mode 2: `?checkIn=&checkOut=` → range availability check (FR-03 compat).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: month
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 12 }
+        - name: year
+          in: query
+          schema: { type: integer }
+        - name: checkIn
+          in: query
+          schema: { type: string, format: date }
+        - name: checkOut
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Month calendar or range result
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        oneOf:
+                          - $ref: '#/components/schemas/RoomMonthCalendar'
+                          - $ref: '#/components/schemas/RangeAvailability'
+        '404':
+          description: Room not found
+
+  /rooms/{id}/calendar:
+    get:
+      tags: [Public Calendar]
+      summary: Legacy calendar — booked ranges (FR-03 compat)
+      description: Returns bookedRanges + roomStatus; prefer /availability?month&year for FR-05.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          roomStatus: { type: string }
+                          bookedRanges:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                checkIn: { type: string, format: date }
+                                checkOut: { type: string, format: date }
+                                bookingStatus: { type: string }
+
+  /manager/rooms/{id}/calendar:
+    get:
+      tags: [Manager Calendar]
+      summary: Manager/Employee — enriched month calendar
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: month
+          in: query
+          required: true
+          schema: { type: integer }
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ManagerRoomMonthCalendar'
+        '403':
+          description: Not assigned to property
+
+  /manager/rooms/{id}/status:
+    patch:
+      tags: [Manager Room Status]
+      summary: SCR-33 — Update room status / create maintenance block
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoomStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccess'
+        '409':
+          description: Booking overlap or housekeeping gate (cannot set Available)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /manager/rooms/{id}/status-blocks:
+    get:
+      tags: [Manager Room Status]
+      summary: List active maintenance/out-of-service blocks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string, format: uuid }
+                            status: { type: string }
+                            startDate: { type: string, format: date }
+                            endDate: { type: string, format: date }
+                            reason: { type: string }

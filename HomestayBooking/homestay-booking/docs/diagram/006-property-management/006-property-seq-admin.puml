@@ -1,0 +1,84 @@
+@startuml 006-property-seq-admin
+title Admin Property Creation & Assignment
+
+actor Admin
+participant "AdminPropertyController" as Ctrl
+participant "PropertyService" as PropSvc
+participant "ManagerAssignmentService" as AssignSvc
+database "Database" as DB
+
+== Create Property ==
+Admin -> Ctrl: POST /api/admin/properties (name, address)
+activate Ctrl
+
+Ctrl -> PropSvc: createProperty(request)
+activate PropSvc
+
+PropSvc -> PropSvc: validate(name, address)
+PropSvc -> Svc: set status = INACTIVE (default)
+
+PropSvc -> DB: save(Property)
+activate DB
+DB --> PropSvc: Property Entity
+deactivate DB
+
+PropSvc --> Ctrl: PropertyResponse
+Ctrl --> Admin: 201 Created
+deactivate PropSvc
+
+== Assign Manager ==
+Admin -> Ctrl: POST /api/admin/properties/{id}/managers (managerId)
+
+Ctrl -> AssignSvc: assignManager(propertyId, managerId, adminId)
+activate AssignSvc
+
+AssignSvc -> DB: findUserById(managerId)
+activate DB
+DB --> AssignSvc: User
+deactivate DB
+
+alt User.role != MANAGER or User.status != ACTIVE
+    AssignSvc --> Ctrl: throw ValidationException
+    Ctrl --> Admin: 400 Bad Request
+else User is Valid Manager
+    AssignSvc -> DB: begin transaction
+    activate DB
+    
+    AssignSvc -> DB: deactivateCurrentAssignment(propertyId)
+    note right of DB: UPDATE assignments\nSET status='INACTIVE'\nWHERE property_id=? AND status='ACTIVE'
+    
+    AssignSvc -> AssignSvc: Create new ManagerPropertyAssignment
+    AssignSvc -> AssignSvc: status = ACTIVE
+    
+    AssignSvc -> DB: save(ManagerPropertyAssignment)
+    
+    AssignSvc -> DB: commit transaction
+    deactivate DB
+    
+    AssignSvc --> Ctrl: AssignmentResponse
+    Ctrl --> Admin: 200 OK
+end
+
+deactivate AssignSvc
+
+== Activate Property ==
+Admin -> Ctrl: PATCH /api/admin/properties/{id}/status (ACTIVE)
+Ctrl -> PropSvc: setStatus(id, ACTIVE)
+activate PropSvc
+
+PropSvc -> DB: count active assignments for propertyId
+activate DB
+DB --> PropSvc: count = 1
+deactivate DB
+
+alt count == 0
+    PropSvc --> Ctrl: throw ConflictException (No Manager)
+    Ctrl --> Admin: 409 Conflict
+else count == 1
+    PropSvc -> DB: update Property SET status='ACTIVE'
+    PropSvc --> Ctrl: Success
+    Ctrl --> Admin: 200 OK
+end
+deactivate PropSvc
+deactivate Ctrl
+@enduml

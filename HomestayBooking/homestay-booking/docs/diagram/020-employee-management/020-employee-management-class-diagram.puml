@@ -1,0 +1,72 @@
+@startuml 020-employee-management-class-diagram
+title Employee Management - Class Diagram
+
+package "Controllers" {
+    class AdminEmployeeV1Controller {
+        + list(propertyId, search, ...) : PageResponse
+        + listUnassigned(...) : PageResponse
+        + assign(...) : EmployeeSummaryResponse
+        + create(...) : EmployeeSummaryResponse
+        + update(...) : EmployeeSummaryResponse
+        + updateStatus(...) : EmployeeSummaryResponse
+        + reassign(...) : EmployeeSummaryResponse
+    }
+    note top of AdminEmployeeV1Controller
+        /api/v1/admin/employees
+        @PreAuthorize("hasRole('ADMIN')")
+    end note
+
+    class ManagerEmployeeV1Controller {
+        + list(propertyId, search, ...) : PageResponse
+        + listUnassigned(...) : PageResponse
+        + assign(...) : EmployeeSummaryResponse
+        + create(...) : EmployeeSummaryResponse
+        + update(...) : EmployeeSummaryResponse
+        + updateStatus(...) : EmployeeSummaryResponse
+    }
+    note top of ManagerEmployeeV1Controller
+        /api/v1/manager/employees
+        @PreAuthorize("hasRole('MANAGER')")
+    end note
+}
+
+package "Services" {
+    class EmployeeManagementService {
+        - assignmentRepository: EmployeePropertyAssignmentRepository
+        - userRepository: UserRepository
+        - propertyRepository: PropertyRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        - emailService: EmailService
+        
+        + listByProperty(...) : PageResponse
+        + listAdmin(...) : PageResponse
+        + listUnassigned(...) : PageResponse
+        + createEmployee(...) : EmployeeSummaryResponse
+        + assignEmployee(...) : EmployeeSummaryResponse
+        + updateEmployee(...) : EmployeeSummaryResponse
+        + updateEmployeeStatus(...) : EmployeeSummaryResponse
+        + reassignEmployee(admin, ...) : EmployeeSummaryResponse
+    }
+}
+
+package "Repositories" {
+    interface EmployeePropertyAssignmentRepository {
+        + findByPropertyIdAndStatusWithSearch(...) : Page
+        + findActiveWithOptionalPropertyAndSearch(...) : Page
+        + findUnassignedEmployees(...) : Page
+        + existsByEmployeeIdAndPropertyIdAndStatus(...) : boolean
+        + findFirstByEmployee_IdAndStatus(...) : Optional
+    }
+    interface UserRepository {
+        + existsByEmail(email) : boolean
+    }
+}
+
+AdminEmployeeV1Controller ..> EmployeeManagementService
+ManagerEmployeeV1Controller ..> EmployeeManagementService
+
+EmployeeManagementService --> EmployeePropertyAssignmentRepository
+EmployeeManagementService --> UserRepository
+EmployeeManagementService --> ReportPropertyScopeValidator
+
+@enduml

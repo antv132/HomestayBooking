@@ -1,0 +1,124 @@
+@startuml 010-contract-seq-view-resend
+title Contract Management - View, Download PDF & Resend Email
+
+actor Customer
+actor Manager
+
+participant "ContractV1Controller\n/ CustomerContractV1Controller" as CustCtrl
+participant "ManagerContractV1Controller\n/ ContractV1Controller" as MgrCtrl
+participant "ContractService" as Svc
+participant "ReportPropertyScopeValidator" as Scope
+database "Database" as DB
+participant "Disk (uploads/)" as Disk
+participant "OutboxPublisher" as Outbox
+
+== Customer: View My Contracts (SCR-21) ==
+Customer -> CustCtrl: GET /api/v1/customers/me/contracts\n?status=&search=&sort=
+activate CustCtrl
+CustCtrl -> Svc: getMyContracts(currentUser, page, size, status, search, sort)
+activate Svc
+Svc -> DB: findByCustomerWithFilters(customerId, status, search, pageable)
+activate DB
+DB --> Svc: Page<Contract>
+deactivate DB
+Svc --> CustCtrl: PageResponse<ContractSummaryResponse>
+deactivate Svc
+CustCtrl --> Customer: 200 OK
+deactivate CustCtrl
+
+== Get Contract Detail (CUSTOMER | MANAGER | ADMIN) ==
+Customer -> CustCtrl: GET /api/v1/contracts/{id}
+activate CustCtrl
+CustCtrl -> Svc: getContractDetail(id, currentUser)
+activate Svc
+Svc -> DB: findById(id) → Contract
+Svc -> Svc: assertCanViewContract(contract, currentUser)
+note right
+  MANAGER → scopeValidator.validateManagerAccess(manager, propertyId)
+  ADMIN → pass
+  CUSTOMER → contract.customer.id == currentUser.id ?
+end note
+alt access denied
+    Svc --> CustCtrl: throw ForbiddenException
+    CustCtrl --> Customer: 403 Forbidden
+else access granted
+    Svc --> CustCtrl: ContractDetailResponse
+    CustCtrl --> Customer: 200 OK
+end
+deactivate Svc
+deactivate CustCtrl
+
+== Download PDF (CUSTOMER | MANAGER | ADMIN) ==
+Customer -> CustCtrl: GET /api/v1/contracts/{id}/pdf
+activate CustCtrl
+CustCtrl -> Svc: downloadContractPdf(id, currentUser)
+activate Svc
+Svc -> DB: findById(id) → Contract
+Svc -> Svc: assertCanViewContract(...)
+Svc -> Svc: loadStoredPdfStrict(contract)
+Svc -> Disk: Files.readAllBytes(uploads/contracts/{id}.pdf)
+activate Disk
+alt file missing
+    Disk --> Svc: IOException / not regular file
+    Svc --> CustCtrl: throw BusinessException\n"File PDF không tìm thấy"
+    CustCtrl --> Customer: 400 Bad Request
+else file exists
+    Disk --> Svc: byte[]
+    deactivate Disk
+    Svc --> CustCtrl: byte[]
+    CustCtrl --> Customer: 200 OK (Content-Type: application/pdf)
+end
+deactivate Svc
+deactivate CustCtrl
+
+== Manager: List Contracts (SCR-38) ==
+Manager -> MgrCtrl: GET /api/v1/managers/contracts\n?propertyId=&status=&search=
+activate MgrCtrl
+MgrCtrl -> Svc: getManagerContracts(manager, propertyId, ...)
+activate Svc
+alt propertyId provided
+    Svc -> Scope: validateManagerAccess(manager, propertyId)
+    Scope -> DB: check ManagerPropertyAssignment
+    activate DB
+    DB --> Scope: OK / throw ForbiddenException
+    deactivate DB
+    Svc -> Svc: propertyIds = [propertyId]
+else no propertyId
+    Svc -> DB: findActivePropertiesByManagerId(managerId)
+    activate DB
+    DB --> Svc: List<Property>
+    deactivate DB
+    Svc -> Svc: propertyIds = [all assigned]
+end
+alt propertyIds empty
+    Svc --> MgrCtrl: empty PageResponse
+else
+    Svc -> DB: findByPropertyIdsWithFilters(propertyIds, status, search, pageable)
+    activate DB
+    DB --> Svc: Page<Contract>
+    deactivate DB
+    Svc --> MgrCtrl: PageResponse<ContractSummaryResponse>
+end
+deactivate Svc
+MgrCtrl --> Manager: 200 OK
+deactivate MgrCtrl
+
+== Manager: Resend Contract Email (FR-009) ==
+Manager -> MgrCtrl: POST /api/v1/managers/contracts/{id}/resend\n{email: "optional@override.com"}
+activate MgrCtrl
+MgrCtrl -> Svc: resendContractEmail(id, currentUser, targetEmail)
+activate Svc
+Svc -> DB: findById(id) → Contract
+Svc -> Scope: validateManagerAccess(currentUser, contract.room.property.id)
+activate Scope
+Scope --> Svc: OK
+deactivate Scope
+Svc -> Outbox: enqueueContractResend(contractId, targetEmail, actorId)
+activate Outbox
+Outbox -> DB: INSERT outbox_events (CONTRACT_RESEND)
+deactivate Outbox
+Svc --> MgrCtrl: void
+deactivate Svc
+MgrCtrl --> Manager: 202 Accepted "Đã xếp hàng gửi lại email hợp đồng"
+deactivate MgrCtrl
+@enduml

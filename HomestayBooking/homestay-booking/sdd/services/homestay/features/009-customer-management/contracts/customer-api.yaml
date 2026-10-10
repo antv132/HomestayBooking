@@ -1,0 +1,266 @@
+openapi: 3.0.3
+info:
+  title: FR-09 Customer Management API
+  version: 1.1.0
+  description: |
+    Homestay Booking — FR-09 Admin Customer Directory (SCR-51).
+    Clarifications 2026-07-23: Total Spend = Payment PAID; Suspend revokes refresh tokens;
+    audit USER_SUSPENDED / USER_ACTIVATED; default list = all statuses; Admin-only.
+    Envelope: { success, message, data }
+    As-is code may still serve /api/admin/users — prefer /api/v1 when implementing.
+
+servers:
+  - url: /api/v1
+  - url: /api
+    description: Legacy prefix currently used by AdminUserController
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    UserStatus:
+      type: string
+      enum: [INACTIVE, ACTIVE, SUSPENDED]
+
+    CustomerSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+        name:
+          type: string
+          deprecated: true
+          description: Alias of fullName for legacy adminApi compat
+        email: { type: string, format: email }
+        phone: { type: string, nullable: true }
+        avatarUrl: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        totalBookings: { type: integer, minimum: 0 }
+        totalSpend:
+          type: number
+          description: SUM(Payment.amount) where status=PAID (all payment types)
+        createdAt: { type: string, format: date-time }
+
+    CustomerPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/CustomerSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    CustomerDetail:
+      allOf:
+        - $ref: '#/components/schemas/CustomerSummary'
+        - type: object
+          properties:
+            outstandingDebt:
+              type: boolean
+              nullable: true
+              description: Read-only; set by damage flow when column exists
+            updatedAt: { type: string, format: date-time }
+
+    CustomerBookingSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        checkInDate: { type: string, format: date }
+        checkOutDate: { type: string, format: date }
+        roomNumber: { type: string }
+        propertyName: { type: string }
+        totalAmount: { type: number }
+        status: { type: string }
+
+    CustomerBookingPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/CustomerBookingSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    UpdateCustomerStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED]
+          description: INACTIVE is never a valid write target for FR-09
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, default: 0 }
+    SizeParam:
+      name: size
+      in: query
+      schema: { type: integer, default: 10 }
+    RoleCustomerParam:
+      name: role
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [CUSTOMER]
+    StatusParam:
+      name: status
+      in: query
+      schema: { $ref: '#/components/schemas/UserStatus' }
+      description: Omit for all statuses (default)
+    SearchParam:
+      name: search
+      in: query
+      schema: { type: string }
+      description: Match on fullName or email
+
+paths:
+  /admin/users:
+    get:
+      summary: SCR-51 — Admin Customer Directory list
+      tags: [Admin Customer]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RoleCustomerParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: sort
+          in: query
+          schema: { type: string, default: 'createdAt,desc' }
+      responses:
+        '200':
+          description: Paginated customer list with aggregates
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CustomerPage' }
+        '403':
+          description: Non-admin role
+
+  /admin/users/{id}:
+    get:
+      summary: SCR-51 — Customer profile detail (read-only)
+      tags: [Admin Customer]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Customer detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CustomerDetail' }
+        '403':
+          description: Not admin or not a customer user
+        '404':
+          description: User not found
+
+  /admin/users/{id}/status:
+    patch:
+      summary: Suspend or activate customer (ACTIVE ↔ SUSPENDED)
+      description: |
+        On SUSPENDED: revoke all refresh tokens for the user.
+        Writes ActivityLog USER_SUSPENDED or USER_ACTIVATED.
+        Rejects INACTIVE current status with 409.
+      tags: [Admin Customer]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCustomerStatusRequest' }
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CustomerDetail' }
+        '409':
+          description: Cannot change status of INACTIVE account
+        '403':
+          description: Not admin or target not CUSTOMER role
+        '404':
+          description: User not found
+
+  /admin/users/{id}/bookings:
+    get:
+      summary: SCR-51 Drawer — Customer booking history
+      tags: [Admin Customer]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Paginated booking history newest first
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CustomerBookingPage' }
+        '403':
+          description: Not admin
+        '404':
+          description: Customer not found

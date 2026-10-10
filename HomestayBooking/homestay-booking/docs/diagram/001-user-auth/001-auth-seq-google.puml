@@ -1,0 +1,65 @@
+@startuml 001-auth-seq-google
+title Google OAuth Login Sequence
+
+actor User
+participant "AuthController" as Ctrl
+participant "AuthService" as Svc
+participant "Google OAuth Server" as Google
+participant "JwtService" as Jwt
+database "Database" as DB
+
+User -> Ctrl: POST /login/google (GoogleRequest)
+activate Ctrl
+
+Ctrl -> Svc: loginWithGoogle(request)
+activate Svc
+
+Svc -> Google: verifyIdToken(googleToken)
+activate Google
+Google --> Svc: GoogleUser(email, name, picture, sub)
+deactivate Google
+
+Svc -> DB: findByEmail(email)
+activate DB
+
+alt User Not Found (First time login)
+    DB --> Svc: null
+    
+    Svc -> Svc: create new User(googleUser)
+    Svc -> Svc: set authProvider = GOOGLE
+    Svc -> Svc: set status = ACTIVE
+    
+    Svc -> DB: save(User)
+    DB --> Svc: User Entity
+else User Found (Existing email)
+    DB --> Svc: User Entity
+    deactivate DB
+    
+    alt authProvider == LOCAL
+        Svc -> Svc: Update User (Link Google ID)
+        Svc -> DB: save(User)
+    end
+end
+
+Svc -> Jwt: generateAccessToken(User)
+activate Jwt
+Jwt --> Svc: accessToken
+deactivate Jwt
+
+Svc -> Jwt: generateRefreshToken(User)
+activate Jwt
+Jwt --> Svc: refreshToken
+deactivate Jwt
+
+Svc -> DB: save(RefreshToken)
+activate DB
+DB --> Svc: void
+deactivate DB
+
+Svc --> Ctrl: AuthResponse(tokens, UserDto)
+
+Ctrl --> User: 200 OK (AuthResponse)
+
+deactivate Svc
+deactivate Ctrl
+@enduml

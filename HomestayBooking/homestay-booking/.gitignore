@@ -1,0 +1,25 @@
+# Homestay Booking System — root ignores
+node_modules/
+dist/
+build/
+target/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+!.env*.template
+uploads/
+*.class
+*.jar
+*.war
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.gradle/
+bin/
+obj/

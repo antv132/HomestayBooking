@@ -1,0 +1,428 @@
+openapi: 3.0.3
+info:
+  title: FR-06 Property Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-06 property management endpoints.
+    Screens: SCR-46 (Admin list), SCR-47 (Create), SCR-48 (Edit),
+    SCR-49 (Assign Manager), SCR-50 (Manager directory — consumed by SCR-49).
+    Manager read: assigned properties only.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    PropertyStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+
+    AssignmentStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+
+    ManagerRef:
+      type: object
+      nullable: true
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+
+    PropertySummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        location:
+          type: string
+          deprecated: true
+          description: Alias of address for api-spec SCR-47 compat
+        description: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/PropertyStatus' }
+        currentManager: { $ref: '#/components/schemas/ManagerRef' }
+        totalFloors: { type: integer, description: Manager list optional aggregate }
+        totalRooms: { type: integer }
+        availableRooms: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PropertyPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertySummary'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    CreatePropertyRequest:
+      type: object
+      required: [name, address]
+      properties:
+        name: { type: string, maxLength: 255 }
+        address: { type: string, maxLength: 500 }
+        location:
+          type: string
+          deprecated: true
+          description: Accepted alias for address (SCR-47 api-spec)
+        description: { type: string, maxLength: 5000 }
+
+    UpdatePropertyRequest:
+      type: object
+      properties:
+        name: { type: string, maxLength: 255 }
+        address: { type: string, maxLength: 500 }
+        description: { type: string, maxLength: 5000 }
+        status: { $ref: '#/components/schemas/PropertyStatus' }
+
+    AssignManagerRequest:
+      type: object
+      required: [managerId]
+      properties:
+        managerId: { type: string, format: uuid }
+
+    ManagerAssignment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        managerId: { type: string, format: uuid }
+        managerName: { type: string }
+        propertyId: { type: string, format: uuid }
+        assignedBy: { type: string, format: uuid }
+        assignedAt: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/AssignmentStatus' }
+
+    PropertyDetailStats:
+      type: object
+      properties:
+        totalFloors: { type: integer }
+        totalRooms: { type: integer }
+        availableRooms: { type: integer }
+        pendingDepositRooms: { type: integer }
+        reservedRooms: { type: integer }
+        occupiedRooms: { type: integer }
+        maintenanceRooms: { type: integer }
+
+    PropertyFloorSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        floorNumber: { type: integer }
+        description: { type: string, nullable: true }
+        roomCount: { type: integer }
+        availableCount: { type: integer }
+
+    PropertyDetail:
+      allOf:
+        - $ref: '#/components/schemas/PropertySummary'
+        - type: object
+          properties:
+            stats: { $ref: '#/components/schemas/PropertyDetailStats' }
+            floors:
+              type: array
+              items:
+                $ref: '#/components/schemas/PropertyFloorSummary'
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, default: 0, minimum: 0 }
+    SizeParam:
+      name: size
+      in: query
+      schema: { type: integer, default: 10, minimum: 1, maximum: 100 }
+    SearchParam:
+      name: search
+      in: query
+      schema: { type: string }
+    StatusFilterParam:
+      name: status
+      in: query
+      schema: { $ref: '#/components/schemas/PropertyStatus' }
+
+paths:
+  /admin/properties:
+    get:
+      summary: SCR-46 — Admin property list
+      tags: [Admin Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/StatusFilterParam'
+      responses:
+        '200':
+          description: Paginated property list with current manager
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertyPage' }
+        '403':
+          description: Not ADMIN
+    post:
+      summary: SCR-47 — Create property
+      tags: [Admin Property]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePropertyRequest' }
+      responses:
+        '201':
+          description: Property created (default INACTIVE)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertySummary' }
+        '400':
+          description: Validation error
+        '403':
+          description: Not ADMIN
+
+  /admin/properties/{id}:
+    get:
+      summary: Admin property detail
+      tags: [Admin Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Property detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertyDetail' }
+        '404':
+          description: Not found
+    put:
+      summary: SCR-48 — Update property
+      tags: [Admin Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePropertyRequest' }
+      responses:
+        '200':
+          description: Updated property
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertySummary' }
+        '409':
+          description: Cannot set ACTIVE without manager assignment
+        '404':
+          description: Not found
+
+  /admin/properties/{id}/manager:
+    patch:
+      summary: SCR-49 — Assign manager to property
+      tags: [Admin Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignManagerRequest' }
+      responses:
+        '200':
+          description: Manager assigned; previous assignment deactivated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ManagerAssignment' }
+        '404':
+          description: Property or manager not found
+        '409':
+          description: Invalid manager role/status
+
+  /admin/properties/{id}/assignments:
+    get:
+      summary: Assignment history for property
+      tags: [Admin Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Paginated assignment history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          content:
+                            type: array
+                            items: { $ref: '#/components/schemas/ManagerAssignment' }
+
+  /admin/users:
+    get:
+      summary: SCR-50 — Manager directory (for SCR-49 picker)
+      tags: [Admin Users]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: role
+          in: query
+          schema: { type: string, enum: [MANAGER] }
+        - name: status
+          in: query
+          schema: { type: string, enum: [ACTIVE] }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Manager user list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+
+  /manager/properties:
+    get:
+      summary: Manager — list assigned properties
+      tags: [Manager Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/StatusFilterParam'
+      responses:
+        '200':
+          description: Properties with ACTIVE assignment for current manager
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertyPage' }
+        '403':
+          description: Not MANAGER
+
+  /manager/properties/{id}:
+    get:
+      summary: Manager — property detail (assigned only)
+      tags: [Manager Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Property detail with stats
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertyDetail' }
+        '403':
+          description: Not assigned to this property
+        '404':
+          description: Not found
+
+  /manager/properties/{id}/detail:
+    get:
+      summary: Manager — rich detail (stats + floors)
+      tags: [Manager Property]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Same as GET /manager/properties/{id} with floors populated when FR-07 exists
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertyDetail' }

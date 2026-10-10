@@ -1,0 +1,62 @@
+@startuml 014-review-seq-lifecycle
+title Review Management - Create & Moderate Lifecycle
+
+actor Customer
+actor Manager
+participant "CustomerReviewController" as CustCtrl
+participant "ReviewService" as ReviewSvc
+participant "RoomRatingAggregateService" as AggSvc
+participant "ManagerReviewController" as MgrCtrl
+participant "ReviewModerationService" as ModSvc
+database "Database" as DB
+
+== 1. Create Review (Customer) ==
+Customer -> CustCtrl: POST /api/v1/reviews/me\n{ bookingId, rating, comment }
+activate CustCtrl
+CustCtrl -> ReviewSvc: submitReview(request, currentUser)
+activate ReviewSvc
+
+ReviewSvc -> DB: find booking with room & customer
+ReviewSvc -> ReviewSvc: check booking.status == CHECKED_OUT
+ReviewSvc -> DB: check existsByBooking_Id
+alt exists
+    ReviewSvc --> CustCtrl: throw ConflictException
+    CustCtrl --> Customer: 409 Conflict
+else not exists
+    ReviewSvc -> ReviewSvc: validate comment (20-1000 chars)
+    ReviewSvc -> DB: INSERT reviews (rating, comment, status=PUBLISHED)
+    ReviewSvc -> AggSvc: recalculate(roomId)
+    activate AggSvc
+    AggSvc -> DB: calculate AVG(rating) & COUNT(1) where status=PUBLISHED
+    AggSvc -> DB: UPDATE rooms SET average_rating=..., total_reviews=...
+    deactivate AggSvc
+    ReviewSvc -> DB: ActivityLog (REVIEW_CREATED)
+    ReviewSvc --> CustCtrl: MyReviewResponse
+    CustCtrl --> Customer: 201 Created
+end
+deactivate ReviewSvc
+deactivate CustCtrl
+
+== 2. Moderate Review (Manager) ==
+Manager -> MgrCtrl: PATCH /api/v1/manager/reviews/{id}/moderate\n{ status: "HIDDEN" }
+activate MgrCtrl
+MgrCtrl -> ModSvc: moderateForManager(reviewId, request, manager)
+activate ModSvc
+
+ModSvc -> DB: find review
+ModSvc -> DB: validate manager scope (propertyId)
+ModSvc -> DB: UPDATE reviews SET status="HIDDEN", moderated_by=..., moderated_at=NOW()
+
+ModSvc -> AggSvc: recalculate(roomId)
+activate AggSvc
+note right: Hidden reviews are excluded\nfrom average & count.
+AggSvc -> DB: calculate AVG(rating) & COUNT(1) where status=PUBLISHED
+AggSvc -> DB: UPDATE rooms SET average_rating=..., total_reviews=...
+deactivate AggSvc
+
+ModSvc -> DB: ActivityLog (REVIEW_HIDDEN)
+ModSvc --> MgrCtrl: ModerationReviewResponse
+deactivate ModSvc
+MgrCtrl --> Manager: 200 OK
+deactivate MgrCtrl
+@enduml

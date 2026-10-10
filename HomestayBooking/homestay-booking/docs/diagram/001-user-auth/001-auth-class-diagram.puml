@@ -1,0 +1,101 @@
+@startuml 001-auth-class-diagram
+title Auth Service - Class Diagram
+
+package "Controllers" {
+    class AuthController {
+        + register(RegisterRequest) : 201 Created
+        + verifyOtp(VerifyOtpRequest) : AuthResponse
+        + login(LoginRequest) : AuthResponse
+        + loginWithGoogle(GoogleRequest) : AuthResponse
+        + refreshToken(RefreshRequest) : AuthResponse
+        + logout(LogoutRequest) : 204 No Content
+        + requestPasswordReset(ForgotRequest) : 200 OK
+        + resetPassword(ResetPasswordRequest) : 200 OK
+    }
+}
+
+package "Services" {
+    class AuthService {
+        - userRepository: UserRepository
+        - refreshTokenRepository: RefreshTokenRepository
+        - jwtService: JwtService
+        - emailService: EmailService
+        + registerUser(request) : User
+        + verifyOtp(request) : AuthResponse
+        + login(request) : AuthResponse
+        + loginWithGoogle(request) : AuthResponse
+        + refreshToken(token) : AuthResponse
+        + logout(token) : void
+    }
+
+    class JwtService {
+        + generateAccessToken(User) : String
+        + generateRefreshToken(User) : String
+        + validateToken(String) : boolean
+        + extractUserId(String) : String
+    }
+
+    class EmailService {
+        + sendOtpEmail(email, code) : void
+        + sendResetEmail(email, link) : void
+    }
+}
+
+package "Repositories" {
+    interface UserRepository {
+        + findByEmail(email: String) : User
+        + findByGoogleId(id: String) : User
+        + save(user: User) : User
+    }
+
+    interface RefreshTokenRepository {
+        + findByTokenHash(hash) : RefreshToken
+        + revokeAllUserTokens(user) : void
+        + save(token: RefreshToken) : void
+    }
+}
+
+package "Entities" {
+    class User {
+        - id : UUID
+        - email : String
+        - password_hash : String
+        - role : RoleEnum
+        - status : StatusEnum
+        - google_id : String
+        - email_verified : boolean
+    }
+
+    class RefreshToken {
+        - id : UUID
+        - token_hash : String
+        - expires_at : Timestamp
+    }
+
+    class OtpVerification {
+        - id : UUID
+        - otp_hash : String
+        - expires_at : Timestamp
+    }
+
+    class PasswordResetToken {
+        - id : UUID
+        - token_hash : String
+        - expires_at : Timestamp
+    }
+}
+
+' Relationships
+AuthController ..> AuthService : Uses
+AuthService --> JwtService
+AuthService --> EmailService
+AuthService --> UserRepository
+AuthService --> RefreshTokenRepository
+
+UserRepository ..> User : Returns
+RefreshTokenRepository ..> RefreshToken : Returns
+
+User "1" -- "0..N" RefreshToken
+User "1" -- "0..N" OtpVerification
+User "1" -- "0..N" PasswordResetToken
+@enduml

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Management · Class Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1400px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 1200px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Class Diagram · 008 Room Management</p>
+    <h1>Room Management Architecture</h1>
+
+    <svg viewBox="0 0 1400 960" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+        </pattern>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+        </marker>
+        <marker id="arrow-dashed" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+        </marker>
+        <marker id="arrow-acc" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+        </marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+      <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+      <!-- ═══════════════════════════════════════
+           RELATIONSHIPS
+      ═══════════════════════════════════════ -->
+
+      <!-- Controllers → Services (dashed) -->
+      <line x1="260" y1="200" x2="260" y2="290" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+      <line x1="900" y1="200" x2="900" y2="290" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+
+      <!-- Services → Repositories -->
+      <line x1="260" y1="450" x2="260" y2="530" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- RoomService also uses BookingRepository (cross) -->
+      <line x1="350" y1="410" x2="740" y2="530" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-dashed)"/>
+      <!-- RoomService uses FloorRepository (cross right) -->
+      <line x1="350" y1="390" x2="1060" y2="530" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-dashed)"/>
+      <!-- RoomImageService → RoomImageRepository -->
+      <line x1="900" y1="450" x2="900" y2="530" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Repositories → Entities (dashed) -->
+      <line x1="260" y1="600" x2="260" y2="680" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+      <line x1="900" y1="600" x2="900" y2="680" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+
+      <!-- Room 1..* RoomImage -->
+      <line x1="380" y1="800" x2="680" y2="800" stroke="#4f5d75" stroke-width="1.2"/>
+      <rect x="360" y="792" width="16" height="14" rx="2" fill="#f5f5f5"/>
+      <text x="368" y="803" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+      <rect x="680" y="792" width="16" height="14" rx="2" fill="#f5f5f5"/>
+      <text x="688" y="803" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">*</text>
+
+      <!-- ═══════════════════════════════════════
+           LAYER LABELS
+      ═══════════════════════════════════════ -->
+      <text x="40" y="145" fill="rgba(45,49,66,0.28)" font-size="9" font-family="'Geist Mono',monospace" letter-spacing="0.18em" text-transform="uppercase">CONTROLLERS</text>
+      <text x="40" y="365" fill="rgba(45,49,66,0.28)" font-size="9" font-family="'Geist Mono',monospace" letter-spacing="0.18em" text-transform="uppercase">SERVICES</text>
+      <text x="40" y="545" fill="rgba(45,49,66,0.28)" font-size="9" font-family="'Geist Mono',monospace" letter-spacing="0.18em" text-transform="uppercase">REPOSITORIES</text>
+      <text x="40" y="695" fill="rgba(45,49,66,0.28)" font-size="9" font-family="'Geist Mono',monospace" letter-spacing="0.18em" text-transform="uppercase">ENTITIES</text>
+
+      <!-- ═══════════════════════════════════════
+           CONTROLLER: RoomController
+      ═══════════════════════════════════════ -->
+      <rect x="80" y="60" width="360" height="140" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="80" y="60" width="360" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <rect x="80" y="92" width="360" height="8" fill="rgba(45,49,66,0.04)"/>
+      <line x1="80" y1="100" x2="440" y2="100" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="96" y="76" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«REST CONTROLLER»</text>
+      <text x="96" y="92" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RoomController</text>
+      <text x="96" y="120" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ getRooms(filter, page) : Page&lt;RoomSummary&gt;</text>
+      <text x="96" y="138" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ getRoomDetail(roomId) : RoomDetailResponse</text>
+      <text x="96" y="156" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ createRoom(propertyId, req) : RoomResponse</text>
+      <text x="96" y="174" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ updateRoom(roomId, req) : RoomResponse</text>
+      <text x="96" y="192" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ deleteRoom(roomId) : Response</text>
+
+      <!-- CONTROLLER: RoomGalleryController -->
+      <rect x="680" y="60" width="380" height="140" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="680" y="60" width="380" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <rect x="680" y="92" width="380" height="8" fill="rgba(45,49,66,0.04)"/>
+      <line x1="680" y1="100" x2="1060" y2="100" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="696" y="76" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«REST CONTROLLER»</text>
+      <text x="696" y="92" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RoomGalleryController</text>
+      <text x="696" y="120" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ getImages(roomId) : List&lt;RoomImage&gt;</text>
+      <text x="696" y="138" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ uploadImage(roomId, file) : RoomImage</text>
+      <text x="696" y="156" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ deleteImage(imageId) : Response</text>
+      <text x="696" y="174" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ setPrimaryImage(imageId) : Response</text>
+      <text x="696" y="192" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ reorderImages(roomId, orderList) : Response</text>
+
+      <!-- ═══════════════════════════════════════
+           SERVICE: RoomService (focal)
+      ═══════════════════════════════════════ -->
+      <rect x="80" y="290" width="360" height="160" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+      <rect x="80" y="290" width="360" height="40" rx="6" fill="rgba(235,108,54,0.10)" stroke="none"/>
+      <rect x="80" y="322" width="360" height="8" fill="rgba(235,108,54,0.10)"/>
+      <line x1="80" y1="330" x2="440" y2="330" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+      <text x="96" y="306" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«SERVICE»</text>
+      <text x="96" y="322" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RoomService</text>
+      <text x="96" y="350" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">- roomRepository : RoomRepository</text>
+      <text x="96" y="366" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">- bookingRepository : BookingRepository</text>
+      <text x="96" y="382" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">- floorRepository : FloorRepository</text>
+      <line x1="80" y1="394" x2="440" y2="394" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text x="96" y="412" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ createRoom(req) : Room</text>
+      <text x="96" y="428" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ updateRoom(roomId, req) : Room</text>
+      <text x="96" y="444" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ softDelete(roomId) : void</text>
+
+      <!-- SERVICE: RoomImageService -->
+      <rect x="680" y="290" width="380" height="160" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="680" y="290" width="380" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <rect x="680" y="322" width="380" height="8" fill="rgba(45,49,66,0.04)"/>
+      <line x1="680" y1="330" x2="1060" y2="330" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="696" y="306" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«SERVICE»</text>
+      <text x="696" y="322" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RoomImageService</text>
+      <text x="696" y="350" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">- imageRepository : RoomImageRepository</text>
+      <line x1="680" y1="362" x2="1060" y2="362" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+      <text x="696" y="382" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ uploadImage(roomId, file) : RoomImage</text>
+      <text x="696" y="400" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ deleteImage(imageId) : void</text>
+      <text x="696" y="418" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ setPrimary(imageId) : void</text>
+      <text x="696" y="436" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ reorder(roomId, orderList) : void</text>
+
+      <!-- ═══════════════════════════════════════
+           REPOSITORIES
+      ═══════════════════════════════════════ -->
+
+      <!-- RoomRepository -->
+      <rect x="80" y="530" width="380" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="80" y="530" width="380" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <rect x="80" y="562" width="380" height="8" fill="rgba(45,49,66,0.04)"/>
+      <line x1="80" y1="570" x2="460" y2="570" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="96" y="546" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«INTERFACE»</text>
+      <text x="96" y="562" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RoomRepository</text>
+      <text x="96" y="588" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">+ searchActiveRooms(propertyId, floorId, status) : Page&lt;Room&gt;</text>
+      <text x="96" y="604" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">+ existsByPropertyIdAndRoomNumberAndDeletedAtIsNull(...) : boolean</text>
+
+      <!-- BookingRepository (external/dashed) -->
+      <rect x="500" y="530" width="240" height="64" rx="6" fill="rgba(45,49,66,0.02)" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,4"/>
+      <rect x="500" y="530" width="240" height="36" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <line x1="500" y1="566" x2="740" y2="566" stroke="rgba(45,49,66,0.18)" stroke-width="0.8"/>
+      <text x="516" y="546" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«INTERFACE / FR-04»</text>
+      <text x="516" y="560" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">BookingRepository</text>
+      <text x="516" y="582" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">+ countActiveOrBlockingBookings(...)</text>
+
+      <!-- FloorRepository (external/dashed) -->
+      <rect x="780" y="530" width="280" height="64" rx="6" fill="rgba(45,49,66,0.02)" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,4"/>
+      <rect x="780" y="530" width="280" height="36" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <line x1="780" y1="566" x2="1060" y2="566" stroke="rgba(45,49,66,0.18)" stroke-width="0.8"/>
+      <text x="796" y="546" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«INTERFACE / FR-07»</text>
+      <text x="796" y="560" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">FloorRepository</text>
+      <text x="796" y="582" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">+ findByIdAndPropertyId(floorId, propertyId)</text>
+
+      <!-- RoomImageRepository -->
+      <rect x="680" y="530" width="380" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="680" y="530" width="380" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <rect x="680" y="562" width="380" height="8" fill="rgba(45,49,66,0.04)"/>
+      <line x1="680" y1="570" x2="1060" y2="570" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="696" y="546" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«INTERFACE»</text>
+      <text x="696" y="562" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RoomImageRepository</text>
+      <text x="696" y="588" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">+ countByRoomId(roomId) : int</text>
+      <text x="696" y="604" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">+ findByRoomIdOrderBySortOrder(roomId) : List&lt;RoomImage&gt;</text>
+
+      <!-- ═══════════════════════════════════════
+           ENTITIES
+      ═══════════════════════════════════════ -->
+
+      <!-- Room (focal) -->
+      <rect x="80" y="680" width="340" height="200" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+      <rect x="80" y="680" width="340" height="40" rx="6" fill="rgba(235,108,54,0.10)" stroke="none"/>
+      <rect x="80" y="712" width="340" height="8" fill="rgba(235,108,54,0.10)"/>
+      <line x1="80" y1="720" x2="420" y2="720" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+      <text x="96" y="696" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«ENTITY»</text>
+      <text x="96" y="712" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">Room</text>
+      <text x="96" y="740" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- id : UUID</text>
+      <text x="96" y="758" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- property_id : UUID</text>
+      <text x="96" y="776" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- floor_id : UUID</text>
+      <text x="96" y="794" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- room_number : String</text>
+      <text x="96" y="812" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- status : String  [default: AVAILABLE]</text>
+      <text x="96" y="830" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- price_per_night : decimal</text>
+      <text x="96" y="848" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- capacity : int</text>
+      <text x="96" y="866" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- deleted_at : Date  [soft-delete]</text>
+
+      <!-- RoomImage -->
+      <rect x="700" y="680" width="320" height="180" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="700" y="680" width="320" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+      <rect x="700" y="712" width="320" height="8" fill="rgba(45,49,66,0.04)"/>
+      <line x1="700" y1="720" x2="1020" y2="720" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="716" y="696" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«ENTITY»</text>
+      <text x="716" y="712" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RoomImage</text>
+      <text x="716" y="740" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- id : UUID</text>
+      <text x="716" y="758" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- room_id : UUID</text>
+      <text x="716" y="776" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- image_url : String</text>
+      <text x="716" y="794" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- is_primary : boolean  [max 1 per room]</text>
+      <text x="716" y="812" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- sort_order : int</text>
+      <text x="716" y="838" fill="#7a8399" font-size="10" font-family="'Geist Mono', monospace">max 10 images per room_id</text>
+
+      <!-- Note: RoomController validates scope via @PropertyAccessValidator -->
+      <rect x="1100" y="80" width="260" height="80" rx="4" fill="#fffbe8" stroke="#e8c84a" stroke-width="1"/>
+      <text x="1114" y="100" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" font-weight="600">NOTE</text>
+      <text x="1114" y="118" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">@PropertyAccessValidator</text>
+      <text x="1114" y="134" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">applied at Controller layer</text>
+      <text x="1114" y="150" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">on all mutating endpoints</text>
+
+      <!-- Note: soft-delete guard -->
+      <rect x="1100" y="400" width="260" height="80" rx="4" fill="#fffbe8" stroke="#e8c84a" stroke-width="1"/>
+      <text x="1114" y="420" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" font-weight="600">SOFT-DELETE GUARD</text>
+      <text x="1114" y="438" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">countActiveOrBlockingBookings</text>
+      <text x="1114" y="454" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">must == 0 to allow delete.</text>
+      <text x="1114" y="470" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">Statuses: PENDING_DEPOSIT,</text>
+      <text x="1114" y="486" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">CONFIRMED, CHECKED_IN...</text>
+
+    </svg>
+  </div>
+</body>
+</html>

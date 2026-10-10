@@ -1,0 +1,40 @@
+{
+  "folders": [
+    {
+      "name": "Backend",
+      "path": "Backend"
+    },
+    {
+      "name": "Frontend",
+      "path": "Frontend"
+    },
+    {
+      "name": "Root",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.maven.enabled": true,
+    "java.import.gradle.enabled": false,
+    "java.configuration.runtimes": [
+      {
+        "name": "JavaSE-17",
+        "path": "C:\\Program Files\\Java\\jdk-17",
+        "default": true
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "java",
+        "name": "HomestayApplication",
+        "request": "launch",
+        "mainClass": "com.homestay.HomestayApplication",
+        "projectName": "homestay-backend"
+      }
+    ]
+  }
+}

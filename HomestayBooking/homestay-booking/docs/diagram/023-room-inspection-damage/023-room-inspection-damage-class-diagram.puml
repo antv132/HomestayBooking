@@ -1,0 +1,77 @@
+@startuml 023-room-inspection-damage-class-diagram
+title Room Inspection & Damage - Class Diagram
+
+package "Controllers" {
+    class ManagerInspectionV1Controller {
+        + listForManager(manager, ...) : PageResponse
+        + assignInspector(manager, ...) : InspectionSummaryResponse
+    }
+    note top of ManagerInspectionV1Controller
+        /api/v1/manager/inspections
+        @PreAuthorize("hasRole('MANAGER')")
+    end note
+
+    class EmployeeInspectionController {
+        + listActiveChecklistItems() : List
+        + list(employee, ...) : PageResponse
+        + pass(employee, inspectionId, req) : ApiResponse
+        + fail(employee, inspectionId, req) : ApiResponse
+    }
+    note top of EmployeeInspectionController
+        /api/v1/employee/inspections
+        @PreAuthorize("hasRole('EMPLOYEE')")
+    end note
+}
+
+package "Services" {
+    class RoomInspectionManagerService {
+        - inspectionRepository: RoomInspectionRepository
+        - employeeAssignmentRepository: EmployeePropertyAssignmentRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        + listForManager(...) : PageResponse
+        + assignInspector(...) : InspectionSummaryResponse
+    }
+
+    class EmployeeInspectionService {
+        - roomInspectionRepository: RoomInspectionRepository
+        - checklistItemDefinitionRepository: ChecklistItemDefinitionRepository
+        - checklistAnswerRepository: InspectionChecklistAnswerRepository
+        + list(...) : PageResponse
+        + listActiveChecklistItems() : List
+        + pass(...) : void
+        + fail(...) : void
+        - persistAnswers(...) : List<InspectionChecklistAnswer>
+    }
+    
+    class EmployeeDamageReportService {
+        + createReport(...) : DamageReportResponse
+    }
+}
+
+package "Repositories" {
+    interface RoomInspectionRepository {
+        + findForManagerBoard(...) : Page
+        + findForEmployee(...) : Page
+        + findByIdAndPropertyIdIn(...) : Optional
+    }
+    
+    interface ChecklistItemDefinitionRepository {
+        + findByIsActiveTrueAndPropertyIsNullOrderBySortOrderAsc() : List
+    }
+    
+    interface InspectionChecklistAnswerRepository {
+        + deleteByInspectionId(...) : void
+        + save(...) : InspectionChecklistAnswer
+    }
+}
+
+ManagerInspectionV1Controller ..> RoomInspectionManagerService
+EmployeeInspectionController ..> EmployeeInspectionService
+EmployeeInspectionController ..> EmployeeDamageReportService
+
+RoomInspectionManagerService --> RoomInspectionRepository
+EmployeeInspectionService --> RoomInspectionRepository
+EmployeeInspectionService --> ChecklistItemDefinitionRepository
+EmployeeInspectionService --> InspectionChecklistAnswerRepository
+
+@enduml

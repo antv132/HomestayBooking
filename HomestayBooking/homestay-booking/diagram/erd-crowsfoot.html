@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homestay ERD — Crow's Foot Notation (29 Entities)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f5f5f5;
+      --ink: #2d3142;
+      --muted: #4f5d75;
+      --soft: #7a8399;
+      --accent: #eb6c36;
+      --line: #4f5d75;
+    }
+    body {
+      margin: 0;
+      padding: 28px 20px 48px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { max-width: 1560px; margin: 0 auto 20px; }
+    .eyebrow {
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 2.1rem;
+      font-weight: 400;
+      margin: 0 0 10px;
+      line-height: 1.15;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 960px;
+      margin: 0;
+    }
+    .diagram-container {
+      max-width: 1560px;
+      margin: 0 auto;
+      overflow-x: auto;
+      background: #fff;
+      border: 1px solid rgba(45,49,66,0.1);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    svg { display: block; width: 100%; min-width: 1540px; height: auto; }
+    .notes {
+      max-width: 1560px;
+      margin: 20px auto 0;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid rgba(45,49,66,0.1);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .card h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      margin: 0 0 10px;
+    }
+    .card p, .card li {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin: 0 0 6px;
+    }
+    .card ul { margin: 0; padding-left: 18px; }
+    code { font-family: 'Geist Mono', monospace; font-size: 11px; }
+    @media (max-width: 900px) {
+      .notes { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Crow's Foot Notation · Information Engineering</div>
+    <h1>Homestay Full ERD (29 Entities)</h1>
+    <p class="subtitle">
+      Chuẩn Crow's Foot: thực thể = hình chữ nhật (danh từ); thuộc tính liệt kê trong hộp;
+      <strong>PK gạch chân</strong>; FK đánh dấu <code>FK</code>; mối quan hệ = đường nối +
+      ký hiệu lực lượng ( | một · O tùy chọn · &lt; crow's foot nhiều ).
+      Quan hệ N–N đã rã thành bảng liên kết (<code>ManagerPropertyAssignment</code>, <code>EmployeePropertyAssignment</code>).
+    </p>
+  </header>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 1540 1780" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Crow's foot: many -->
+        <marker id="cf-many" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M1,1 L13,7 L1,13" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13,1 L13,13" fill="none" stroke="#4f5d75" stroke-width="1.4"/>
+        </marker>
+        <!-- Exactly one: double bar -->
+        <marker id="cf-one" markerWidth="10" markerHeight="14" refX="8" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M4,1 L4,13 M8,1 L8,13" fill="none" stroke="#4f5d75" stroke-width="1.4"/>
+        </marker>
+        <!-- Zero or one: circle + bar -->
+        <marker id="cf-zero-one" markerWidth="16" markerHeight="14" refX="15" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+          <circle cx="5" cy="7" r="3.2" fill="#fff" stroke="#4f5d75" stroke-width="1.3"/>
+          <path d="M11,1 L11,13" fill="none" stroke="#4f5d75" stroke-width="1.4"/>
+        </marker>
+        <!-- Zero or many: circle + crow -->
+        <marker id="cf-zero-many" markerWidth="18" markerHeight="14" refX="17" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+          <circle cx="4" cy="7" r="3" fill="#fff" stroke="#4f5d75" stroke-width="1.3"/>
+          <path d="M9,1 L17,7 L9,13" fill="none" stroke="#4f5d75" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M17,1 L17,13" fill="none" stroke="#4f5d75" stroke-width="1.3"/>
+        </marker>
+        <!-- One or many: bar + crow -->
+        <marker id="cf-one-many" markerWidth="16" markerHeight="14" refX="15" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M3,1 L3,13" fill="none" stroke="#4f5d75" stroke-width="1.4"/>
+          <path d="M6,1 L15,7 L6,13" fill="none" stroke="#4f5d75" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M15,1 L15,13" fill="none" stroke="#4f5d75" stroke-width="1.3"/>
+        </marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#ffffff"/>
+
+      <!-- Cluster frames -->
+      <rect x="20" y="48" width="280" height="760" rx="8" fill="#fafafa" stroke="rgba(45,49,66,0.08)"/>
+      <rect x="316" y="48" width="280" height="920" rx="8" fill="#fafafa" stroke="rgba(45,49,66,0.08)"/>
+      <rect x="612" y="48" width="300" height="1000" rx="8" fill="#fff8f4" stroke="rgba(235,108,54,0.2)"/>
+      <rect x="928" y="48" width="300" height="1220" rx="8" fill="#fafafa" stroke="rgba(45,49,66,0.08)"/>
+      <rect x="1244" y="48" width="260" height="420" rx="8" fill="#fafafa" stroke="rgba(45,49,66,0.08)"/>
+
+      <g font-family="'Geist Mono', monospace" font-size="9" fill="#7a8399" letter-spacing="0.08em">
+        <text x="36" y="70">A · AUTH / USER</text>
+        <text x="332" y="70">B · PROPERTY STRUCTURE</text>
+        <text x="628" y="70">C · BOOKING / BILLING</text>
+        <text x="944" y="70">D · OPERATIONS</text>
+        <text x="1260" y="70">E · INFRA / CMS</text>
+      </g>
+
+      <!-- ========== Relationship lines (Crow's Foot) ========== -->
+      <g fill="none" stroke="#4f5d75" stroke-width="1.15">
+        <!-- User ||--o{ Booking : places -->
+        <path d="M 280,150 H 300 V 180 H 612" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+        <text x="430" y="172" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace">places</text>
+
+        <!-- User ||--o{ RefreshToken -->
+        <path d="M 150,196 V 220" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+        <text x="156" y="214" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">has</text>
+
+        <!-- User ||--o{ Notification -->
+        <path d="M 150,316 V 340" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- Property ||--|{ Floor -->
+        <path d="M 456,176 V 200" marker-start="url(#cf-one)" marker-end="url(#cf-one-many)"/>
+        <text x="462" y="194" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">contains</text>
+
+        <!-- Floor ||--|{ Room -->
+        <path d="M 456,296 V 320" marker-start="url(#cf-one)" marker-end="url(#cf-one-many)"/>
+        <text x="462" y="314" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">has</text>
+
+        <!-- Room ||--o{ Booking -->
+        <path d="M 576,380 H 600 V 220 H 612" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+        <text x="582" y="360" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">reserved_as</text>
+
+        <!-- Room ||--o{ RoomImage -->
+        <path d="M 456,448 V 472" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- Room ||--o{ RoomStatusBlock -->
+        <path d="M 456,568 V 592" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- User }o--o{ Property via MgrAssign -->
+        <path d="M 280,280 H 300 V 720 H 332" marker-start="url(#cf-zero-many)" marker-end="url(#cf-one)"/>
+        <text x="250" y="500" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" transform="rotate(-90 250 500)">assigned_via</text>
+
+        <!-- Booking ||--o{ Payment -->
+        <path d="M 762,264 V 300" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+        <text x="768" y="290" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">pays</text>
+
+        <!-- Booking ||--o{ Invoice -->
+        <path d="M 762,428 V 460" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- Booking ||--o| Contract -->
+        <path d="M 762,572 V 600" marker-start="url(#cf-one)" marker-end="url(#cf-zero-one)"/>
+        <text x="768" y="592" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">generates</text>
+
+        <!-- Booking ||--o| Review -->
+        <path d="M 762,712 V 740" marker-start="url(#cf-one)" marker-end="url(#cf-zero-one)"/>
+
+        <!-- Booking ||--o| RoomInspection -->
+        <path d="M 892,180 H 920 V 520 H 928" marker-start="url(#cf-one)" marker-end="url(#cf-zero-one)"/>
+        <text x="900" y="400" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" transform="rotate(90 900 400)">inspected_by</text>
+
+        <!-- Booking ||--o{ MaintenanceTicket -->
+        <path d="M 892,200 H 910 V 240 H 928" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- Booking ||--o{ HousekeepingTask -->
+        <path d="M 892,160 H 910 V 120 H 928" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- Booking ||--o{ BookingCheckVerification -->
+        <path d="M 700,264 H 680 V 900 H 700 V 920" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+        <!-- simplify: vertical under booking cluster -->
+        <path d="M 700,860 V 920" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- RoomInspection ||--o| DamageReport -->
+        <path d="M 1078,648 V 680" marker-start="url(#cf-one)" marker-end="url(#cf-zero-one)"/>
+        <text x="1084" y="670" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">reports</text>
+
+        <!-- DamageReport ||--|{ DamageItem -->
+        <path d="M 1078,808 V 840" marker-start="url(#cf-one)" marker-end="url(#cf-one-many)"/>
+        <text x="1084" y="830" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">includes</text>
+
+        <!-- RoomInspection ||--o{ ChecklistAnswer -->
+        <path d="M 1078,648 H 1100 V 620 H 1078" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)" opacity="0"/>
+        <path d="M 1000,648 V 620" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- ChecklistItemDefinition ||--o{ Answer -->
+        <path d="M 1078,440 V 520" marker-start="url(#cf-one)" marker-end="url(#cf-zero-many)"/>
+
+        <!-- Invoice ||--o{ Payment (optional) -->
+        <path d="M 850,520 H 880 V 380 H 850" marker-start="url(#cf-zero-one)" marker-end="url(#cf-zero-many)" stroke-dasharray="4 3"/>
+        <text x="856" y="450" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace">settles</text>
+      </g>
+
+      <!-- ========== ENTITY BOXES ========== -->
+      <!-- Helper pattern: title bar + attrs. PK underlined via text-decoration in SVG = separate line under text -->
+
+      <!-- A1 User -->
+      <g transform="translate(36,88)">
+        <rect width="248" height="108" rx="4" fill="#fff" stroke="#2d3142" stroke-width="1.2"/>
+        <rect width="248" height="24" rx="4" fill="#2d3142"/>
+        <rect y="12" width="248" height="12" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">User</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace" text-decoration="underline">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142" stroke-width="1"/>
+        <text x="10" y="58" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">email · full_name · phone</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">role · status</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">password_hash · google_id · otp_*</text>
+        <text x="200" y="16" fill="rgba(255,255,255,0.7)" font-size="8" font-family="'Geist Mono', monospace">STRONG</text>
+      </g>
+
+      <!-- A2 RefreshToken -->
+      <g transform="translate(36,220)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">RefreshToken</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  user_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">token · expires_at · revoked_at</text>
+        <text x="188" y="16" fill="rgba(255,255,255,0.7)" font-size="8" font-family="'Geist Mono', monospace">WEAK*</text>
+      </g>
+
+      <!-- A3 Notification -->
+      <g transform="translate(36,332)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Notification</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  user_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">type(Enum) · title · content · is_read</text>
+      </g>
+
+      <!-- A4 ActivityLog -->
+      <g transform="translate(36,444)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">ActivityLog</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  user_id (null)</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">action · entity_type/id</text>
+      </g>
+
+      <!-- A5 Complaint -->
+      <g transform="translate(36,556)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Complaint</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  user_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">subject · status</text>
+      </g>
+
+      <!-- A6 SystemSetting -->
+      <g transform="translate(36,668)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">SystemSetting</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">setting_key · setting_value</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  updated_by</text>
+      </g>
+
+      <!-- B1 Property -->
+      <g transform="translate(332,88)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142" stroke-width="1.2"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Property</text>
+        <text x="188" y="16" fill="rgba(255,255,255,0.7)" font-size="8" font-family="'Geist Mono', monospace">STRONG</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">name · address · status</text>
+        <text x="10" y="74" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace">(no manager_id column)</text>
+      </g>
+
+      <!-- B2 Floor -->
+      <g transform="translate(332,200)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Floor</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  property_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">floor_number</text>
+      </g>
+
+      <!-- B3 Room -->
+      <g transform="translate(332,320)">
+        <rect width="248" height="120" rx="4" fill="#fff" stroke="#2d3142" stroke-width="1.2"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Room</text>
+        <text x="188" y="16" fill="rgba(255,255,255,0.7)" font-size="8" font-family="'Geist Mono', monospace">STRONG</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  property_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  floor_id</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">room_number · room_type · capacity</text>
+        <text x="10" y="106" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">price_per_night · status · avg_rating</text>
+      </g>
+
+      <!-- B4 RoomImage -->
+      <g transform="translate(332,464)">
+        <rect width="248" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">RoomImage</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  room_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">image_url · is_primary · sort_order</text>
+      </g>
+
+      <!-- B5 RoomStatusBlock -->
+      <g transform="translate(332,576)">
+        <rect width="248" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="248" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">RoomStatusBlock</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  room_id · property_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">start_date · end_date · status · active</text>
+        <text x="10" y="90" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  created_by · reason</text>
+      </g>
+
+      <!-- B6 ManagerPropertyAssignment (associative) -->
+      <g transform="translate(332,700)">
+        <rect width="248" height="104" rx="4" fill="#fff" stroke="#eb6c36" stroke-width="1.3"/>
+        <rect width="248" height="24" fill="#eb6c36"/>
+        <text x="10" y="16" fill="#fff" font-size="10" font-weight="600" font-family="'Geist', sans-serif">ManagerPropertyAssignment</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  manager_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  property_id</text>
+        <text x="10" y="90" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  assigned_by · status</text>
+      </g>
+
+      <!-- B7 EmployeePropertyAssignment -->
+      <g transform="translate(332,824)">
+        <rect width="248" height="104" rx="4" fill="#fff" stroke="#eb6c36" stroke-width="1.3"/>
+        <rect width="248" height="24" fill="#eb6c36"/>
+        <text x="10" y="16" fill="#fff" font-size="10" font-weight="600" font-family="'Geist', sans-serif">EmployeePropertyAssignment</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  employee_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  property_id</text>
+        <text x="10" y="90" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  assigned_by · status</text>
+      </g>
+
+      <!-- C1 Booking FOCAL -->
+      <g transform="translate(628,88)">
+        <rect width="268" height="168" rx="4" fill="#fff" stroke="#eb6c36" stroke-width="1.6"/>
+        <rect width="268" height="24" fill="#eb6c36"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Booking</text>
+        <text x="210" y="16" fill="rgba(255,255,255,0.85)" font-size="8" font-family="'Geist Mono', monospace">FOCAL</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  customer_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  room_id</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">check_in_date · check_out_date</text>
+        <text x="10" y="106" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">total · deposit · remaining</text>
+        <text x="10" y="122" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">damage_fee_amount · status</text>
+        <text x="10" y="138" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">hold_expires_at · guest_count</text>
+        <text x="10" y="154" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  cancelled_by (null)</text>
+      </g>
+
+      <!-- C2 Payment -->
+      <g transform="translate(628,292)">
+        <rect width="268" height="120" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Payment</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id · customer_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">type · method · amount · status</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">gateway_* · order_ref</text>
+        <text x="10" y="106" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  invoice_id (opt)</text>
+      </g>
+
+      <!-- C3 Invoice -->
+      <g transform="translate(628,436)">
+        <rect width="268" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Invoice</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id · customer_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  property_id</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">type · amount · status · due_date</text>
+      </g>
+
+      <!-- C4 Contract -->
+      <g transform="translate(628,564)">
+        <rect width="268" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Contract</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id (UQ 1:1)</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  customer_id · room_id</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">dates · amounts · pdf_url · status</text>
+      </g>
+
+      <!-- C5 Review -->
+      <g transform="translate(628,692)">
+        <rect width="268" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Review</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id (UQ 1:1)</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  customer_id · room_id</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">rating · comment · status · moderated_by</text>
+      </g>
+
+      <!-- C6 BookingCheckVerification -->
+      <g transform="translate(628,820)">
+        <rect width="268" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="10" font-weight="600" font-family="'Geist', sans-serif">BookingCheckVerification</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  performed_by</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">type · id_document_urls · remaining_collected</text>
+      </g>
+
+      <!-- D1 HousekeepingTask -->
+      <g transform="translate(944,88)">
+        <rect width="268" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">HousekeepingTask</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  property_id · room_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id (opt)</text>
+        <text x="10" y="90" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  assigned_employee_id · status</text>
+      </g>
+
+      <!-- D2 MaintenanceTicket -->
+      <g transform="translate(944,212)">
+        <rect width="268" height="120" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">MaintenanceTicket</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  customer_id · room_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id</text>
+        <text x="10" y="90" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  assigned_employee_id</text>
+        <text x="10" y="106" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  verified_by · status · photo_urls</text>
+      </g>
+
+      <!-- D3 ChecklistItemDefinition -->
+      <g transform="translate(944,356)">
+        <rect width="268" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="10" font-weight="600" font-family="'Geist', sans-serif">ChecklistItemDefinition</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">code · label · icon · sort_order</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  property_id (opt)</text>
+      </g>
+
+      <!-- D4 InspectionChecklistAnswer -->
+      <g transform="translate(944,468)">
+        <rect width="268" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="10" font-weight="600" font-family="'Geist', sans-serif">InspectionChecklistAnswer</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  inspection_id</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  checklist_item_id · passed</text>
+      </g>
+
+      <!-- D5 RoomInspection -->
+      <g transform="translate(944,580)">
+        <rect width="268" height="120" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">RoomInspection</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id (UQ)</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  room_id · property_id</text>
+        <text x="10" y="90" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  inspected_by</text>
+        <text x="10" y="106" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">status · note · inspected_at</text>
+      </g>
+
+      <!-- D6 DamageReport -->
+      <g transform="translate(944,724)">
+        <rect width="268" height="120" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">DamageReport</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  inspection_id (UQ)</text>
+        <text x="10" y="74" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  booking_id</text>
+        <text x="10" y="90" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  approved_by · admin_approver</text>
+        <text x="10" y="106" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">amounts · status · escalation</text>
+      </g>
+
+      <!-- D7 DamageItem -->
+      <g transform="translate(944,868)">
+        <rect width="268" height="88" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">DamageItem</text>
+        <text x="200" y="16" fill="rgba(255,255,255,0.7)" font-size="8" font-family="'Geist Mono', monospace">WEAK*</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#eb6c36" font-size="10" font-family="'Geist Mono', monospace">FK  damage_report_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">item_name · description · estimated_cost</text>
+      </g>
+
+      <!-- D8 Attachment -->
+      <g transform="translate(944,980)">
+        <rect width="268" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="268" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Attachment</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">entity_type · entity_id</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">file_url · file_name · file_size</text>
+        <text x="10" y="90" fill="#7a8399" font-size="9" font-family="'Geist Mono', monospace">polymorphic (no JPA FK)</text>
+      </g>
+
+      <!-- E1 OutboxEvent -->
+      <g transform="translate(1260,88)">
+        <rect width="228" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="228" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">OutboxEvent</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">event_type · payload</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">status · retry_count</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">last_error · processed_at</text>
+      </g>
+
+      <!-- E2 Promotion -->
+      <g transform="translate(1260,216)">
+        <rect width="228" height="104" rx="4" fill="#fff" stroke="#2d3142"/>
+        <rect width="228" height="24" fill="#2d3142"/>
+        <text x="10" y="16" fill="#fff" font-size="11" font-weight="600" font-family="'Geist', sans-serif">Promotion</text>
+        <text x="10" y="42" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">PK  id</text>
+        <line x1="42" y1="44" x2="62" y2="44" stroke="#2d3142"/>
+        <text x="10" y="58" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">subtitle · title · cta_text · cta_url</text>
+        <text x="10" y="74" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">image_url · color_theme</text>
+        <text x="10" y="90" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace">is_active · sort_order</text>
+      </g>
+
+      <!-- Notation legend -->
+      <g transform="translate(40,1320)">
+        <text x="0" y="0" fill="#2d3142" font-size="13" font-weight="600" font-family="'Geist', sans-serif">Crow's Foot legend</text>
+
+        <line x1="0" y1="28" x2="60" y2="28" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#cf-one)"/>
+        <text x="72" y="32" fill="#4f5d75" font-size="11" font-family="'Geist', sans-serif">Exactly one  (| |)</text>
+
+        <line x1="220" y1="28" x2="280" y2="28" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#cf-zero-one)"/>
+        <text x="292" y="32" fill="#4f5d75" font-size="11" font-family="'Geist', sans-serif">Zero or one  (O|)</text>
+
+        <line x1="460" y1="28" x2="520" y2="28" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#cf-one-many)"/>
+        <text x="532" y="32" fill="#4f5d75" font-size="11" font-family="'Geist', sans-serif">One or many  (|&lt;)</text>
+
+        <line x1="700" y1="28" x2="760" y2="28" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#cf-zero-many)"/>
+        <text x="772" y="32" fill="#4f5d75" font-size="11" font-family="'Geist', sans-serif">Zero or many  (O&lt;)</text>
+
+        <text x="0" y="64" fill="#4f5d75" font-size="11" font-family="'Geist', sans-serif">
+          Header bar đen = thực thể · Cam viền = associative / focal · PK gạch chân · FK màu cam · Động từ trên đường quan hệ
+        </text>
+        <text x="0" y="88" fill="#4f5d75" font-size="11" font-family="'Geist', sans-serif">
+          N–N đã tách: User ↔ Property qua ManagerPropertyAssignment / EmployeePropertyAssignment (hai quan hệ 1–N)
+        </text>
+        <text x="0" y="112" fill="#4f5d75" font-size="11" font-family="'Geist', sans-serif">
+          Weak* = phụ thuộc tồn tại (RefreshToken, DamageItem…) · Attachment = đa trị file dạng polymorphic entity
+        </text>
+        <text x="0" y="136" fill="#7a8399" font-size="10" font-family="'Geist Mono', monospace">
+          29/29 entities · aligned com.homestay.entity · Booking.status 8 giá trị · Payment.type DEPOSIT|REMAINING_BALANCE|DAMAGE_FEE
+        </text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="notes">
+    <div class="card">
+      <h2>Áp dụng quy tắc Crow's Foot</h2>
+      <ul>
+        <li><strong>Thực thể:</strong> danh từ trong hình chữ nhật (User, Booking, Room…).</li>
+        <li><strong>Thuộc tính:</strong> liệt kê trong hộp; <strong>PK gạch chân</strong>; <strong>FK</strong> ghi rõ.</li>
+        <li><strong>Quan hệ:</strong> động từ trên đường nối (<code>places</code>, <code>contains</code>, <code>pays</code>, <code>generates</code>…).</li>
+        <li><strong>Cardinality:</strong> chân quạ O&lt; / |&lt; / O| / || theo Crow's Foot.</li>
+        <li><strong>N–N:</strong> đã rã thành bảng liên kết (cam).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>File liên quan</h2>
+      <ul>
+        <li><code>diagram/erd-crowsfoot.puml</code> — nguồn PlantUML (đầy đủ cột)</li>
+        <li><code>diagram/erd-crowsfoot.html</code> — bản Crow's Foot xem nhanh (file này)</li>
+        <li><code>diagram/full-erd.html</code> — bản UML-style cũ (tham khảo)</li>
+      </ul>
+      <p>Nộp bài: ưu tiên <code>erd-crowsfoot.puml</code> / HTML Crow's Foot; cột phải khớp JPA entity.</p>
+    </div>
+  </div>
+</body>
+</html>

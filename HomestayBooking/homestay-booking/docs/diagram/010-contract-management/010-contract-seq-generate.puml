@@ -1,0 +1,84 @@
+@startuml 010-contract-seq-generate
+title Contract Management - Auto-Generate via Outbox (FR-10)
+
+participant "PaymentService\n(deposit confirm)" as Pay
+participant "ContractService" as Svc
+participant "OutboxPublisher" as Outbox
+participant "Outbox Worker" as Worker
+participant "PdfService" as Pdf
+participant "EmailService" as Email
+participant "NotificationService" as Notif
+database "Database" as DB
+
+note over Pay, Outbox
+  FR-10: Contract is NEVER generated on-demand.
+  It is enqueued in the same TX as deposit confirmation
+  and processed asynchronously by the Outbox worker.
+end note
+
+== Step 1 — Deposit Confirmed (Trigger) ==
+Pay -> Svc: autoGenerateAndSendContract(bookingId, actor)
+activate Svc
+Svc -> Outbox: enqueueContractGenerate(bookingId, actorId)
+note right: Same DB transaction as payment confirm.\nOutbox entry persisted atomically.
+Outbox -> DB: INSERT outbox_events (CONTRACT_GENERATE, bookingId)
+Svc --> Pay: return (fire-and-forget)
+deactivate Svc
+
+== Step 2 — Outbox Worker: Generate Contract + PDF ==
+Worker -> Svc: processContractGenerateFromOutbox(bookingId, actor)
+activate Svc
+
+Svc -> DB: findById(bookingId)
+activate DB
+DB --> Svc: Booking
+deactivate DB
+
+alt booking.status in [PENDING_DEPOSIT, CANCELLED, NO_SHOW]
+    Svc --> Worker: throw IllegalArgumentException\n"Booking chưa đủ điều kiện sinh hợp đồng"
+else booking is eligible (CONFIRMED+)
+    ' Idempotent create
+    Svc -> DB: findByBookingId(bookingId)
+    activate DB
+    DB --> Svc: Optional<Contract>
+    deactivate DB
+
+    alt contract not exists
+        Svc -> DB: INSERT contracts (customer, room, dates, amounts, status=ACTIVE)
+        activate DB
+        DB --> Svc: Contract (id assigned)
+        deactivate DB
+        Svc -> Notif: sendNotification(customerId, CONTRACT_GENERATED, ...)
+    end
+
+    alt contract.pdfUrl is null
+        Svc -> Pdf: generateContractPdf(contract)
+        activate Pdf
+        Pdf --> Svc: byte[] pdfBytes
+        deactivate Pdf
+        Svc -> Svc: validate size <= 10MB
+        Svc -> Svc: Files.write(uploads/contracts/{id}.pdf)
+        Svc -> DB: UPDATE contracts SET pdf_url = '/uploads/contracts/{id}.pdf'
+        Svc -> DB: activityLogService.log(CONTRACT_GENERATED)
+    end
+
+    Svc -> Outbox: enqueueContractEmailSend(contractId, actorId)
+    Outbox -> DB: INSERT outbox_events (CONTRACT_EMAIL_SEND, contractId)
+end
+deactivate Svc
+
+== Step 3 — Outbox Worker: Send Email ==
+Worker -> Svc: processContractEmailSendFromOutbox(contractId, targetEmail, actor)
+activate Svc
+Svc -> DB: findById(contractId) → Contract
+Svc -> Svc: loadStoredPdfStrict(contract)
+note right: Reads pdf from disk.\nFails if file missing — never regenerates.
+Svc -> Email: sendEmailWithAttachment(customerEmail, subject, body, pdfBytes)
+activate Email
+Email --> Svc: void
+deactivate Email
+Svc -> DB: UPDATE contracts SET sent_at = NOW()
+Svc -> DB: activityLogService.log(CONTRACT_EMAIL_SENT)
+Svc --> Worker: void
+deactivate Svc
+@enduml

@@ -1,0 +1,320 @@
+openapi: 3.0.3
+info:
+  title: FR-12 Payment Management & Reconciliation API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-12 Payment execution, VNPay, verification, reconciliation.
+    Screens: SCR-16/20/26 (Customer), SCR-36/37 (Manager), SCR-52 (Admin).
+    Invoice billing (FR-11) consumed via invoiceId on each Payment.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    PaymentType:
+      type: string
+      enum: [DEPOSIT, REMAINING_BALANCE, DAMAGE_FEE, REFUND]
+
+    PaymentMethod:
+      type: string
+      enum: [VNPAY, BANK_TRANSFER, CASH]
+
+    PaymentStatus:
+      type: string
+      enum: [PENDING, PAID, FAILED, REFUNDED]
+
+    ReconciliationStatus:
+      type: string
+      enum: [NONE, DISCREPANCY, RESOLVED]
+
+    PaymentSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        invoiceId: { type: string, format: uuid }
+        type: { $ref: '#/components/schemas/PaymentType' }
+        method: { $ref: '#/components/schemas/PaymentMethod' }
+        amount: { type: number }
+        status: { $ref: '#/components/schemas/PaymentStatus' }
+        orderRef: { type: string }
+        paidAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    PaymentDetail:
+      allOf:
+        - $ref: '#/components/schemas/PaymentSummary'
+        - type: object
+          properties:
+            customerId: { type: string, format: uuid }
+            customerName: { type: string }
+            verifiedByName: { type: string, nullable: true }
+            verifiedAt: { type: string, format: date-time, nullable: true }
+            verificationNote: { type: string, nullable: true }
+            receiptUrl: { type: string, nullable: true }
+            reconciliationStatus: { $ref: '#/components/schemas/ReconciliationStatus' }
+            gatewayTransactionId: { type: string, nullable: true }
+
+    PaymentPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/PaymentSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    VerifyPaymentRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [APPROVED, REJECTED]
+        note: { type: string }
+
+    CreateVNPayUrlResponse:
+      type: object
+      properties:
+        paymentId: { type: string, format: uuid }
+        paymentUrl: { type: string, format: uri }
+
+    UploadReceiptRequest:
+      type: object
+      required: [paymentMethod]
+      properties:
+        paymentMethod:
+          type: string
+          enum: [BANK_TRANSFER]
+        fileUrl: { type: string }
+        fileName: { type: string }
+        fileSize: { type: integer }
+
+security:
+  - bearerAuth: []
+
+paths:
+  /payments/me:
+    get:
+      summary: SCR-26 — Customer payment history
+      tags: [Customer Payments]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated payment list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PaymentPage' }
+
+  /payments/me/{id}:
+    get:
+      summary: Customer payment detail
+      tags: [Customer Payments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Payment detail with receipt URL if any
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PaymentDetail' }
+
+  /payments/vnpay/create-url:
+    post:
+      summary: Create VNPay redirect URL for deposit or remaining balance
+      tags: [VNPay]
+      parameters:
+        - name: bookingId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [DEPOSIT, REMAINING_BALANCE]
+      responses:
+        '200':
+          description: Payment PENDING created + redirect URL
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CreateVNPayUrlResponse' }
+        '409':
+          description: Invoice already paid or pending payment exists
+
+  /payments/vnpay/ipn:
+    post:
+      summary: VNPay IPN callback (public, signature verified)
+      tags: [VNPay]
+      security: []
+      responses:
+        '200':
+          description: RspCode 00 acknowledged
+
+  /payments/vnpay/return:
+    get:
+      summary: VNPay browser return URL (UX only)
+      tags: [VNPay]
+      security: []
+      responses:
+        '302':
+          description: Redirect to frontend result page
+
+  /bookings/{id}/receipts:
+    post:
+      summary: SCR-20 — Upload bank transfer receipt
+      tags: [Customer Payments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadReceiptRequest'
+      responses:
+        '200':
+          description: Payment Pending + PaymentReceipt created
+
+  /manager/payments:
+    get:
+      summary: SCR-36 — Manager payment list
+      tags: [Manager Payments]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/PaymentStatus' }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Property-scoped payments
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PaymentPage' }
+
+  /manager/payments/{id}:
+    get:
+      summary: Manager payment detail
+      tags: [Manager Payments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PaymentDetail' }
+
+  /manager/payments/{id}/verify:
+    patch:
+      summary: SCR-37 — Approve/reject bank transfer (receipt required for approve)
+      tags: [Manager Payments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyPaymentRequest'
+      responses:
+        '200':
+          description: Deposit approve triggers booking CONFIRMED + contract Outbox
+        '400':
+          description: Missing PaymentReceipt on approve
+
+  /admin/payments/reconciliation:
+    get:
+      summary: SCR-52 — VNPay discrepancy list
+      tags: [Admin Reconciliation]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DISCREPANCY, PENDING]
+      responses:
+        '200':
+          description: Reconciliation queue
+
+  /admin/payments/{id}/sync-vnpay:
+    post:
+      summary: SCR-52 — Manual sync from VNPay API
+      tags: [Admin Reconciliation]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Payment status updated from gateway

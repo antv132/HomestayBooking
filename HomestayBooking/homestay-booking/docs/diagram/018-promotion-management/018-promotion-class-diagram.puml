@@ -1,0 +1,72 @@
+@startuml 018-promotion-class-diagram
+title Promotion Management - Class Diagram
+
+package "Controllers" {
+    class AdminPromotionController {
+        + create(req, admin) : PromotionResponse
+        + update(id, req, admin) : PromotionResponse
+        + patchActive(id, req, admin) : PromotionResponse
+        + delete(id, admin) : void
+        + list(pageable, admin) : PageResponse
+    }
+    note top of AdminPromotionController
+        /api/v1/admin/promotions
+        @PreAuthorize("hasRole('ADMIN')")
+        SCR-57, SCR-58
+    end note
+
+    class PublicPromotionController {
+        + getActivePromotions() : ApiResponse
+    }
+    note top of PublicPromotionController
+        /api/v1/promotions/active
+        PermitAll (Landing Page)
+    end note
+}
+
+package "Services" {
+    class AdminPromotionService {
+        - promotionRepository: PromotionRepository
+        + listForAdmin(pageable) : PageResponse
+        + create(req) : PromotionResponse
+        + update(id, req) : PromotionResponse
+        + patchActive(id, isActive) : PromotionResponse
+        + deleteForAdmin(id) : void
+        - applyRequest(p, req) : void
+    }
+
+    class PromotionService {
+        - promotionRepository: PromotionRepository
+        + getActivePromotions() : List<PromotionResponse>
+    }
+}
+
+package "Repositories" {
+    interface PromotionRepository {
+        + findAllByOrderBySortOrderAscCreatedAtDesc(pageable) : Page
+        + findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc() : List
+    }
+}
+
+package "Entities" {
+    class Promotion {
+        - id : UUID
+        - subtitle : String
+        - title : String
+        - description : String
+        - ctaText : String
+        - ctaUrl : String
+        - colorTheme : String
+        - isActive : boolean
+        - sortOrder : int
+    }
+}
+
+AdminPromotionController ..> AdminPromotionService
+PublicPromotionController ..> PromotionService
+
+AdminPromotionService --> PromotionRepository
+PromotionService --> PromotionRepository
+
+PromotionRepository --> Promotion
+@enduml

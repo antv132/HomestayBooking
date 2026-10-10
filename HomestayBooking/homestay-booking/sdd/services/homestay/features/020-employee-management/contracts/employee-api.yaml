@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: FR-20 Employee Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-20 Employee Management.
+    Screen: SCR-39 (Staff Directory — Manager + Admin).
+    EmployeePropertyAssignment + User (role EMPLOYEE).
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    UserStatus:
+      type: string
+      enum: [INACTIVE, ACTIVE, SUSPENDED]
+
+    AssignmentStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+
+    EmployeeSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string, nullable: true }
+        avatarUrl: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        assignedAt: { type: string, format: date-time }
+        assignmentStatus: { $ref: '#/components/schemas/AssignmentStatus' }
+
+    EmployeePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/EmployeeSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    CreateEmployeeRequest:
+      type: object
+      required: [fullName, email, propertyId]
+      properties:
+        fullName: { type: string, minLength: 2, maxLength: 200 }
+        email: { type: string, format: email }
+        phone: { type: string, maxLength: 20 }
+        propertyId: { type: string, format: uuid }
+
+    AssignEmployeeRequest:
+      type: object
+      required: [employeeId, propertyId]
+      properties:
+        employeeId: { type: string, format: uuid }
+        propertyId: { type: string, format: uuid }
+
+    UpdateEmployeeRequest:
+      type: object
+      required: [fullName]
+      properties:
+        fullName: { type: string, minLength: 2, maxLength: 200 }
+        phone: { type: string, maxLength: 20 }
+
+    UpdateEmployeeStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED]
+
+    ReassignEmployeeRequest:
+      type: object
+      required: [propertyId]
+      properties:
+        propertyId: { type: string, format: uuid }
+
+paths:
+  /manager/employees:
+    get:
+      operationId: listManagerEmployees
+      summary: List employees by property (SCR-39 Manager)
+      tags: [Manager Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated employee list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/ApiSuccess' }
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/EmployeePage' }
+        '403':
+          description: Manager lacks property access
+    post:
+      operationId: createManagerEmployee
+      summary: Create EMPLOYEE user and assign to property
+      tags: [Manager Employees]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateEmployeeRequest' }
+      responses:
+        '201':
+          description: Employee created and assigned
+        '409':
+          description: Email exists or assignment conflict
+
+  /manager/employees/unassigned:
+    get:
+      operationId: listUnassignedEmployeesManager
+      summary: Employees without ACTIVE assignment (for assign modal)
+      tags: [Manager Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Unassigned employee candidates
+
+  /manager/employees/assign:
+    post:
+      operationId: assignManagerEmployee
+      summary: Assign existing employee to property (api-spec SCR-39)
+      tags: [Manager Employees]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignEmployeeRequest' }
+      responses:
+        '200':
+          description: Assignment created
+        '409':
+          description: Employee already has ACTIVE assignment
+
+  /manager/employees/{id}:
+    put:
+      operationId: updateManagerEmployee
+      summary: Update employee fullName and phone
+      tags: [Manager Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateEmployeeRequest' }
+      responses:
+        '200':
+          description: Updated
+
+  /manager/employees/{id}/status:
+    patch:
+      operationId: updateManagerEmployeeStatus
+      summary: Suspend or activate employee account
+      tags: [Manager Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateEmployeeStatusRequest' }
+      responses:
+        '200':
+          description: Status updated
+
+  /admin/employees:
+    get:
+      operationId: listAdminEmployees
+      summary: List employees — optional property filter (Admin global)
+      tags: [Admin Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: propertyId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated employee list
+    post:
+      operationId: createAdminEmployee
+      summary: Admin create employee + assign
+      tags: [Admin Employees]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateEmployeeRequest' }
+      responses:
+        '201':
+          description: Created
+
+  /admin/employees/unassigned:
+    get:
+      operationId: listUnassignedEmployeesAdmin
+      summary: Unassigned employees (Admin)
+      tags: [Admin Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Unassigned list
+
+  /admin/employees/assign:
+    post:
+      operationId: assignAdminEmployee
+      summary: Admin assign employee to property
+      tags: [Admin Employees]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignEmployeeRequest' }
+      responses:
+        '200':
+          description: Assigned
+
+  /admin/employees/{id}:
+    put:
+      operationId: updateAdminEmployee
+      summary: Admin update employee profile fields
+      tags: [Admin Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateEmployeeRequest' }
+      responses:
+        '200':
+          description: Updated
+
+  /admin/employees/{id}/status:
+    patch:
+      operationId: updateAdminEmployeeStatus
+      summary: Admin suspend/activate employee
+      tags: [Admin Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateEmployeeStatusRequest' }
+      responses:
+        '200':
+          description: Status updated
+
+  /admin/employees/{id}/reassign:
+    patch:
+      operationId: reassignAdminEmployee
+      summary: Admin reassign employee to another property (P2)
+      tags: [Admin Employees]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReassignEmployeeRequest' }
+      responses:
+        '200':
+          description: Reassigned — old assignment INACTIVE, new ACTIVE

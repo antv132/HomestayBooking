@@ -1,0 +1,12 @@
+---
+alwaysApply: true
+---
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan:
+`sdd/services/homestay/features/022-employee-dashboard/plan.md`
+(FR-22 Employee Dashboard SCR-59; composite GET `/api/v1/employee/dashboard`;
+KPI + HK/MT/RI previews; todayTasks / awaiting / completedToday;
+FR-20 property scope; Asia/Ho_Chi_Minh; read-only — no SCR-60/61/62 mutations).
+<!-- SPECKIT END -->

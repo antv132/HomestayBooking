@@ -1,0 +1,103 @@
+@startuml 004-booking-class-diagram
+title Booking & Inventory - Class Diagram
+
+package "Controllers" {
+    class BookingController {
+        + createBooking(CreateBookingRequest) : CreateBookingResponse
+        + getMyBookings() : List<BookingDetail>
+        + cancelBooking(UUID) : Response
+    }
+    
+    class ManagerBookingController {
+        + getPropertyBookings(propertyId) : List<BookingDetail>
+        + checkIn(UUID) : Response
+        + checkOut(UUID) : Response
+        + modifyBooking(UUID, request) : Response
+    }
+}
+
+package "Services" {
+    class BookingService {
+        - bookingRepository: BookingRepository
+        - paymentRepository: PaymentRepository
+        - roomRepository: RoomRepository
+        - outboxEventRepository: OutboxEventRepository
+        + createBooking(request) : Booking
+        + cancelBooking(id, user) : void
+        + processVNPayCallback(params) : void
+    }
+    
+    class ManagerBookingService {
+        - bookingRepository: BookingRepository
+        - inspectionRepository: RoomInspectionRepository
+        + checkIn(id, managerId) : void
+        + checkOut(id, managerId) : void
+        + modifyBooking(id, request, managerId) : Booking
+    }
+    
+    class BookingCronService {
+        + expireHoldTimeouts() : void
+        + markNoShows() : void
+    }
+}
+
+package "Repositories" {
+    interface BookingRepository {
+        + existsOverlapBooking(roomId, checkIn, checkOut, blockingStatuses) : boolean
+        + findPendingTimeouts(cutoffTime) : List<Booking>
+        + findNoShows(cutoffTime) : List<Booking>
+    }
+    
+    interface RoomStatusBlockRepository {
+        + existsActiveOverlappingStay(roomId, checkIn, checkOut) : boolean
+    }
+}
+
+package "Entities" {
+    class Booking {
+        - id : UUID
+        - status : BookingStatus
+        - total_amount : decimal
+        - deposit_amount : decimal
+        - remaining_amount : decimal
+        - damage_fee_amount : decimal
+        - check_in_date : Date
+        - check_out_date : Date
+    }
+    
+    class Payment {
+        - id : UUID
+        - type : PaymentType (DEPOSIT, REMAINING, DAMAGE_FEE)
+        - amount : decimal
+        - status : PaymentStatus
+    }
+    
+    class OutboxEvent {
+        - id : UUID
+        - event_type : String
+        - payload : JSONB
+    }
+    
+    class RoomInspection {
+        - id : UUID
+        - status : String
+    }
+    
+    class HousekeepingTask {
+        - id : UUID
+        - status : String
+    }
+}
+
+' Relationships
+BookingController ..> BookingService
+ManagerBookingController ..> ManagerBookingService
+BookingService --> BookingRepository
+BookingService --> RoomStatusBlockRepository
+ManagerBookingService --> BookingRepository
+
+Booking "1" -- "0..N" Payment
+Booking "1" -- "0..1" RoomInspection
+Booking "1" -- "0..N" OutboxEvent
+Booking "1" -- "0..N" HousekeepingTask : Triggers
+@enduml

@@ -1,0 +1,50 @@
+@startuml 005-calendar-seq-view
+title Compute & View Calendar Sequence
+
+actor "Guest/Manager" as User
+participant "Controller" as Ctrl
+participant "CalendarStatusService" as Svc
+database "Database" as DB
+
+User -> Ctrl: GET /api/v1/rooms/{id}/calendar?month=6&year=2026
+activate Ctrl
+
+Ctrl -> Svc: computeMonthlyCalendar(roomId, month, year)
+activate Svc
+
+Svc -> Svc: calculate startOfMonth, endOfMonth
+
+Svc -> DB: findOverlappingBookings(roomId, start, end)
+activate DB
+DB --> Svc: List<Booking>
+deactivate DB
+
+Svc -> DB: findActiveBlocksInRange(roomId, start, end)
+activate DB
+DB --> Svc: List<RoomStatusBlock>
+deactivate DB
+
+Svc -> DB: findOpenHousekeepingTasks(roomId)
+activate DB
+DB --> Svc: List<HousekeepingTask>
+deactivate DB
+
+loop For each day in month
+    Svc -> Svc: sources = []
+    
+    Svc -> Svc: if Booking active on day -> add to sources
+    Svc -> Svc: if Block active on day -> add to sources
+    Svc -> Svc: if HK task open -> add to sources
+    
+    Svc -> Svc: resolveDayStatus(sources)
+    note right of Svc: Priority:\n1. OCCUPIED\n2. PENDING_DEPOSIT\n3. RESERVED\n4. CLEANING_IN_PROGRESS\n5. PENDING_CLEANING\n6. MAINTENANCE\n7. OUT_OF_SERVICE\n8. AVAILABLE
+    
+    Svc -> Svc: Create CalendarDayStatus DTO
+end
+
+Svc --> Ctrl: List<CalendarDayStatus>
+deactivate Svc
+
+Ctrl --> User: 200 OK (RoomCalendarResponse)
+deactivate Ctrl
+@enduml

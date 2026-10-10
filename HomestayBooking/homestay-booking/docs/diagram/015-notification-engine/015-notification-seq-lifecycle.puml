@@ -1,0 +1,64 @@
+@startuml 015-notification-seq-lifecycle
+title Notification Engine - Async Dispatch via Outbox & WebSocket
+
+participant "Domain Service\n(e.g., BookingService)" as DomainSvc
+participant "NotificationService" as NotifSvc
+participant "NotificationOutboxPublisher" as OutboxPub
+database "Database" as DB
+participant "Outbox Worker\n(Scheduled Task)" as Worker
+participant "NotificationDispatchHandler" as Handler
+participant "NotificationWebSocketPublisher" as WSPub
+actor "Client (Browser/App)" as Client
+
+== 1. Domain Event & Transaction ==
+note over DomainSvc, DB: Inside @Transactional
+activate DomainSvc
+DomainSvc -> DB: INSERT/UPDATE Domain Entity (e.g. Booking)
+
+DomainSvc -> NotifSvc: sendNotification(userId, Type, title, ...)
+activate NotifSvc
+NotifSvc -> OutboxPub: enqueueDispatch(userId, Type, ...)
+activate OutboxPub
+OutboxPub -> OutboxPub: buildDedupeKey(...)
+OutboxPub -> DB: INSERT outbox_events (type=NOTIFICATION_DISPATCH, payload=...)
+OutboxPub --> NotifSvc: OutboxEvent
+deactivate OutboxPub
+NotifSvc --> DomainSvc: null
+deactivate NotifSvc
+
+DomainSvc -> DB: COMMIT Transaction
+deactivate DomainSvc
+
+== 2. Async Dispatch & Push ==
+note over Worker, WSPub: Background Thread
+Worker -> DB: SELECT * FROM outbox_events WHERE status=PENDING
+activate Worker
+Worker -> Handler: handle(event, payload)
+activate Handler
+
+Handler -> DB: check existsByDedupeKey(dedupeKey)
+alt exists
+    Handler -> Handler: Skip (Idempotent)
+else not exists
+    Handler -> DB: INSERT notifications (userId, type, title, dedupeKey, isRead=false)
+    Handler -> WSPub: publishToUser(userId, Notification)
+    activate WSPub
+    WSPub -> Client: STOMP push over WebSocket\n/topic/users/{userId}/notifications
+    WSPub --> Handler: done
+    deactivate WSPub
+end
+
+Handler --> Worker: success
+deactivate Handler
+Worker -> DB: UPDATE outbox_events SET status=PROCESSED
+deactivate Worker
+
+== 3. Mark as Read (User Action) ==
+Client -> NotifSvc: PATCH /api/v1/notifications/{id}/read
+activate NotifSvc
+NotifSvc -> DB: SELECT * FROM notifications WHERE id = ?
+NotifSvc -> DB: assert ownership
+NotifSvc -> DB: UPDATE notifications SET is_read = true
+NotifSvc --> Client: 200 OK
+deactivate NotifSvc
+@enduml

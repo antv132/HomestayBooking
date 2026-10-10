@@ -1,0 +1,243 @@
+openapi: 3.0.3
+info:
+  title: FR-21 Housekeeping Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-21 Housekeeping tasks.
+    Screens: SCR-40 (Manager board), SCR-60 (Employee workspace).
+  Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    HousekeepingTaskStatus:
+      type: string
+      enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED]
+
+    HousekeepingTask:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        roomId: { type: string, format: uuid }
+        roomNumber: { type: string }
+        roomName: { type: string, description: Alias of roomNumber for api-spec compat }
+        bookingId: { type: string, format: uuid, nullable: true }
+        assignedEmployeeId: { type: string, format: uuid, nullable: true }
+        assigneeName: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/HousekeepingTaskStatus' }
+        note: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        startedAt: { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+
+    HousekeepingTaskPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/HousekeepingTask' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    CreateHousekeepingTaskRequest:
+      type: object
+      required: [roomId]
+      properties:
+        roomId: { type: string, format: uuid }
+        assigneeId: { type: string, format: uuid }
+
+    AssignHousekeepingTaskRequest:
+      type: object
+      required: [assigneeId]
+      properties:
+        assigneeId: { type: string, format: uuid }
+
+    UpdateHousekeepingStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [IN_PROGRESS, COMPLETED]
+
+    CancelHousekeepingTaskRequest:
+      type: object
+      properties:
+        note: { type: string, maxLength: 1000 }
+
+paths:
+  /manager/housekeeping-tasks:
+    get:
+      operationId: listManagerHousekeepingTasks
+      summary: List housekeeping tasks by property (SCR-40)
+      tags: [Manager Housekeeping]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/HousekeepingTaskStatus' }
+        - name: fromDate
+          in: query
+          schema: { type: string, format: date }
+        - name: toDate
+          in: query
+          schema: { type: string, format: date }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Task list/board data
+        '403':
+          description: Unauthorized property access
+    post:
+      operationId: createManagerHousekeepingTask
+      summary: Create manual housekeeping task (api-spec SCR-40)
+      tags: [Manager Housekeeping]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateHousekeepingTaskRequest' }
+      responses:
+        '201':
+          description: Task created
+
+  /manager/housekeeping-tasks/{id}/assign:
+    patch:
+      operationId: assignManagerHousekeepingTask
+      summary: Assign employee to task
+      tags: [Manager Housekeeping]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignHousekeepingTaskRequest' }
+      responses:
+        '200':
+          description: Assigned
+
+  /manager/housekeeping-tasks/{id}/cancel:
+    patch:
+      operationId: cancelManagerHousekeepingTask
+      summary: Cancel pending/in-progress task (US6)
+      tags: [Manager Housekeeping]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CancelHousekeepingTaskRequest' }
+      responses:
+        '200':
+          description: Cancelled
+
+  /employee/housekeeping-tasks:
+    get:
+      operationId: listEmployeeHousekeepingTasks
+      summary: List tasks assigned to logged-in employee (SCR-60)
+      tags: [Employee Housekeeping]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/HousekeepingTaskStatus' }
+      responses:
+        '200':
+          description: Assigned tasks
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  content:
+                    - id: ""
+                      roomName: "101"
+                      status: PENDING
+
+  /employee/housekeeping-tasks/{id}/status:
+    patch:
+      operationId: updateEmployeeHousekeepingStatus
+      summary: Start or complete task (SCR-60)
+      tags: [Employee Housekeeping]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateHousekeepingStatusRequest' }
+      responses:
+        '200':
+          description: Status updated
+
+  /admin/housekeeping-tasks:
+    get:
+      operationId: listAdminHousekeepingTasks
+      summary: Read-only housekeeping list (Admin)
+      tags: [Admin Housekeeping]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: propertyId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/HousekeepingTaskStatus' }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Read-only list

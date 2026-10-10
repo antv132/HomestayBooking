@@ -1,0 +1,77 @@
+@startuml 007-structure-class-diagram
+title Structure Management - Class Diagram
+
+package "Controllers" {
+    class StructureTreeController {
+        + getPropertyStructure(propertyId) : StructureTreeResponse
+    }
+    
+    class FloorController {
+        + createFloor(propertyId, request) : FloorResponse
+        + updateFloor(floorId, request) : FloorResponse
+        + deleteFloor(floorId) : Response
+    }
+}
+
+package "Services" {
+    class StructureTreeService {
+        - floorRepository: FloorRepository
+        - roomRepository: RoomRepository
+        + getTree(propertyId) : StructureTreeResponse
+    }
+    
+    class FloorService {
+        - floorRepository: FloorRepository
+        - roomRepository: RoomRepository
+        + createFloor(propertyId, req) : Floor
+        + updateFloor(floorId, req) : Floor
+        + deleteFloor(floorId) : void
+    }
+}
+
+package "Repositories" {
+    interface FloorRepository {
+        + findByPropertyIdOrderByFloorNumber(propertyId) : List<Floor>
+        + existsByPropertyIdAndFloorNumber(propertyId, floorNumber) : boolean
+    }
+    
+    interface RoomRepository {
+        + countByFloorId(floorId) : int
+        + findByPropertyId(propertyId) : List<Room>
+    }
+}
+
+package "Entities" {
+    class Property {
+        - id : UUID
+        - name : String
+    }
+    
+    class Floor {
+        - id : UUID
+        - property_id : UUID
+        - floor_number : int
+        - description : String
+    }
+    
+    class Room {
+        - id : UUID
+        - floor_id : UUID
+        - room_number : String
+        - status : String
+    }
+}
+
+' Relationships
+StructureTreeController ..> StructureTreeService
+FloorController ..> FloorService
+
+StructureTreeService --> FloorRepository
+StructureTreeService --> RoomRepository
+
+FloorService --> FloorRepository
+FloorService --> RoomRepository
+
+Property "1" -- "*" Floor : contains
+Floor "1" -- "*" Room : contains
+@enduml

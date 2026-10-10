@@ -1,0 +1,296 @@
+openapi: 3.0.3
+info:
+  title: FR-10 Contract Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-10 Accommodation Contract.
+    Screens: SCR-21 (Customer My Contracts), SCR-38 (Manager Contract Management).
+    Auto-generation via Outbox on deposit success (FR-04) — not exposed as REST.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ContractStatus:
+      type: string
+      enum: [ACTIVE, COMPLETED, CANCELLED]
+
+    ContractSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        customerName: { type: string }
+        customerEmail: { type: string, format: email }
+        roomNumber: { type: string }
+        propertyName: { type: string }
+        checkInDate: { type: string, format: date }
+        checkOutDate: { type: string, format: date }
+        depositAmount: { type: number }
+        totalAmount: { type: number }
+        status: { $ref: '#/components/schemas/ContractStatus' }
+        generatedAt: { type: string, format: date-time }
+        sentAt: { type: string, format: date-time, nullable: true }
+
+    ContractDetail:
+      allOf:
+        - $ref: '#/components/schemas/ContractSummary'
+        - type: object
+          properties:
+            customerId: { type: string, format: uuid }
+            customerPhone: { type: string, nullable: true }
+            roomId: { type: string, format: uuid }
+            propertyId: { type: string, format: uuid }
+            pdfUrl: { type: string }
+            addendums:
+              type: array
+              items: { $ref: '#/components/schemas/ContractAddendumSummary' }
+
+    ContractAddendumSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        damageFeeAmount: { type: number }
+        pdfUrl: { type: string }
+        generatedAt: { type: string, format: date-time }
+
+    ContractPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/ContractSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    ResendContractRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Optional override; default customer email on contract
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, default: 0 }
+    SizeParam:
+      name: size
+      in: query
+      schema: { type: integer, default: 10 }
+    StatusParam:
+      name: status
+      in: query
+      schema: { $ref: '#/components/schemas/ContractStatus' }
+    SearchParam:
+      name: search
+      in: query
+      schema: { type: string }
+    PropertyIdParam:
+      name: propertyId
+      in: query
+      schema: { type: string, format: uuid }
+
+paths:
+  /contracts/me:
+    get:
+      summary: SCR-21 — Customer my contracts
+      tags: [Customer Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '200':
+          description: Paginated contracts for authenticated customer
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ContractPage' }
+
+  /contracts/{id}:
+    get:
+      summary: SCR-21 — Customer contract detail
+      tags: [Customer Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Contract detail (own only)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ContractDetail' }
+        '403':
+          description: Not owner
+        '404':
+          description: Not found
+
+  /contracts/{id}/pdf:
+    get:
+      summary: SCR-21 — Download contract PDF
+      tags: [Customer Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: PDF binary
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Not owner
+
+  /contracts/booking/{bookingId}:
+    get:
+      summary: Get contract by booking ID (Customer own booking)
+      tags: [Customer Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Contract for booking
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ContractDetail' }
+        '404':
+          description: No contract yet (deposit pending)
+
+  /manager/contracts:
+    get:
+      summary: SCR-38 — Manager contract list (property scoped)
+      tags: [Manager Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/PropertyIdParam'
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '200':
+          description: Contracts for assigned properties
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ContractPage' }
+        '403':
+          description: Not assigned to property
+
+  /manager/contracts/{id}:
+    get:
+      summary: SCR-38 — Manager contract detail
+      tags: [Manager Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Contract detail in manager scope
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ContractDetail' }
+        '403':
+          description: Out of property scope
+
+  /manager/contracts/{id}/pdf:
+    get:
+      summary: SCR-38 — Manager download PDF
+      tags: [Manager Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: PDF binary
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /manager/contracts/{id}/resend:
+    post:
+      summary: SCR-38 — Resend contract email (Outbox)
+      tags: [Manager Contract]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResendContractRequest' }
+      responses:
+        '202':
+          description: Resend queued via Outbox
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+        '403':
+          description: Out of scope

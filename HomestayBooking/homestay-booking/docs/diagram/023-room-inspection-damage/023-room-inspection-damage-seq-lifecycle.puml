@@ -1,0 +1,65 @@
+@startuml 023-room-inspection-damage-seq-lifecycle
+title Room Inspection & Checklist Lifecycle
+
+actor Manager
+actor Employee
+participant "ManagerInspectionV1Controller" as MgrCtrl
+participant "EmployeeInspectionController" as EmpCtrl
+participant "RoomInspectionManagerService" as MgrSvc
+participant "EmployeeInspectionService" as EmpSvc
+database "Database" as DB
+
+== 1. Manager Assigns Inspector ==
+Manager -> MgrCtrl: POST /api/v1/manager/inspections/{id}/assign\n{ employeeId }
+activate MgrCtrl
+MgrCtrl -> MgrSvc: assignInspector(inspectionId, employeeId)
+activate MgrSvc
+
+MgrSvc -> DB: validate employee is ACTIVE in property
+MgrSvc -> DB: UPDATE room_inspections\nSET inspected_by_id = employeeId,\nstatus = IN_PROGRESS
+MgrSvc --> MgrCtrl: InspectionSummaryResponse
+deactivate MgrSvc
+MgrCtrl --> Manager: 200 OK
+deactivate MgrCtrl
+
+== 2. Employee Fetches Checklist Items ==
+Employee -> EmpCtrl: GET /api/v1/employee/inspections/checklist-items
+activate EmpCtrl
+EmpCtrl -> EmpSvc: listActiveChecklistItems()
+activate EmpSvc
+EmpSvc -> DB: findByIsActiveTrueAndPropertyIsNullOrderBySortOrderAsc()
+EmpSvc --> EmpCtrl: List<ChecklistItemDefinitionResponse>
+deactivate EmpSvc
+EmpCtrl --> Employee: 200 OK
+deactivate EmpCtrl
+
+== 3. Employee Passes Inspection ==
+Employee -> EmpCtrl: POST /api/v1/employee/inspections/{id}/pass\n{ answers: [...] }
+activate EmpCtrl
+EmpCtrl -> EmpSvc: pass(inspectionId, request)
+activate EmpSvc
+
+EmpSvc -> EmpSvc: claimIfUnassigned(employee)
+EmpSvc -> DB: deleteByInspectionId(old_answers)
+EmpSvc -> DB: INSERT inspection_checklist_answers (for each item)
+EmpSvc -> DB: UPDATE room_inspections\nSET status = PASSED, note = "Checklist: ...",\ninspected_at = NOW()
+EmpSvc --> EmpCtrl: void
+deactivate EmpSvc
+EmpCtrl --> Employee: 200 OK
+deactivate EmpCtrl
+
+== 4. Employee Fails Inspection (Damage Found) ==
+Employee -> EmpCtrl: POST /api/v1/employee/inspections/{id}/fail\n{ note: "TV Broken", answers: [...] }
+activate EmpCtrl
+EmpCtrl -> EmpSvc: fail(inspectionId, request)
+activate EmpSvc
+
+EmpSvc -> EmpSvc: validate note is not empty
+EmpSvc -> DB: deleteByInspectionId(old_answers)
+EmpSvc -> DB: INSERT inspection_checklist_answers
+EmpSvc -> DB: UPDATE room_inspections\nSET status = FAILED_WITH_DAMAGE, note = "TV Broken | Checklist: ...",\ninspected_at = NOW()
+EmpSvc --> EmpCtrl: void
+deactivate EmpSvc
+EmpCtrl --> Employee: 200 OK
+deactivate EmpCtrl
+@enduml

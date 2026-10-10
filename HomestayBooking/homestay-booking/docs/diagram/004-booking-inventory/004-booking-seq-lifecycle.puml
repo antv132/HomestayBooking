@@ -1,0 +1,70 @@
+@startuml 004-booking-seq-lifecycle
+title Booking Lifecycle (Check-in, Check-out, Timeout, Cancel)
+
+participant "Cron/Customer/Manager" as Actor
+participant "Service" as Svc
+database "Database" as DB
+
+== Hold Timeout (Cron Job) ==
+Actor -> Svc: expireHoldTimeouts()
+activate Svc
+Svc -> DB: find PENDING_DEPOSIT where holdExpiresAt < now
+activate DB
+DB --> Svc: List<Booking>
+deactivate DB
+loop For each booking
+    Svc -> Svc: update status = CANCELLED
+    Svc -> DB: save(Booking)
+    Svc -> DB: update Payment status = FAILED
+end
+deactivate Svc
+
+== Customer Cancel Booking ==
+Actor -> Svc: cancelBooking(bookingId)
+activate Svc
+Svc -> DB: findById(bookingId)
+Svc -> Svc: Calculate refund based on days to checkIn
+note right of Svc: >=7d = 100%, 3-6d = 50%, <3d = 0%
+Svc -> Svc: Update status = CANCELLED
+Svc -> DB: save(Booking)
+Svc -> DB: (Optional) save Refund Payment
+Svc --> Actor: Success
+deactivate Svc
+
+== No-Show Job (Cron Job) ==
+Actor -> Svc: markNoShows()
+activate Svc
+Svc -> DB: find CONFIRMED where (checkInDate + 24h) < now
+activate DB
+DB --> Svc: List<Booking>
+deactivate DB
+loop For each booking
+    Svc -> Svc: update status = NO_SHOW
+    Svc -> DB: save(Booking)
+end
+deactivate Svc
+
+== Manager Check-in ==
+Actor -> Svc: checkIn(bookingId)
+activate Svc
+Svc -> DB: load Booking (status must be CONFIRMED)
+Svc -> Svc: update status = CHECKED_IN
+Svc -> DB: save(Booking)
+Svc --> Actor: Checked In
+deactivate Svc
+
+== Manager Check-out ==
+Actor -> Svc: checkOut(bookingId)
+activate Svc
+Svc -> DB: load Booking (status must be PENDING_INSPECTION or DAMAGE)
+Svc -> DB: load RoomInspection
+alt RoomInspection != PASSED or DAMAGE_FEE Unpaid
+    Svc --> Actor: throw Exception (Cannot check out)
+else Ready
+    Svc -> Svc: update status = CHECKED_OUT
+    Svc -> DB: save(Booking)
+    Svc -> DB: create HousekeepingTask(PENDING)
+    Svc --> Actor: Checked Out
+end
+deactivate Svc
+@enduml

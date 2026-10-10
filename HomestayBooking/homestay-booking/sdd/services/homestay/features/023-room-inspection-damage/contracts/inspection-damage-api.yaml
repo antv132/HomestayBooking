@@ -1,0 +1,385 @@
+openapi: 3.0.3
+info:
+  title: FR-23 Room Inspection & Damage Resolution API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-23 Room Inspection and Damage Resolution.
+    Screens: SCR-62/63/64 (Employee), SCR-42/43 (Manager), SCR-53 (Admin).
+    Workflow: Inspection PENDING → PASSED | FAILED_WITH_DAMAGE → DamageReport → APPROVED/ESCALATED → payment → checkout.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, example: Success }
+        data: { type: object }
+
+    RoomInspectionStatus:
+      type: string
+      enum: [PENDING, IN_PROGRESS, PASSED, FAILED_WITH_DAMAGE]
+
+    DamageReportStatus:
+      type: string
+      enum: [PENDING_APPROVAL, ESCALATED, APPROVED, DISPUTED, PAID]
+
+    InspectionChecklist:
+      type: object
+      properties:
+        tv: { type: boolean }
+        minibar: { type: boolean }
+        bed: { type: boolean }
+        bathroom: { type: boolean }
+
+    RoomInspectionSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        roomId: { type: string, format: uuid }
+        roomNumber: { type: string }
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        checkOutDate: { type: string, format: date }
+        inspectedBy: { type: string, format: uuid, nullable: true }
+        inspectorName: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/RoomInspectionStatus' }
+        inspectedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    SubmitInspectionRequest:
+      type: object
+      required: [result, checklist]
+      properties:
+        result:
+          type: string
+          enum: [PASS, FAIL]
+        checklist: { $ref: '#/components/schemas/InspectionChecklist' }
+        note: { type: string, maxLength: 1000 }
+
+    DamageItemInput:
+      type: object
+      required: [itemName, estimatedCost]
+      properties:
+        itemName: { type: string, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        estimatedCost: { type: number, format: double, minimum: 0 }
+        photoUrls:
+          type: array
+          maxItems: 5
+          items: { type: string }
+
+    CreateDamageReportRequest:
+      type: object
+      required: [inspectionId, items]
+      properties:
+        inspectionId: { type: string, format: uuid }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/DamageItemInput' }
+        note: { type: string, maxLength: 2000 }
+
+    DamageItemResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        itemName: { type: string }
+        description: { type: string }
+        estimatedCost: { type: number, format: double }
+        photoUrls:
+          type: array
+          items: { type: string }
+
+    DamageReportSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        inspectionId: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        roomNumber: { type: string }
+        propertyName: { type: string }
+        totalEstimatedCost: { type: number, format: double }
+        approvedAmount: { type: number, format: double, nullable: true }
+        status: { $ref: '#/components/schemas/DamageReportStatus' }
+        requiresAdminEscalation: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        approvedAt: { type: string, format: date-time, nullable: true }
+
+    DamageReportDetail:
+      allOf:
+        - $ref: '#/components/schemas/DamageReportSummary'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/DamageItemResponse' }
+            note: { type: string, nullable: true }
+            disputeNote: { type: string, nullable: true }
+            disputeDeadline: { type: string, format: date-time, nullable: true }
+
+    ApproveDamageReportRequest:
+      type: object
+      required: [fee]
+      properties:
+        fee: { type: number, format: double, minimum: 0 }
+        note: { type: string, maxLength: 1000 }
+
+    CoApproveDamageReportRequest:
+      type: object
+      required: [approvedFee]
+      properties:
+        approvedFee: { type: number, format: double, minimum: 0 }
+        note: { type: string, maxLength: 1000 }
+
+    DisputeDamageReportRequest:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string, minLength: 10, maxLength: 2000 }
+
+    MarkOutstandingDebtRequest:
+      type: object
+      properties:
+        reason: { type: string, maxLength: 500 }
+
+paths:
+  /employee/room-inspections:
+    get:
+      operationId: listEmployeeRoomInspections
+      summary: List inspections for employee (SCR-62)
+      tags: [Employee Inspection]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/RoomInspectionStatus' }
+      responses:
+        '200':
+          description: Inspection list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          content:
+                            type: array
+                            items: { $ref: '#/components/schemas/RoomInspectionSummary' }
+    post:
+      operationId: startRoomInspection
+      summary: Start inspection (IN_PROGRESS) for booking
+      tags: [Employee Inspection]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookingId]
+              properties:
+                bookingId: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Inspection started
+        '403':
+          description: Property scope denied
+
+  /employee/room-inspections/{id}/submit:
+    patch:
+      operationId: submitRoomInspection
+      summary: Submit Pass/Fail with checklist (SCR-62)
+      tags: [Employee Inspection]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitInspectionRequest' }
+      responses:
+        '200':
+          description: Inspection submitted
+        '400':
+          description: Terminal state or invalid transition
+
+  /employee/damage-reports:
+    get:
+      operationId: listEmployeeDamageReports
+      summary: List damage reports by employee (SCR-63)
+      tags: [Employee Damage]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Report list
+    post:
+      operationId: createDamageReport
+      summary: Create damage report with items (SCR-64)
+      tags: [Employee Damage]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateDamageReportRequest' }
+      responses:
+        '201':
+          description: Report created
+
+  /manager/room-inspections:
+    get:
+      operationId: listManagerRoomInspections
+      summary: List inspections by property (SCR-42)
+      tags: [Manager Inspection]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Inspection list
+
+  /manager/damage-reports:
+    get:
+      operationId: listManagerDamageReports
+      summary: List damage reports by property (SCR-43)
+      tags: [Manager Damage]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Report list
+
+  /manager/damage-reports/{id}/approve:
+    patch:
+      operationId: approveDamageReport
+      summary: Manager approve damage fee (SCR-43)
+      description: Fee > 5M VND escalates to Admin (ESCALATED). Otherwise APPROVED and damage fee applied.
+      tags: [Manager Damage]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApproveDamageReportRequest' }
+      responses:
+        '200':
+          description: Approved or escalated
+
+  /manager/damage-reports/{id}/mark-outstanding-debt:
+    patch:
+      operationId: markOutstandingDebt
+      summary: Mark customer outstanding debt (P2 Off-site Collection)
+      tags: [Manager Damage]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MarkOutstandingDebtRequest' }
+      responses:
+        '200':
+          description: Customer flagged outstanding debt
+
+  /admin/damage-reports:
+    get:
+      operationId: listEscalatedDamageReports
+      summary: List escalated damage reports (SCR-53)
+      tags: [Admin Damage]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ESCALATED, DISPUTED]
+      responses:
+        '200':
+          description: Escalated/disputed reports
+
+  /admin/damage-reports/{id}/co-approve:
+    patch:
+      operationId: coApproveDamageReport
+      summary: Admin co-approve escalated damage (SCR-53)
+      tags: [Admin Damage]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CoApproveDamageReportRequest' }
+      responses:
+        '200':
+          description: Co-approved and fee applied
+
+  /customer/damage-reports/{id}/dispute:
+    patch:
+      operationId: disputeDamageReport
+      summary: Customer dispute within 24h of approval
+      tags: [Customer Damage]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DisputeDamageReportRequest' }
+      responses:
+        '200':
+          description: Disputed and escalated to Admin
+        '400':
+          description: Dispute window expired
+
+  /customer/damage-reports:
+    get:
+      operationId: listCustomerDamageReports
+      summary: List damage reports for customer bookings
+      tags: [Customer Damage]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Customer-visible reports with dispute eligibility

@@ -1,0 +1,162 @@
+openapi: 3.0.3
+info:
+  title: FR-02 User Profile API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-02 profile endpoints (SCR-10, SCR-11).
+    Base from docs/api-spec-by-screen.md.
+    Envelope: { success, message, data } | { success, message, errors[] }
+
+    **Note**: PUT response returns full UserProfile (extension over api-spec empty `{}`).
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, example: Success }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string, example: Validation failed }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string, maxLength: 255 }
+        email: { type: string, format: email }
+        phone: { type: string, nullable: true, example: "0901234567" }
+        avatarUrl: { type: string, nullable: true, maxLength: 512 }
+        role:
+          type: string
+          enum: [ADMIN, MANAGER, EMPLOYEE, CUSTOMER]
+        status:
+          type: string
+          enum: [INACTIVE, ACTIVE, SUSPENDED]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        phone:
+          type: string
+          nullable: true
+          pattern: '^(\+84|0)[0-9]{9,10}$'
+        avatarUrl:
+          type: string
+          nullable: true
+          maxLength: 512
+
+paths:
+  /users/me:
+    get:
+      tags: [User Profile]
+      summary: SCR-10 — View own profile
+      description: Returns authenticated user's profile. Self-scope only.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Suspended or forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    put:
+      tags: [User Profile]
+      summary: SCR-11 — Update own profile
+      description: |
+        Updates fullName, phone, avatarUrl for authenticated user.
+        email, role, status are ignored if sent.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+            examples:
+              updateNamePhone:
+                value:
+                  fullName: "Nguyen Van A"
+                  phone: "0901234567"
+              updateAvatar:
+                value:
+                  avatarUrl: "https://cdn.example.com/avatars/user.jpg"
+      responses:
+        '200':
+          description: Profile updated — returns full profile
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                success: false
+                message: Validation failed
+                errors:
+                  - field: phone
+                    message: Invalid phone number
+                  - field: fullName
+                    message: Required field missing
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'

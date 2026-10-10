@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homestay Booking · Property & Inventory Flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1400px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">ER / DATA MODEL · Property & Inventory Flow</p>
+    <h1>Homestay Booking · Property & Inventory Flow</h1>
+    <svg viewBox="0 0 1480 916" xmlns="http://www.w3.org/2000/svg">
+<defs>
+              <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="#f5f5f5"/>
+            <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+<path d="M 400,195 C 300,195 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 760,195 C 660,195 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 760,215 C 660,215 760,180 660,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 1120,195 C 1020,195 1120,180 1020,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 660,443 C 760,443 660,180 760,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 400,463 C 300,463 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 1120,483 C 1020,483 1120,180 1020,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 300,483 C 400,483 -60,180 40,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 760,663 C 660,663 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<g id="Property">
+<rect x="40" y="120" width="260" height="188" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+<rect x="40" y="120" width="260" height="40" rx="6" fill="rgba(235,108,54,0.10)" stroke="none"/>
+<rect x="40" y="152" width="260" height="8" fill="rgba(235,108,54,0.10)"/>
+<line x1="40" y1="160" x2="300" y2="160" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+<text x="56" y="136" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE · AGGREGATE ROOT</text>
+<text x="56" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">properties</text>
+<text x="56" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="284" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="56" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">name</text>
+<text x="284" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">address</text>
+<text x="284" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">description</text>
+<text x="284" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="284" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="284" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="56" y="300" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="284" y="300" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="Floor">
+<rect x="400" y="120" width="260" height="168" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="400" y="120" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="400" y="152" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="400" y1="160" x2="660" y2="160" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="416" y="136" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="416" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">floors</text>
+<text x="416" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="644" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="416" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ property_id</text>
+<text x="644" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">floor_number</text>
+<text x="644" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+<text x="416" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">description</text>
+<text x="644" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="644" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="416" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="644" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="Room">
+<rect x="760" y="120" width="260" height="368" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="760" y="120" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="760" y="152" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="760" y1="160" x2="1020" y2="160" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="776" y="136" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="776" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">rooms</text>
+<text x="776" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1004" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="776" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ property_id</text>
+<text x="1004" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ floor_id</text>
+<text x="1004" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">room_number</text>
+<text x="1004" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">room_type</text>
+<text x="1004" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">price_per_night</text>
+<text x="1004" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">decimal</text>
+<text x="776" y="300" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">capacity</text>
+<text x="1004" y="300" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+<text x="776" y="320" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">area</text>
+<text x="1004" y="320" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">decimal</text>
+<text x="776" y="340" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">description</text>
+<text x="1004" y="340" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="360" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">amenities</text>
+<text x="1004" y="360" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">json</text>
+<text x="776" y="380" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="1004" y="380" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="400" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">deleted_at</text>
+<text x="1004" y="400" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="776" y="420" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">average_rating</text>
+<text x="1004" y="420" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">decimal</text>
+<text x="776" y="440" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">total_reviews</text>
+<text x="1004" y="440" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+<text x="776" y="460" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="1004" y="460" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="776" y="480" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="1004" y="480" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="RoomImage">
+<rect x="1120" y="120" width="260" height="168" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1120" y="120" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="1120" y="152" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="1120" y1="160" x2="1380" y2="160" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="1136" y="136" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="1136" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">room_images</text>
+<text x="1136" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1364" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="1136" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ room_id</text>
+<text x="1364" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">image_url</text>
+<text x="1364" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">is_primary</text>
+<text x="1364" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">boolean</text>
+<text x="1136" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">sort_order</text>
+<text x="1364" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+<text x="1136" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="1364" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="RoomStatusBlock">
+<rect x="400" y="368" width="260" height="268" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="400" y="368" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="400" y="400" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="400" y1="408" x2="660" y2="408" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="416" y="384" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="416" y="400" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">room_status_blocks</text>
+<text x="416" y="428" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="644" y="428" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="416" y="448" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ room_id</text>
+<text x="644" y="448" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="468" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ property_id</text>
+<text x="644" y="468" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="488" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="644" y="488" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="508" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">start_date</text>
+<text x="644" y="508" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">date</text>
+<text x="416" y="528" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">end_date</text>
+<text x="644" y="528" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">date</text>
+<text x="416" y="548" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">reason</text>
+<text x="644" y="548" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="568" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ created_by</text>
+<text x="644" y="568" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="588" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">active</text>
+<text x="644" y="588" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">boolean</text>
+<text x="416" y="608" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="644" y="608" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="416" y="628" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="644" y="628" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="Review">
+<rect x="1120" y="368" width="260" height="268" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1120" y="368" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="1120" y="400" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="1120" y1="408" x2="1380" y2="408" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="1136" y="384" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="1136" y="400" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">reviews</text>
+<text x="1136" y="428" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1364" y="428" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="1136" y="448" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ booking_id</text>
+<text x="1364" y="448" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="468" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ customer_id</text>
+<text x="1364" y="468" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="488" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ room_id</text>
+<text x="1364" y="488" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="508" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">rating</text>
+<text x="1364" y="508" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+<text x="1136" y="528" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">comment</text>
+<text x="1364" y="528" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="548" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="1364" y="548" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="568" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ moderated_by</text>
+<text x="1364" y="568" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="588" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">moderated_at</text>
+<text x="1364" y="588" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="1136" y="608" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="1364" y="608" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="1136" y="628" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="1364" y="628" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="ManagerPropertyAssignment">
+<rect x="40" y="388" width="260" height="168" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="40" y="388" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="40" y="420" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="40" y1="428" x2="300" y2="428" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="56" y="404" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="56" y="420" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">manager_property_assignments</text>
+<text x="56" y="448" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="284" y="448" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="56" y="468" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ manager_id</text>
+<text x="284" y="468" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="488" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ property_id</text>
+<text x="284" y="488" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="508" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ assigned_by</text>
+<text x="284" y="508" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="528" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">assigned_at</text>
+<text x="284" y="528" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="56" y="548" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="284" y="548" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+</g>
+<g id="EmployeePropertyAssignment">
+<rect x="760" y="568" width="260" height="168" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="760" y="568" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="760" y="600" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="760" y1="608" x2="1020" y2="608" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="776" y="584" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="776" y="600" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">employee_property_assignments</text>
+<text x="776" y="628" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1004" y="628" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="776" y="648" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ employee_id</text>
+<text x="1004" y="648" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="668" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ property_id</text>
+<text x="1004" y="668" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="688" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ assigned_by</text>
+<text x="1004" y="688" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="708" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">assigned_at</text>
+<text x="1004" y="708" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="776" y="728" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="1004" y="728" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+</g>
+</svg>
+  </div>
+</body>
+</html>

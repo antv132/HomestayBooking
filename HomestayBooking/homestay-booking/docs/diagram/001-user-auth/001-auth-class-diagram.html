@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homestay Booking · Auth Class Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1400px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 1200px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Class Diagram · Diagram Design</p>
+    <h1>Auth Service · Full Architecture</h1>
+
+    <svg viewBox="0 0 1400 1100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+          </marker>
+          <marker id="arrow-dashed" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+          </marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+        <!-- Relationships -->
+
+        <!-- AuthController to AuthService (Dependency) -->
+        <line x1="700" y1="260" x2="700" y2="340" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+        <rect x="676" y="292" width="48" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="700" y="302" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">USES</text>
+
+        <!-- AuthService to JwtService (Association) -->
+        <line x1="500" y1="460" x2="380" y2="460" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        
+        <!-- AuthService to EmailService (Association) -->
+        <line x1="900" y1="460" x2="1020" y2="460" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- AuthService to UserRepository (Association) -->
+        <line x1="600" y1="620" x2="600" y2="680" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- AuthService to RefreshTokenRepository (Association) -->
+        <line x1="800" y1="620" x2="800" y2="680" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- UserRepository to User (Dependency) -->
+        <line x1="600" y1="780" x2="600" y2="840" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+        <rect x="576" y="802" width="48" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="600" y="812" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">RETURNS</text>
+
+        <!-- RefreshTokenRepository to RefreshToken (Dependency) -->
+        <line x1="800" y1="780" x2="800" y2="840" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+
+        <!-- User to OtpVerification (1:N) -->
+        <line x1="480" y1="940" x2="300" y2="940" stroke="#4f5d75" stroke-width="1.2" />
+        <rect x="306" y="932" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="314" y="942" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+        <rect x="458" y="932" width="12" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="464" y="942" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <!-- User to PasswordResetToken (1:N) -->
+        <line x1="720" y1="940" x2="1020" y2="940" stroke="#4f5d75" stroke-width="1.2" />
+        <rect x="1004" y="932" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="1012" y="942" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+        <rect x="730" y="932" width="12" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="736" y="942" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        
+        <!-- ================= CLASSES ================= -->
+
+        <!-- CONTROLLER: AuthController -->
+        <rect x="520" y="60" width="360" height="200" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="520" y="60" width="360" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="520" y="92" width="360" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="520" y1="100" x2="880" y2="100" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="536" y="76" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«REST CONTROLLER»</text>
+        <text x="536" y="92" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">AuthController</text>
+        
+        <text x="536" y="120" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ register(RegisterRequest) : 201 Created</text>
+        <text x="536" y="140" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ verifyOtp(VerifyOtpRequest) : AuthResponse</text>
+        <text x="536" y="160" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ login(LoginRequest) : AuthResponse</text>
+        <text x="536" y="180" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ loginWithGoogle(GoogleRequest) : AuthResponse</text>
+        <text x="536" y="200" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ refreshToken(RefreshRequest) : AuthResponse</text>
+        <text x="536" y="220" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ logout(LogoutRequest) : 204 No Content</text>
+        <text x="536" y="240" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ requestPasswordReset(ForgotRequest) : 200 OK</text>
+
+
+        <!-- SERVICE: AuthService (Focal Coral) -->
+        <rect x="500" y="340" width="400" height="280" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+        <rect x="500" y="340" width="400" height="40" rx="6" fill="rgba(235,108,54,0.10)" stroke="none"/>
+        <rect x="500" y="372" width="400" height="8" fill="rgba(235,108,54,0.10)"/>
+        <line x1="500" y1="380" x2="900" y2="380" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+        <text x="516" y="356" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«SERVICE»</text>
+        <text x="516" y="372" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">AuthService</text>
+
+        <!-- Fields -->
+        <text x="516" y="400" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">- userRepository: UserRepository</text>
+        <text x="516" y="420" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">- refreshTokenRepository: RefreshTokenRepository</text>
+        <text x="516" y="440" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">- jwtService: JwtService</text>
+        <text x="516" y="460" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace">- emailService: EmailService</text>
+
+        <line x1="500" y1="476" x2="900" y2="476" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+        
+        <!-- Methods -->
+        <text x="516" y="496" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ registerUser(request: RegisterRequest): User</text>
+        <text x="516" y="516" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ verifyOtp(request: VerifyOtpRequest): AuthResponse</text>
+        <text x="516" y="536" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ login(request: LoginRequest): AuthResponse</text>
+        <text x="516" y="556" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ loginWithGoogle(request: GoogleRequest): AuthResponse</text>
+        <text x="516" y="576" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ refreshToken(token: String): AuthResponse</text>
+        <text x="516" y="596" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ logout(token: String): void</text>
+
+
+        <!-- SERVICE: JwtService -->
+        <rect x="80" y="380" width="300" height="160" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="80" y="380" width="300" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="80" y="412" width="300" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="80" y1="420" x2="380" y2="420" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="96" y="396" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«SERVICE»</text>
+        <text x="96" y="412" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">JwtService</text>
+
+        <text x="96" y="440" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ generateAccessToken(User) : String</text>
+        <text x="96" y="460" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ generateRefreshToken(User) : String</text>
+        <text x="96" y="480" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ validateToken(String) : boolean</text>
+        <text x="96" y="500" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ extractUserId(String) : String</text>
+
+
+        <!-- SERVICE: EmailService -->
+        <rect x="1020" y="380" width="300" height="120" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="1020" y="380" width="300" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="1020" y="412" width="300" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="1020" y1="420" x2="1320" y2="420" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="1036" y="396" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«SERVICE»</text>
+        <text x="1036" y="412" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">EmailService</text>
+
+        <text x="1036" y="440" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ sendOtpEmail(email, code) : void</text>
+        <text x="1036" y="460" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ sendResetEmail(email, link) : void</text>
+
+
+        <!-- REPOSITORY: UserRepository -->
+        <rect x="460" y="680" width="280" height="100" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="460" y="680" width="280" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="460" y="712" width="280" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="460" y1="720" x2="740" y2="720" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="476" y="696" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«INTERFACE»</text>
+        <text x="476" y="712" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">UserRepository</text>
+
+        <text x="476" y="740" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ findByEmail(email: String) : User</text>
+        <text x="476" y="760" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ findByGoogleId(id: String) : User</text>
+
+
+        <!-- REPOSITORY: RefreshTokenRepository -->
+        <rect x="760" y="680" width="300" height="100" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="760" y="680" width="300" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="760" y="712" width="300" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="760" y1="720" x2="1060" y2="720" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="776" y="696" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«INTERFACE»</text>
+        <text x="776" y="712" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RefreshTokenRepository</text>
+
+        <text x="776" y="740" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ findByTokenHash(hash) : RefreshToken</text>
+        <text x="776" y="760" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">+ revokeAllUserTokens(user) : void</text>
+
+
+        <!-- ENTITY: User -->
+        <rect x="480" y="840" width="240" height="200" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+        <rect x="480" y="840" width="240" height="40" rx="6" fill="rgba(235,108,54,0.10)" stroke="none"/>
+        <rect x="480" y="872" width="240" height="8" fill="rgba(235,108,54,0.10)"/>
+        <line x1="480" y1="880" x2="720" y2="880" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+        <text x="496" y="856" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«ENTITY · AGGREGATE ROOT»</text>
+        <text x="496" y="872" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">User</text>
+
+        <text x="496" y="900" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- id : UUID</text>
+        <text x="496" y="920" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- email : String</text>
+        <text x="496" y="940" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- password_hash : String</text>
+        <text x="496" y="960" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- role : RoleEnum</text>
+        <text x="496" y="980" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- status : StatusEnum</text>
+        <text x="496" y="1000" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- google_id : String</text>
+        <text x="496" y="1020" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- email_verified : boolean</text>
+
+
+        <!-- ENTITY: RefreshToken -->
+        <rect x="760" y="840" width="220" height="120" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="760" y="840" width="220" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="760" y="872" width="220" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="760" y1="880" x2="980" y2="880" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="776" y="856" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«ENTITY»</text>
+        <text x="776" y="872" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">RefreshToken</text>
+
+        <text x="776" y="900" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- id : UUID</text>
+        <text x="776" y="920" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- token_hash : String</text>
+        <text x="776" y="940" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- expires_at : Timestamp</text>
+
+
+        <!-- ENTITY: OtpVerification -->
+        <rect x="80" y="840" width="220" height="120" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="80" y="840" width="220" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="80" y="872" width="220" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="80" y1="880" x2="300" y2="880" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="96" y="856" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«ENTITY»</text>
+        <text x="96" y="872" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">OtpVerification</text>
+
+        <text x="96" y="900" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- id : UUID</text>
+        <text x="96" y="920" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- otp_hash : String</text>
+        <text x="96" y="940" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- expires_at : Timestamp</text>
+
+        <!-- ENTITY: PasswordResetToken -->
+        <rect x="1020" y="840" width="240" height="120" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="1020" y="840" width="240" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="1020" y="872" width="240" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="1020" y1="880" x2="1260" y2="880" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="1036" y="856" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">«ENTITY»</text>
+        <text x="1036" y="872" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">PasswordResetToken</text>
+
+        <text x="1036" y="900" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- id : UUID</text>
+        <text x="1036" y="920" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- token_hash : String</text>
+        <text x="1036" y="940" fill="#2d3142" font-size="11" font-family="'Geist Mono', monospace">- expires_at : Timestamp</text>
+
+        <!-- Legend -->
+        <line x1="80" y1="1060" x2="1320" y2="1060" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <text x="80" y="1076" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="80" y="1092" width="14" height="10" rx="2" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+        <text x="100" y="1100" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Focal Domain / Aggregate</text>
+
+        <rect x="260" y="1092" width="14" height="10" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="280" y="1100" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Standard Component</text>
+
+        <line x1="420" y1="1096" x2="448" y2="1096" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="456" y="1100" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Association</text>
+
+        <line x1="560" y1="1096" x2="588" y2="1096" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow-dashed)"/>
+        <text x="596" y="1100" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Dependency / Uses</text>
+      </svg>
+  </div>
+</body>
+</html>

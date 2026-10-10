@@ -1,0 +1,179 @@
+openapi: 3.0.3
+info:
+  title: FR-19 Customer Dashboard API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-19 Customer Dashboard composite read.
+    Screen: SCR-15 (Customer Dashboard, route `/customer/dashboard`).
+    Read-only aggregate from bookings, payments, maintenance tickets, notifications.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, example: Success }
+        data: { $ref: '#/components/schemas/CustomerDashboardData' }
+
+    UpcomingEvent:
+      type: object
+      properties:
+        bookingId: { type: string, format: uuid }
+        roomNumber: { type: string, example: "A-101" }
+        propertyName: { type: string, example: "Sunrise Homestay" }
+        date: { type: string, format: date, example: "2026-07-01" }
+        daysUntil: { type: integer, minimum: 0, example: 3 }
+
+    BookingSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        customerName: { type: string }
+        customerEmail: { type: string, format: email }
+        roomNumber: { type: string }
+        roomType: { type: string }
+        propertyName: { type: string }
+        checkInDate: { type: string, format: date }
+        checkOutDate: { type: string, format: date }
+        guestCount: { type: integer }
+        totalAmount: { type: integer, format: int64 }
+        status:
+          type: string
+          enum: [PENDING_DEPOSIT, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED]
+        createdAt: { type: string, format: date-time }
+        isReviewed: { type: boolean }
+
+    PaymentSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [DEPOSIT, REMAINING_BALANCE, DAMAGE_FEE]
+        amount: { type: integer, format: int64 }
+        status:
+          type: string
+          enum: [PENDING, PENDING_VERIFICATION, COMPLETED, FAILED, REFUNDED]
+        createdAt: { type: string, format: date-time }
+
+    NotificationSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        content: { type: string }
+        type: { type: string }
+        isRead: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    DamageDisputeAlert:
+      type: object
+      description: P2 optional — present when FR-23 damage report awaits customer dispute
+      properties:
+        damageReportId: { type: string, format: uuid }
+        amount: { type: integer, format: int64 }
+        disputeDeadline: { type: string, format: date-time }
+
+    CustomerDashboardData:
+      type: object
+      required:
+        - activeBookings
+        - pendingPayments
+        - openTickets
+        - unreadNotifications
+        - upcomingBookings
+        - recentPayments
+        - recentNotifications
+      properties:
+        activeBookings:
+          type: integer
+          minimum: 0
+          description: Count bookings with status CONFIRMED or CHECKED_IN
+        pendingPayments:
+          type: integer
+          minimum: 0
+          description: Count payments with status PENDING or PENDING_VERIFICATION
+        openTickets:
+          type: integer
+          minimum: 0
+          description: Count maintenance tickets OPEN or IN_PROGRESS
+        unreadNotifications:
+          type: integer
+          minimum: 0
+        upcomingCheckIn:
+          nullable: true
+          allOf:
+            - { $ref: '#/components/schemas/UpcomingEvent' }
+        upcomingCheckOut:
+          nullable: true
+          allOf:
+            - { $ref: '#/components/schemas/UpcomingEvent' }
+        upcomingBookings:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/BookingSummary' }
+        recentPayments:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/PaymentSummary' }
+        recentNotifications:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/NotificationSummary' }
+        pendingDamageDispute:
+          nullable: true
+          allOf:
+            - { $ref: '#/components/schemas/DamageDisputeAlert' }
+
+paths:
+  /customer/dashboard:
+    get:
+      operationId: getCustomerDashboard
+      summary: Composite customer dashboard (SCR-15)
+      description: |
+        Returns KPI counts, upcoming check-in/out events, upcoming bookings (max 5),
+        recent payments (max 3), and recent notifications (max 5) for the authenticated customer.
+        All data scoped to JWT customer — no query params for customer id.
+      tags: [Customer Dashboard]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+              example:
+                success: true
+                message: Success
+                data:
+                  activeBookings: 2
+                  pendingPayments: 1
+                  openTickets: 0
+                  unreadNotifications: 3
+                  upcomingCheckIn:
+                    bookingId: "550e8400-e29b-41d4-a716-446655440000"
+                    roomNumber: "A-101"
+                    propertyName: "Sunrise Homestay"
+                    date: "2026-07-01"
+                    daysUntil: 3
+                  upcomingCheckOut: null
+                  upcomingBookings: []
+                  recentPayments: []
+                  recentNotifications: []
+                  pendingDamageDispute: null
+        '401':
+          description: Unauthorized — missing or invalid JWT
+        '403':
+          description: Forbidden — role is not CUSTOMER

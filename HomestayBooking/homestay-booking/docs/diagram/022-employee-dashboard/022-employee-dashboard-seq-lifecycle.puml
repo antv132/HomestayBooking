@@ -1,0 +1,51 @@
+@startuml 022-employee-dashboard-seq-lifecycle
+title Employee Dashboard - Data Aggregation Sequence
+
+actor Employee
+participant "EmployeeDashboardController" as Ctrl
+participant "EmployeeDashboardService" as Svc
+database "Database" as DB
+
+Employee -> Ctrl: GET /api/v1/employee/dashboard
+activate Ctrl
+Ctrl -> Svc: getDashboard(currentUser)
+activate Svc
+
+== 1. Validate Scope ==
+Svc -> DB: findPropertyIdsByEmployeeIdAndStatus(ACTIVE)
+alt if propertyIds is empty
+    Svc --> Ctrl: emptyDashboard() (noPropertyAssignment = true)
+end
+
+== 2. Aggregate Pending Tasks ==
+Svc -> DB: countForDashboard (Housekeeping: PENDING/IN_PROGRESS)
+Svc -> DB: countForDashboard (Maintenance: ASSIGNED/IN_PROGRESS)
+Svc -> DB: countForEmployeeDashboard (Inspections: PENDING/IN_PROGRESS)
+
+== 3. Fetch Previews (Max 5 each) ==
+Svc -> DB: findPreviewForDashboard (Housekeeping)
+Svc -> DB: findPreviewForDashboard (Maintenance)
+Svc -> DB: findForEmployee (Inspections)
+
+== 4. Aggregate Completed Today ==
+Svc -> DB: countCompletedToday (Housekeeping, dayStart, dayEnd)
+Svc -> DB: countCompletedToday (Maintenance, dayStart, dayEnd)
+Svc -> DB: countCompletedToday (Inspections, dayStart, dayEnd)
+Svc -> DB: findCompletedToday (Housekeeping, Limit 3)
+Svc -> DB: findCompletedToday (Maintenance, Limit 3)
+Svc -> DB: findCompletedToday (Inspections, Limit 3)
+
+== 5. Aggregate Unified "Today Tasks" ==
+Svc -> DB: findTodayForDashboard (Housekeeping)
+Svc -> DB: findTodayForDashboard (Maintenance)
+Svc -> DB: findTodayForDashboard (Inspections)
+
+== 6. Map to Response ==
+Svc -> Svc: buildTodayTasks (Combine & limit to 10)
+Svc -> Svc: build AwaitingSummary
+Svc -> Svc: build CompletedTodaySummary
+Svc --> Ctrl: EmployeeDashboardResponse
+deactivate Svc
+Ctrl --> Employee: 200 OK
+deactivate Ctrl
+@enduml

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Use Case Diagram — Decomposed UCs (Spec Fixed)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Geist', sans-serif; background: #f5f5f5; padding: 2rem; }
+    .frame { max-width: 1300px; overflow-x: auto; background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin: 0 auto; }
+    h1 { font-family: 'Instrument Serif', serif; font-size: 2rem; margin-bottom: 0.5rem; color: #2d3142; text-align: center; }
+    .note { text-align: center; color: #4f5d75; font-size: 13px; margin-bottom: 1.5rem; }
+    svg { min-width: 1200px; display: block; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <h1>System Use Case Diagram</h1>
+    <p class="note">Decomposed use cases (generalization): Auth · Discovery · Contract · Check-in/out · Timeout/No-show · Manager/Admin CRUD</p>
+    <svg viewBox="0 0 1200 4700" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="open-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+          <polyline points="1,1 9,4 1,7" fill="none" stroke="#4f5d75" stroke-width="1.5"/>
+        </marker>
+        <marker id="hollow-triangle" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto">
+          <polygon points="1,1 11,5 1,9" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        </marker>
+      </defs>
+
+      <!-- ========== SYSTEM BOUNDARIES ========== -->
+      <rect x="220" y="40" width="860" height="1480" fill="none" stroke="#2d3142" stroke-width="2"/>
+      <text x="240" y="65" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">1. Customer Application</text>
+
+      <rect x="220" y="1550" width="860" height="980" fill="none" stroke="#2d3142" stroke-width="2"/>
+      <text x="240" y="1575" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">2. Manager Dashboard</text>
+
+      <rect x="220" y="2560" width="860" height="1100" fill="none" stroke="#2d3142" stroke-width="2"/>
+      <text x="240" y="2585" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">3. Admin Portal</text>
+
+      <rect x="220" y="3690" width="860" height="400" fill="none" stroke="#2d3142" stroke-width="2"/>
+      <text x="240" y="3715" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">4. Employee App</text>
+
+      <rect x="220" y="4120" width="860" height="280" fill="none" stroke="#2d3142" stroke-width="2"/>
+      <text x="240" y="4145" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">5. Background Services</text>
+
+      <!-- ========== GENERALIZATION: Guest ← Customer ========== -->
+      <line x1="80" y1="620" x2="80" y2="200" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Auth children → Auth parent -->
+      <line x1="550" y1="100" x2="455" y2="160" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="160" x2="455" y2="160" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="220" x2="455" y2="160" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="280" x2="455" y2="160" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="340" x2="455" y2="160" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Discovery children → Discovery parent -->
+      <line x1="550" y1="420" x2="455" y2="480" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="480" x2="455" y2="480" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="540" x2="455" y2="480" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="600" x2="455" y2="480" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Contract children → Contract parent -->
+      <line x1="550" y1="840" x2="455" y2="880" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="920" x2="455" y2="880" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Review children → Review parent -->
+      <line x1="550" y1="1360" x2="455" y2="1400" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="1440" x2="455" y2="1400" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Check-in/out children → parent -->
+      <line x1="550" y1="1720" x2="455" y2="1760" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="1800" x2="455" y2="1760" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Room children -->
+      <line x1="550" y1="1880" x2="455" y2="1940" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="1940" x2="455" y2="1940" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2000" x2="455" y2="1940" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2060" x2="455" y2="1940" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Floor children -->
+      <line x1="550" y1="2140" x2="455" y2="2200" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2200" x2="455" y2="2200" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2260" x2="455" y2="2200" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Task children -->
+      <line x1="550" y1="2340" x2="455" y2="2380" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2420" x2="455" y2="2380" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Property children -->
+      <line x1="550" y1="2680" x2="455" y2="2740" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2740" x2="455" y2="2740" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2800" x2="455" y2="2740" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Account children -->
+      <line x1="550" y1="2880" x2="455" y2="2940" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="2940" x2="455" y2="2940" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="3000" x2="455" y2="2940" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Promo children -->
+      <line x1="550" y1="3080" x2="455" y2="3120" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="3160" x2="455" y2="3120" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Settings children -->
+      <line x1="550" y1="3240" x2="455" y2="3280" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="3320" x2="455" y2="3280" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- Background job children -->
+      <line x1="550" y1="4200" x2="455" y2="4240" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+      <line x1="550" y1="4280" x2="455" y2="4240" stroke="#2d3142" stroke-width="1.5" marker-end="url(#hollow-triangle)"/>
+
+      <!-- ========== ACTOR ASSOCIATIONS ========== -->
+      <!-- Guest → Auth, Discovery -->
+      <line x1="100" y1="160" x2="250" y2="160" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="160" x2="250" y2="480" stroke="#2d3142" stroke-width="1.5"/>
+
+      <!-- Customer → booking lifecycle UCs -->
+      <line x1="100" y1="650" x2="250" y2="680" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="760" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="880" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="1000" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="1080" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="1160" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="1240" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="1320" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="1400" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="650" x2="250" y2="1480" stroke="#2d3142" stroke-width="1.5"/>
+
+      <!-- VNPay → UC_VNPay -->
+      <line x1="1100" y1="780" x2="700" y2="760" stroke="#2d3142" stroke-width="1.5"/>
+
+      <!-- Manager -->
+      <line x1="100" y1="2050" x2="250" y2="1600" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="2050" x2="250" y2="1660" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="2050" x2="250" y2="1760" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="2050" x2="250" y2="1940" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="2050" x2="250" y2="2200" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="2050" x2="250" y2="2380" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="2050" x2="250" y2="2460" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="2050" x2="250" y2="2520" stroke="#2d3142" stroke-width="1.5"/>
+
+      <!-- Admin -->
+      <line x1="100" y1="3100" x2="500" y2="2620" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3100" x2="250" y2="2740" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3100" x2="250" y2="2940" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3100" x2="250" y2="3120" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3100" x2="250" y2="3280" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3100" x2="250" y2="3400" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3100" x2="250" y2="3480" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3100" x2="250" y2="3560" stroke="#2d3142" stroke-width="1.5"/>
+
+      <!-- Employee -->
+      <line x1="100" y1="3890" x2="250" y2="3760" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3890" x2="250" y2="3900" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="3890" x2="250" y2="3980" stroke="#2d3142" stroke-width="1.5"/>
+
+      <!-- System Job -->
+      <line x1="100" y1="4260" x2="250" y2="4240" stroke="#2d3142" stroke-width="1.5"/>
+      <line x1="100" y1="4260" x2="250" y2="4360" stroke="#2d3142" stroke-width="1.5"/>
+
+      <!-- ========== EXTEND ========== -->
+      <!-- Deposit «extend» VNPay -->
+      <line x1="500" y1="760" x2="455" y2="760" stroke="#4f5d75" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#open-arrow)"/>
+      <g transform="translate(477.5, 760)">
+        <rect x="-35" y="-14" width="70" height="16" fill="#ffffff" rx="2"/>
+        <text x="0" y="-3" fill="#4f5d75" font-size="10" font-weight="500" font-family="'Geist Mono', monospace" text-anchor="middle">&lt;&lt;extend&gt;&gt;</text>
+      </g>
+
+      <!-- Cancel «extend» Refund -->
+      <line x1="500" y1="1000" x2="455" y2="1000" stroke="#4f5d75" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#open-arrow)"/>
+      <g transform="translate(477.5, 1000)">
+        <rect x="-35" y="-14" width="70" height="16" fill="#ffffff" rx="2"/>
+        <text x="0" y="-3" fill="#4f5d75" font-size="10" font-weight="500" font-family="'Geist Mono', monospace" text-anchor="middle">&lt;&lt;extend&gt;&gt;</text>
+      </g>
+
+      <!-- Inspect «extend» LogDamage -->
+      <line x1="500" y1="3840" x2="455" y2="3760" stroke="#4f5d75" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#open-arrow)"/>
+      <g transform="translate(477.5, 3800) rotate(60.64)">
+        <rect x="-35" y="-14" width="70" height="16" fill="#ffffff" rx="2"/>
+        <text x="0" y="-3" fill="#4f5d75" font-size="10" font-weight="500" font-family="'Geist Mono', monospace" text-anchor="middle">&lt;&lt;extend&gt;&gt;</text>
+      </g>
+
+      <!-- Manager Damage «extend» Admin co-approve >5tr -->
+      <line x1="500" y1="2620" x2="455" y2="2460" stroke="#4f5d75" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#open-arrow)"/>
+      <g transform="translate(477.5, 2540) rotate(74.05)">
+        <rect x="-35" y="-14" width="70" height="16" fill="#ffffff" rx="2"/>
+        <text x="0" y="-3" fill="#4f5d75" font-size="10" font-weight="500" font-family="'Geist Mono', monospace" text-anchor="middle">&lt;&lt;extend&gt;&gt;</text>
+      </g>
+
+      <!-- ========== 1. CUSTOMER APPLICATION ========== -->
+
+      <!-- Auth parent -->
+      <g id="UC_Auth">
+        <ellipse cx="350" cy="160" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="156" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Authenticate</text>
+        <text x="350" y="170" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Account</text>
+      </g>
+      <g id="UC_Register">
+        <ellipse cx="650" cy="100" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="104" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Register with Email</text>
+      </g>
+      <g id="UC_OTP">
+        <ellipse cx="650" cy="160" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="164" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Verify OTP</text>
+      </g>
+      <g id="UC_LoginEmail">
+        <ellipse cx="650" cy="220" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="224" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Login with Email</text>
+      </g>
+      <g id="UC_LoginGoogle">
+        <ellipse cx="650" cy="280" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="284" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Login with Google</text>
+      </g>
+      <g id="UC_ForgotPwd">
+        <ellipse cx="650" cy="340" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="344" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Forgot Password</text>
+      </g>
+
+      <!-- Discovery parent -->
+      <g id="UC_Discovery">
+        <ellipse cx="350" cy="480" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="476" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Discover</text>
+        <text x="350" y="490" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Rooms</text>
+      </g>
+      <g id="UC_Search">
+        <ellipse cx="650" cy="420" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="424" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Search Rooms</text>
+      </g>
+      <g id="UC_Filter">
+        <ellipse cx="650" cy="480" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="484" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Filter by Criteria</text>
+      </g>
+      <g id="UC_RoomDetail">
+        <ellipse cx="650" cy="540" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="544" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">View Room Detail</text>
+      </g>
+      <g id="UC_Calendar">
+        <ellipse cx="650" cy="600" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="604" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">View Availability</text>
+      </g>
+
+      <g id="UC_Book">
+        <ellipse cx="350" cy="680" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="684" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Book Room</text>
+      </g>
+
+      <g id="UC_Deposit">
+        <ellipse cx="350" cy="760" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="756" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Pay Deposit</text>
+        <text x="350" y="770" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">(40%)</text>
+      </g>
+      <g id="UC_VNPay">
+        <ellipse cx="600" cy="760" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="600" y="756" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Pay via</text>
+        <text x="600" y="770" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">VNPay</text>
+      </g>
+
+      <!-- Contract parent -->
+      <g id="UC_Contract">
+        <ellipse cx="350" cy="880" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="884" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Manage Contract</text>
+      </g>
+      <g id="UC_Contract_View">
+        <ellipse cx="650" cy="840" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="844" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">View Contract</text>
+      </g>
+      <g id="UC_Contract_Download">
+        <ellipse cx="650" cy="920" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="924" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Download Contract PDF</text>
+      </g>
+
+      <g id="UC_Cancel">
+        <ellipse cx="350" cy="1000" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1004" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Cancel Booking</text>
+      </g>
+      <g id="UC_Refund">
+        <ellipse cx="600" cy="1000" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="600" y="1004" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Refund Deposit</text>
+      </g>
+
+      <g id="UC_PayRemain">
+        <ellipse cx="350" cy="1080" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1076" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Pay Remaining</text>
+        <text x="350" y="1090" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Balance (60%)</text>
+      </g>
+
+      <g id="UC_PayHistory">
+        <ellipse cx="350" cy="1160" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1156" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">View Payment</text>
+        <text x="350" y="1170" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">History</text>
+      </g>
+
+      <g id="UC_ReqMaint">
+        <ellipse cx="350" cy="1240" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1244" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Request Maintenance</text>
+      </g>
+
+      <g id="UC_Dispute">
+        <ellipse cx="350" cy="1320" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1316" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Dispute Damage</text>
+        <text x="350" y="1330" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Fee (24h)</text>
+      </g>
+
+      <!-- Review parent -->
+      <g id="UC_Review">
+        <ellipse cx="350" cy="1400" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1404" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Review Room</text>
+      </g>
+      <g id="UC_Review_Edit">
+        <ellipse cx="650" cy="1360" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="1364" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Edit Review</text>
+      </g>
+      <g id="UC_Review_Delete">
+        <ellipse cx="650" cy="1440" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="1444" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Delete Review</text>
+      </g>
+
+      <g id="UC_CreateComplaint">
+        <ellipse cx="350" cy="1480" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1484" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Submit Complaint</text>
+      </g>
+
+      <!-- ========== 2. MANAGER DASHBOARD ========== -->
+
+      <g id="UC_VerifyPay">
+        <ellipse cx="350" cy="1600" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1596" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Verify Bank</text>
+        <text x="350" y="1610" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Transfer Payment</text>
+      </g>
+
+      <g id="UC_ResendContract">
+        <ellipse cx="350" cy="1660" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1664" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Resend Contract</text>
+      </g>
+
+      <!-- Check-in/out parent (SPLIT) -->
+      <g id="UC_CheckInOut">
+        <ellipse cx="350" cy="1760" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1756" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Stay</text>
+        <text x="350" y="1770" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Operations</text>
+      </g>
+      <g id="UC_CheckIn">
+        <ellipse cx="650" cy="1720" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="1724" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Check-in</text>
+      </g>
+      <g id="UC_CheckOut">
+        <ellipse cx="650" cy="1800" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="1804" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Check-out</text>
+      </g>
+
+      <!-- Room CRUD -->
+      <g id="UC_ManageRoom">
+        <ellipse cx="350" cy="1940" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="1936" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Manage</text>
+        <text x="350" y="1950" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Room Catalog</text>
+      </g>
+      <g id="UC_Room_Add">
+        <ellipse cx="650" cy="1880" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="1884" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Add Room</text>
+      </g>
+      <g id="UC_Room_Edit">
+        <ellipse cx="650" cy="1940" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="1944" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Edit Room</text>
+      </g>
+      <g id="UC_Room_Hide">
+        <ellipse cx="650" cy="2000" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2004" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Lock Room</text>
+      </g>
+      <g id="UC_Room_Delete">
+        <ellipse cx="650" cy="2060" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2064" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Delete Room</text>
+      </g>
+
+      <!-- Floor CRUD (+ Xóa) -->
+      <g id="UC_ManageFloor">
+        <ellipse cx="350" cy="2200" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="2196" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Manage Structure</text>
+        <text x="350" y="2210" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Floor / Room Type</text>
+      </g>
+      <g id="UC_Floor_Add">
+        <ellipse cx="650" cy="2140" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2144" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Add Floor</text>
+      </g>
+      <g id="UC_Floor_Edit">
+        <ellipse cx="650" cy="2200" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2204" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Edit Floor</text>
+      </g>
+      <g id="UC_Floor_Delete">
+        <ellipse cx="650" cy="2260" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2264" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Delete Floor</text>
+      </g>
+
+      <!-- Task -->
+      <g id="UC_Assign">
+        <ellipse cx="350" cy="2380" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="2376" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Manage Schedule</text>
+        <text x="350" y="2390" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">HK / Maintenance</text>
+      </g>
+      <g id="UC_Task_Create">
+        <ellipse cx="650" cy="2340" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2344" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Create Task</text>
+      </g>
+      <g id="UC_Task_Update">
+        <ellipse cx="650" cy="2420" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2424" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Update Task</text>
+      </g>
+
+      <g id="UC_DamageApprove">
+        <ellipse cx="350" cy="2460" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="2464" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Approve Damage Fee</text>
+      </g>
+
+      <g id="UC_Report_Mgr">
+        <ellipse cx="350" cy="2520" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="2516" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">View Reports</text>
+        <text x="350" y="2530" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Statistics (Property)</text>
+      </g>
+
+      <!-- ========== 3. ADMIN PORTAL ========== -->
+
+      <g id="UC_DamageAdmin">
+        <ellipse cx="600" cy="2620" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="600" y="2616" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Co-approve Fee</text>
+        <text x="600" y="2630" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">(&gt;5M VND)</text>
+      </g>
+
+      <g id="UC_ManageProp">
+        <ellipse cx="350" cy="2740" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="2736" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Manage Property</text>
+        <text x="350" y="2750" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">(Assign Manager)</text>
+      </g>
+      <g id="UC_Prop_Add">
+        <ellipse cx="650" cy="2680" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2684" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Add Property</text>
+      </g>
+      <g id="UC_Prop_Edit">
+        <ellipse cx="650" cy="2740" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2744" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Edit Property</text>
+      </g>
+      <g id="UC_Prop_Assign">
+        <ellipse cx="650" cy="2800" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2804" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Assign Manager</text>
+      </g>
+
+      <g id="UC_Account">
+        <ellipse cx="350" cy="2940" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="2944" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Manage Accounts</text>
+      </g>
+      <g id="UC_Acc_Create">
+        <ellipse cx="650" cy="2880" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2884" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Create Account</text>
+      </g>
+      <g id="UC_Acc_Role">
+        <ellipse cx="650" cy="2940" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="2944" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Change Role</text>
+      </g>
+      <g id="UC_Acc_Ban">
+        <ellipse cx="650" cy="3000" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="3004" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Suspend Account</text>
+      </g>
+
+      <g id="UC_Promotion">
+        <ellipse cx="350" cy="3120" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3116" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Manage</text>
+        <text x="350" y="3130" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Promotions</text>
+      </g>
+      <g id="UC_Promo_Create">
+        <ellipse cx="650" cy="3080" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="3084" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Create Promotion</text>
+      </g>
+      <g id="UC_Promo_Cancel">
+        <ellipse cx="650" cy="3160" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="3164" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Cancel Promotion</text>
+      </g>
+
+      <g id="UC_SystemSetting">
+        <ellipse cx="350" cy="3280" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3284" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">System Settings</text>
+      </g>
+      <g id="UC_Sys_Refund">
+        <ellipse cx="650" cy="3240" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="3244" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Refund Policy</text>
+      </g>
+      <g id="UC_Sys_Param">
+        <ellipse cx="650" cy="3320" rx="100" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="3324" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">System Parameters</text>
+      </g>
+
+      <g id="UC_Reconcile">
+        <ellipse cx="350" cy="3400" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3404" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Reconcile VNPay</text>
+      </g>
+
+      <g id="UC_Complaint">
+        <ellipse cx="350" cy="3480" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3476" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Handle Complaints</text>
+        <text x="350" y="3490" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">(Complaints)</text>
+      </g>
+
+      <g id="UC_Report_Admin">
+        <ellipse cx="350" cy="3560" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3556" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">View Reports</text>
+        <text x="350" y="3570" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Statistics (Global)</text>
+      </g>
+
+      <!-- ========== 4. EMPLOYEE APP ========== -->
+
+      <g id="UC_Inspect">
+        <ellipse cx="350" cy="3760" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3764" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Inspect Room</text>
+      </g>
+      <g id="UC_LogDamage">
+        <ellipse cx="600" cy="3840" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="600" y="3844" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Log Damage</text>
+      </g>
+
+      <g id="UC_Clean">
+        <ellipse cx="350" cy="3900" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3904" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Clean Room</text>
+      </g>
+
+      <g id="UC_MaintExec">
+        <ellipse cx="350" cy="3980" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="3976" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Execute</text>
+        <text x="350" y="3990" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Maintenance Task</text>
+      </g>
+
+      <!-- ========== 5. BACKGROUND SERVICES (SPLIT Timeout / No-show) ========== -->
+
+      <g id="UC_AutoJobs">
+        <ellipse cx="350" cy="4240" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="4236" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Automated</text>
+        <text x="350" y="4250" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Booking</text>
+      </g>
+      <g id="UC_HoldTimeout">
+        <ellipse cx="650" cy="4200" rx="110" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="4196" fill="#2d3142" font-size="11" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Cancel Hold Timeout</text>
+        <text x="650" y="4210" fill="#2d3142" font-size="11" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">(10 min, release inventory)</text>
+      </g>
+      <g id="UC_NoShow">
+        <ellipse cx="650" cy="4280" rx="110" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="650" y="4276" fill="#2d3142" font-size="11" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Mark No-show</text>
+        <text x="650" y="4290" fill="#2d3142" font-size="11" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">(24h after check-in)</text>
+      </g>
+
+      <g id="UC_AutoHK">
+        <ellipse cx="350" cy="4360" rx="100" ry="30" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+        <text x="350" y="4356" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Create Task</text>
+        <text x="350" y="4370" fill="#2d3142" font-size="12" font-weight="500" font-family="'Geist', sans-serif" text-anchor="middle">Auto Housekeeping</text>
+      </g>
+
+      <!-- ========== ACTORS ========== -->
+      <g id="Guest">
+        <circle cx="80" cy="140" r="8" fill="none" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="148" x2="80" y2="170" stroke="#2d3142" stroke-width="2"/>
+        <line x1="68" y1="155" x2="92" y2="155" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="170" x2="70" y2="185" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="170" x2="90" y2="185" stroke="#2d3142" stroke-width="2"/>
+        <text x="80" y="205" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Guest</text>
+      </g>
+
+      <g id="KhachHang">
+        <circle cx="80" cy="630" r="8" fill="none" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="638" x2="80" y2="660" stroke="#2d3142" stroke-width="2"/>
+        <line x1="68" y1="645" x2="92" y2="645" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="660" x2="70" y2="675" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="660" x2="90" y2="675" stroke="#2d3142" stroke-width="2"/>
+        <text x="80" y="695" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Customer</text>
+      </g>
+
+      <g id="VNPay">
+        <circle cx="1120" cy="760" r="8" fill="none" stroke="#2d3142" stroke-width="2"/>
+        <line x1="1120" y1="768" x2="1120" y2="790" stroke="#2d3142" stroke-width="2"/>
+        <line x1="1108" y1="775" x2="1132" y2="775" stroke="#2d3142" stroke-width="2"/>
+        <line x1="1120" y1="790" x2="1110" y2="805" stroke="#2d3142" stroke-width="2"/>
+        <line x1="1120" y1="790" x2="1130" y2="805" stroke="#2d3142" stroke-width="2"/>
+        <text x="1120" y="825" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">VNPay</text>
+      </g>
+
+      <g id="QuanLy">
+        <circle cx="80" cy="2030" r="8" fill="none" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="2038" x2="80" y2="2060" stroke="#2d3142" stroke-width="2"/>
+        <line x1="68" y1="2045" x2="92" y2="2045" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="2060" x2="70" y2="2075" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="2060" x2="90" y2="2075" stroke="#2d3142" stroke-width="2"/>
+        <text x="80" y="2095" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Manager</text>
+      </g>
+
+      <g id="Admin">
+        <circle cx="80" cy="3080" r="8" fill="none" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="3088" x2="80" y2="3110" stroke="#2d3142" stroke-width="2"/>
+        <line x1="68" y1="3095" x2="92" y2="3095" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="3110" x2="70" y2="3125" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="3110" x2="90" y2="3125" stroke="#2d3142" stroke-width="2"/>
+        <text x="80" y="3145" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Admin</text>
+      </g>
+
+      <g id="NhanVien">
+        <circle cx="80" cy="3870" r="8" fill="none" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="3878" x2="80" y2="3900" stroke="#2d3142" stroke-width="2"/>
+        <line x1="68" y1="3885" x2="92" y2="3885" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="3900" x2="70" y2="3915" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="3900" x2="90" y2="3915" stroke="#2d3142" stroke-width="2"/>
+        <text x="80" y="3935" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Employee</text>
+      </g>
+
+      <g id="SystemJob">
+        <circle cx="80" cy="4240" r="8" fill="none" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="4248" x2="80" y2="4270" stroke="#2d3142" stroke-width="2"/>
+        <line x1="68" y1="4255" x2="92" y2="4255" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="4270" x2="70" y2="4285" stroke="#2d3142" stroke-width="2"/>
+        <line x1="80" y1="4270" x2="90" y2="4285" stroke="#2d3142" stroke-width="2"/>
+        <text x="80" y="4305" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">System Job</text>
+      </g>
+
+    </svg>
+  </div>
+</body>
+</html>

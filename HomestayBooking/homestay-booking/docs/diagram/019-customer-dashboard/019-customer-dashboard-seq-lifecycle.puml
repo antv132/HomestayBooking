@@ -1,0 +1,37 @@
+@startuml 019-customer-dashboard-seq-lifecycle
+title Customer Dashboard - Data Aggregation Sequence
+
+actor Customer
+participant "CustomerDashboardV1Controller" as Ctrl
+participant "CustomerDashboardService" as Svc
+database "Database" as DB
+
+Customer -> Ctrl: GET /api/v1/customer/dashboard
+activate Ctrl
+Ctrl -> Svc: getDashboard(currentUser)
+activate Svc
+
+== 1. Aggregate Counters (Top Row Widgets) ==
+Svc -> DB: countActiveByCustomerId (CONFIRMED/CHECKED_IN)
+Svc -> DB: countPendingDepositByCustomerId (PENDING_DEPOSIT)
+Svc -> DB: countByCustomerIdAndStatus (Payment: PENDING)
+Svc -> Svc: calc pendingPayments = pendingDeposit + pendingPayment
+Svc -> DB: countByCustomerIdAndStatusIn (Maintenance: OPEN/IN_PROGRESS)
+Svc -> DB: countByUserIdAndIsReadFalse (Notification)
+
+== 2. Upcoming Events (Check-in / Check-out highlights) ==
+Svc -> DB: findFirst (Booking = CONFIRMED, checkIn >= today)
+Svc -> DB: findFirst (Booking = CHECKED_IN, checkOut >= today)
+
+== 3. Recent Activity Lists ==
+Svc -> DB: findUpcomingByCustomerId (Limit 5)
+Svc -> DB: findByCustomerIdOrderByCreatedAtDesc (Payments Limit 3)
+Svc -> DB: findByUserIdOrderByCreatedAtDesc (Notifications Limit 5)
+
+== 4. Build Response ==
+Svc -> Svc: Map to CustomerDashboardResponse
+Svc --> Ctrl: CustomerDashboardResponse
+deactivate Svc
+Ctrl --> Customer: 200 OK
+deactivate Ctrl
+@enduml

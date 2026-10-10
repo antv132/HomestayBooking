@@ -1,0 +1,223 @@
+openapi: 3.0.3
+info:
+  title: FR-01 Authentication API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-01 auth endpoints.
+    Base from docs/api-spec-by-screen.md (SCR-02–06) + FR-01 extensions.
+    Envelope: { success, message, data } | { success, message, errors[] }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    UserSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        fullName: { type: string }
+        role:
+          type: string
+          enum: [ADMIN, MANAGER, EMPLOYEE, CUSTOMER]
+
+    AuthTokens:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        user: { $ref: '#/components/schemas/UserSummary' }
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: SCR-03 Register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, fullName, phone]
+              properties:
+                email: { type: string }
+                password: { type: string, minLength: 8 }
+                fullName: { type: string }
+                phone: { type: string }
+      responses:
+        '200': { description: OTP sent }
+
+  /auth/verify-otp:
+    post:
+      tags: [Auth]
+      summary: SCR-04 Verify registration OTP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, otp]
+              properties:
+                email: { type: string }
+                otp: { type: string, pattern: '^[0-9]{6}$' }
+      responses:
+        '200': { description: Account activated }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: SCR-02 Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: AuthTokens
+
+  /auth/google:
+    post:
+      tags: [Auth]
+      summary: SCR-02 Google login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken: { type: string }
+      responses:
+        '200':
+          description: AuthTokens or pendingVerification
+
+  /auth/google/complete-link:
+    post:
+      tags: [Auth]
+      summary: SCR-04 Google link OTP complete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verificationToken, otp]
+              properties:
+                verificationToken: { type: string }
+                otp: { type: string }
+      responses:
+        '200':
+          description: AuthTokens
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh session (client interceptor)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: New tokens (rotated)
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      summary: Revoke refresh token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200': { description: Logged out }
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: SCR-05 Forgot password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string }
+      responses:
+        '200': { description: Generic success }
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: SCR-06 Reset password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token: { type: string }
+                newPassword: { type: string, minLength: 8 }
+      responses:
+        '200': { description: Password updated }
+
+  /auth/change-password:
+    put:
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      summary: SCR-12 Change password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string, minLength: 8 }
+      responses:
+        '200':
+          description: Password changed; all sessions revoked

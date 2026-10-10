@@ -1,0 +1,87 @@
+@startuml 005-calendar-class-diagram
+title Availability Calendar - Class Diagram
+
+package "Controllers" {
+    class CalendarController {
+        + getRoomCalendar(roomId, month, year) : RoomCalendarResponse
+    }
+    
+    class ManagerCalendarController {
+        + getManagerRoomCalendar(roomId, month, year) : ManagerRoomCalendarResponse
+        + addStatusBlock(roomId, request) : RoomStatusBlockResponse
+        + removeStatusBlock(blockId) : Response
+    }
+}
+
+package "Services" {
+    class CalendarStatusService {
+        - bookingRepository: BookingRepository
+        - roomStatusBlockRepository: RoomStatusBlockRepository
+        - housekeepingTaskRepository: HousekeepingTaskRepository
+        + computeMonthlyCalendar(roomId, month, year) : List<CalendarDayStatus>
+        - resolveDayStatus(date, sources) : RoomCalendarStatus
+    }
+    
+    class RoomStatusBlockService {
+        - roomStatusBlockRepository: RoomStatusBlockRepository
+        - bookingRepository: BookingRepository
+        - housekeepingTaskRepository: HousekeepingTaskRepository
+        + addBlock(roomId, request) : RoomStatusBlock
+        + removeBlock(blockId) : void
+    }
+}
+
+package "Repositories" {
+    interface RoomStatusBlockRepository {
+        + findActiveBlocksInRange(roomId, start, end) : List<RoomStatusBlock>
+        + save(block: RoomStatusBlock) : RoomStatusBlock
+    }
+    
+    interface BookingRepository {
+        + findOverlappingBookings(roomId, start, end) : List<Booking>
+    }
+    
+    interface HousekeepingTaskRepository {
+        + findOpenTasksByRoom(roomId) : List<HousekeepingTask>
+    }
+}
+
+package "Entities" {
+    class RoomStatusBlock {
+        - id : UUID
+        - room_id : UUID
+        - property_id : UUID
+        - status : String (MAINTENANCE, OUT_OF_SERVICE)
+        - start_date : Date
+        - end_date : Date
+        - active : boolean
+        - reason : String
+    }
+    
+    class Booking {
+        - id : UUID
+        - status : BookingStatus
+        - check_in_date : Date
+        - check_out_date : Date
+    }
+    
+    class HousekeepingTask {
+        - id : UUID
+        - status : String
+    }
+}
+
+' Relationships
+CalendarController ..> CalendarStatusService
+ManagerCalendarController ..> CalendarStatusService
+ManagerCalendarController ..> RoomStatusBlockService
+
+CalendarStatusService --> BookingRepository
+CalendarStatusService --> RoomStatusBlockRepository
+CalendarStatusService --> HousekeepingTaskRepository
+
+RoomStatusBlockService --> RoomStatusBlockRepository
+RoomStatusBlockService --> BookingRepository
+
+RoomStatusBlockRepository ..> RoomStatusBlock
+@enduml

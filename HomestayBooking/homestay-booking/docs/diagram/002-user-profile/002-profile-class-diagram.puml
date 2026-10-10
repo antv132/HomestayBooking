@@ -1,0 +1,40 @@
+@startuml 002-profile-class-diagram
+title User Profile Architecture - Class Diagram
+
+package "Controllers" {
+    class ProfileController {
+        + getCurrentUser() : UserProfileResponse
+        + updateCurrentUser(UpdateProfileRequest) : Response
+    }
+}
+
+package "Services" {
+    class UserService {
+        - userRepository: UserRepository
+        + getCurrentUserProfile(userId: UUID): User
+        + updateProfile(userId, request): User
+    }
+}
+
+package "Repositories" {
+    interface UserRepository {
+        + findById(id: UUID) : Optional<User>
+        + save(user: User) : User
+    }
+}
+
+package "Entities" {
+    class User {
+        - id : UUID (read-only)
+        - full_name : String (updatable)
+        - phone : String (updatable)
+        - avatar_url : String (updatable)
+        - email : String (read-only)
+    }
+}
+
+' Relationships
+ProfileController ..> UserService : Uses
+UserService --> UserRepository : Calls
+UserRepository ..> User : Returns
+@enduml

@@ -1,0 +1,92 @@
+@startuml 021-housekeeping-management-class-diagram
+title Housekeeping Management - Class Diagram
+
+package "Controllers" {
+    class ManagerHousekeepingV1Controller {
+        + listTasks(manager, ...) : PageResponse
+        + getSchedule(manager, ...) : ApiResponse
+        + createTask(manager, ...) : ApiResponse
+        + cancelTask(manager, ...) : ApiResponse
+        + assignTask(manager, ...) : ApiResponse
+    }
+    note top of ManagerHousekeepingV1Controller
+        /api/v1/manager/housekeeping
+        @PreAuthorize("hasRole('MANAGER')")
+    end note
+
+    class EmployeeHousekeepingController {
+        + listTasks(employee, ...) : PageResponse
+        + startTask(employee, taskId) : ApiResponse
+        + finishTask(employee, taskId) : ApiResponse
+    }
+    note top of EmployeeHousekeepingController
+        /api/v1/employee/housekeeping
+        @PreAuthorize("hasRole('EMPLOYEE')")
+    end note
+}
+
+package "Services" {
+    class HousekeepingTaskService {
+        - taskRepository: HousekeepingTaskRepository
+        - employeeAssignmentRepository: EmployeePropertyAssignmentRepository
+        - roomRepository: RoomRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        
+        + onBookingCheckedOut(booking) : void
+        + listTasksForManager(...) : PageResponse
+        + getScheduleForManager(...) : HousekeepingScheduleResponse
+        + createTaskForManager(...) : HousekeepingTaskSummaryResponse
+        + cancelTaskForManager(...) : HousekeepingTaskSummaryResponse
+        + assignTaskForManager(...) : HousekeepingTaskSummaryResponse
+    }
+    note left of HousekeepingTaskService
+        Manager & Automated Actions.
+        Hooks into Booking check-out.
+    end note
+
+    class EmployeeHousekeepingService {
+        - housekeepingTaskRepository: HousekeepingTaskRepository
+        - managerPropertyAssignmentRepository: ManagerPropertyAssignmentRepository
+        - notificationService: NotificationService
+        
+        + list(employee, ...) : PageResponse
+        + start(employee, taskId) : void
+        + finish(employee, taskId) : void
+        - notifyManagers(task) : void
+    }
+    note right of EmployeeHousekeepingService
+        Employee Workspace Actions.
+        Triggers notifications to Manager.
+    end note
+}
+
+package "Repositories" {
+    interface HousekeepingTaskRepository {
+        + existsByBooking_Id(bookingId) : boolean
+        + findForManagerBoard(...) : Page
+        + findOpenByRoomId(...) : Optional
+        + findScheduleTasks(...) : List
+        + findForEmployee(...) : Page
+        + findByIdAndAssignedEmployeeId(...) : Optional
+    }
+}
+
+package "Entities" {
+    class HousekeepingTask {
+        - id: UUID
+        - status: Status {PENDING, IN_PROGRESS, COMPLETED, CANCELLED}
+        - note: String
+        - startedAt: LocalDateTime
+        - completedAt: LocalDateTime
+    }
+}
+
+ManagerHousekeepingV1Controller ..> HousekeepingTaskService
+EmployeeHousekeepingController ..> EmployeeHousekeepingService
+
+HousekeepingTaskService --> HousekeepingTaskRepository
+EmployeeHousekeepingService --> HousekeepingTaskRepository
+
+HousekeepingTaskRepository --> HousekeepingTask
+
+@enduml

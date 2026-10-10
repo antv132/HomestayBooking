@@ -1,0 +1,98 @@
+@startuml booking-workflow-swimlane
+title Booking & Payment Workflow\n(BPMN Swimlane)
+
+skinparam shadowing false
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontName SansSerif
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #2D3142
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #2D3142
+skinparam ArrowColor #4F5D75
+skinparam PartitionBorderColor #4F5D75
+skinparam NoteBackgroundColor #FFFFFF
+skinparam NoteBorderColor #4F5D75
+
+|Customer|
+start
+:Submit Booking\n(dates, guests);
+
+|System|
+:Lock Inventory\nPENDING_DEPOSIT;
+
+|Customer|
+:Pay 40% Deposit\n(VNPay);
+
+|System|
+if (Paid within 10m?) then (No)
+  :Hold Timeout (10m);
+  :**CANCELLED**\n(Release room);
+  stop
+else (Yes)
+  |System|
+endif
+
+:Confirm Booking\n**CONFIRMED**;
+:Generate Contract PDF;
+
+|Customer|
+if (Request Cancel before stay?) then (Yes)
+  :Cancel Booking;
+  note right
+    Refund on deposit:
+    ≥7d 100%, 3-7d 50%, < 3d 0%
+  end note
+  |System|
+  :**CANCELLED**\n(Release room);
+  stop
+else (No)
+  |System|
+endif
+
+|System|
+if (No-show after 24h?) then (Yes)
+  :**NO_SHOW**\n(Deposit kept, release room);
+  stop
+else (No)
+  |Customer|
+endif
+
+|Customer|
+:Pay Remaining 60%\n(VNPay or Cash);
+
+|Manager|
+:Check-in\n**CHECKED_IN**;
+
+|Employee|
+:Inspect Room\n**PENDING_INSPECTION**;
+
+if (Pass Inspection?) then (No, Damage)
+  :Damage Report;
+  
+  |Manager|
+  :Approve Damage Fee;
+  note right: > 5M requires Admin
+  
+  |Customer|
+  :Pay Damage Fee\n(VNPay);
+  
+  |Manager|
+else (Yes, Room OK)
+  |Manager|
+endif
+
+|Manager|
+:Check-out;
+
+|System|
+:**CHECKED_OUT**\n(Trigger Housekeeping);
+stop
+
+legend right
+  | Status Lifecycle |
+  | PENDING_DEPOSIT → CONFIRMED → CHECKED_IN |
+  | → PENDING_INSPECTION → (PENDING_DAMAGE_PAYMENT) → CHECKED_OUT |
+  | (Alternates: CANCELLED, NO_SHOW) |
+endlegend
+
+@enduml

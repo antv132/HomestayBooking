@@ -1,0 +1,49 @@
+@startuml 018-promotion-seq-lifecycle
+title Promotion Banner Lifecycle (Admin Creation to Public Display)
+
+actor Admin
+actor "Guest / Customer" as Visitor
+participant "AdminPromotionController" as AdminCtrl
+participant "PublicPromotionController" as PubCtrl
+participant "AdminPromotionService" as AdminSvc
+participant "PromotionService" as PubSvc
+database "Database" as DB
+
+== 1. Create Promotion (Admin) ==
+Admin -> AdminCtrl: POST /api/v1/admin/promotions\n{ title, ctaText, ctaUrl, colorTheme }
+activate AdminCtrl
+AdminCtrl -> AdminSvc: create(request)
+activate AdminSvc
+
+AdminSvc -> AdminSvc: validate/normalize (colorTheme, ctaUrl)
+AdminSvc -> DB: INSERT promotions (isActive=true, sortOrder=0)
+AdminSvc --> AdminCtrl: PromotionResponse
+deactivate AdminSvc
+AdminCtrl --> Admin: 201 Created
+deactivate AdminCtrl
+
+== 2. Toggle Active Status (Admin) ==
+Admin -> AdminCtrl: PATCH /api/v1/admin/promotions/{id}/active\n{ isActive: false }
+activate AdminCtrl
+AdminCtrl -> AdminSvc: patchActive(id, false)
+activate AdminSvc
+
+AdminSvc -> DB: UPDATE promotions SET isActive=false WHERE id=?
+AdminSvc --> AdminCtrl: PromotionResponse
+deactivate AdminSvc
+AdminCtrl --> Admin: 200 OK
+deactivate AdminCtrl
+
+== 3. Fetch Active Banners (Landing Page) ==
+Visitor -> PubCtrl: GET /api/v1/promotions/active
+activate PubCtrl
+PubCtrl -> PubSvc: getActivePromotions()
+activate PubSvc
+
+PubSvc -> DB: SELECT * FROM promotions\nWHERE isActive = true\nORDER BY sortOrder ASC, createdAt DESC
+DB --> PubSvc: List<Promotion>
+PubSvc --> PubCtrl: List<PromotionResponse>
+deactivate PubSvc
+PubCtrl --> Visitor: 200 OK
+deactivate PubCtrl
+@enduml

@@ -1,0 +1,283 @@
+openapi: 3.0.3
+info:
+  title: FR-14 Review & Rating API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-14 Review CRUD, moderation, public room reviews.
+    Screens: SCR-24/25 (Customer), SCR-65 (Manager), SCR-56 Admin tab.
+    Public reviews feed FR-03 Room Detail discovery.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ReviewStatus:
+      type: string
+      enum: [PUBLISHED, HIDDEN]
+
+    ReviewSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        roomId: { type: string, format: uuid }
+        roomNumber: { type: string }
+        propertyName: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        status: { $ref: '#/components/schemas/ReviewStatus' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PublicReview:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        reviewerDisplayName: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    ReviewPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/ReviewSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    PublicReviewPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/PublicReview' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    CreateReviewRequest:
+      type: object
+      required: [bookingId, rating, comment]
+      properties:
+        bookingId: { type: string, format: uuid }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, minLength: 20, maxLength: 1000 }
+
+    UpdateReviewRequest:
+      type: object
+      required: [rating, comment]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, minLength: 20, maxLength: 1000 }
+
+    ModerateReviewRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [PUBLISHED, HIDDEN]
+
+paths:
+  /reviews/me:
+    get:
+      summary: SCR-24 — Customer my reviews
+      tags: [Customer Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated own reviews (includes HIDDEN with status badge)
+
+  /reviews:
+    post:
+      summary: SCR-25 — Create review
+      tags: [Customer Reviews]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateReviewRequest' }
+      responses:
+        '201':
+          description: Review created PUBLISHED
+        '400':
+          description: Booking not CHECKED_OUT or validation error
+        '409':
+          description: BOOKING_ALREADY_REVIEWED
+
+  /reviews/{id}:
+    get:
+      summary: Customer review detail (own)
+      tags: [Customer Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Review detail
+        '404':
+          description: Not found or not owned
+
+    put:
+      summary: Update own review
+      tags: [Customer Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateReviewRequest' }
+      responses:
+        '200':
+          description: Updated; recalculates room aggregate if Published
+
+    delete:
+      summary: Delete own review
+      tags: [Customer Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Deleted; booking may be reviewed again
+
+  /rooms/{roomId}/reviews:
+    get:
+      summary: SCR-08 / FR-03 — Public room reviews (Published only)
+      tags: [Public Reviews]
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 5 }
+      responses:
+        '200':
+          description: Paginated Published reviews; no auth required
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - properties:
+                      data: { $ref: '#/components/schemas/PublicReviewPage' }
+
+  /manager/reviews:
+    get:
+      summary: SCR-65 — Manager moderation list
+      tags: [Manager Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/ReviewStatus' }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        '200':
+          description: Property-scoped reviews for moderation
+        '403':
+          description: UNAUTHORIZED_PROPERTY_ACCESS
+
+  /manager/reviews/{id}/status:
+    patch:
+      summary: SCR-65 — Hide or Show review
+      tags: [Manager Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ModerateReviewRequest' }
+      responses:
+        '200':
+          description: Status updated; room aggregate recalculated
+
+  /admin/reviews:
+    get:
+      summary: SCR-56 Content Moderation tab — global list
+      tags: [Admin Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/ReviewStatus' }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        '200':
+          description: All reviews system-wide
+
+  /admin/reviews/{id}/status:
+    patch:
+      summary: Admin Hide or Show review
+      tags: [Admin Reviews]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ModerateReviewRequest' }
+      responses:
+        '200':
+          description: Status updated globally

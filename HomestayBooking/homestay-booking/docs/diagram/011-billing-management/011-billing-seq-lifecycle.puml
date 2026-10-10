@@ -1,0 +1,46 @@
+@startuml 011-billing-seq-lifecycle
+title Billing Management - Invoice Issuance & Sync Lifecycle (FR-11 / FR-12)
+
+participant "BookingService" as Booking
+participant "InvoiceIssuanceService" as IssueSvc
+participant "PaymentService" as Payment
+participant "InvoiceStatusSyncService" as SyncSvc
+database "Database" as DB
+
+== Invoice Issuance (Booking Created) ==
+Booking -> IssueSvc: issuePair(booking)
+activate IssueSvc
+IssueSvc -> DB: existsByBooking_IdAndType(bookingId, DEPOSIT)
+activate DB
+DB --> IssueSvc: false
+deactivate DB
+IssueSvc -> DB: INSERT invoices (DEPOSIT, UNPAID, 40%)
+IssueSvc -> DB: existsByBooking_IdAndType(bookingId, REMAINING_BALANCE)
+activate DB
+DB --> IssueSvc: false
+deactivate DB
+IssueSvc -> DB: INSERT invoices (REMAINING, UNPAID, 60%)
+IssueSvc -> DB: activityLogService.log(INVOICE_ISSUED)
+IssueSvc --> Booking: List<Invoice>
+deactivate IssueSvc
+
+== Invoice Status Sync (Payment Webhook / Completion) ==
+Payment -> SyncSvc: syncFromPayment(invoiceId, paymentStatus, paidAt)
+activate SyncSvc
+SyncSvc -> DB: findById(invoiceId) → Invoice
+
+alt paymentStatus == PENDING
+    SyncSvc -> DB: UPDATE invoices SET status = 'PENDING_PAYMENT'
+else paymentStatus == PAID
+    SyncSvc -> DB: UPDATE invoices SET status = 'PAID', paid_at = NOW()
+    SyncSvc -> DB: activityLogService.log(INVOICE_PAID)
+else paymentStatus == FAILED
+    alt invoice.status == PENDING_PAYMENT
+        SyncSvc -> DB: UPDATE invoices SET status = 'UNPAID'
+    end
+else paymentStatus == REFUNDED / PARTIALLY_REFUNDED
+    note right: Invoice remains PAID.\nRefunds handled separately in Payment (FR-12)
+end
+
+deactivate SyncSvc
+@enduml

@@ -1,0 +1,71 @@
+@startuml 017-administration-seq-lifecycle
+title Property Activation & Manager Assignment Lifecycle (FR-06 / FR-008)
+
+actor Admin
+participant "AdminPropertyController" as PropCtrl
+participant "AdminPropertyService" as PropSvc
+database "Database" as DB
+
+== 1. Create Property (Default INACTIVE) ==
+Admin -> PropCtrl: POST /api/v1/admin/properties\n{ name, address }
+activate PropCtrl
+PropCtrl -> PropSvc: createProperty(request, admin)
+activate PropSvc
+
+PropSvc -> DB: INSERT properties (status='INACTIVE')
+PropSvc -> DB: ActivityLog (PROPERTY_CREATED)
+PropSvc --> PropCtrl: AdminPropertyResponse
+deactivate PropSvc
+PropCtrl --> Admin: 201 Created
+deactivate PropCtrl
+
+== 2. Admin Attempts to Activate (Fails without Manager) ==
+Admin -> PropCtrl: PUT /api/v1/admin/properties/{id}\n{ status: "ACTIVE" }
+activate PropCtrl
+PropCtrl -> PropSvc: updateProperty(id, request, admin)
+activate PropSvc
+
+PropSvc -> DB: findPropertyById
+PropSvc -> PropSvc: assertCanActivate(propertyId)
+PropSvc -> DB: existsByPropertyIdAndStatus(ACTIVE)
+note right of DB: Returns FALSE
+PropSvc --> PropCtrl: throw ConflictException
+deactivate PropSvc
+PropCtrl --> Admin: 409 Conflict ("Assign a manager before activating")
+deactivate PropCtrl
+
+== 3. Assign Manager ==
+Admin -> PropCtrl: POST /api/v1/admin/properties/{id}/assign-manager\n{ managerId }
+activate PropCtrl
+PropCtrl -> PropSvc: assignManager(propertyId, managerId, admin)
+activate PropSvc
+
+PropSvc -> DB: validate Manager is ACTIVE
+PropSvc -> DB: findActiveByPropertyIds
+alt If another manager exists
+    PropSvc -> DB: UPDATE manager_property_assignments SET status='INACTIVE'
+    PropSvc -> DB: ActivityLog (MANAGER_ASSIGNMENT_ENDED)
+end
+PropSvc -> DB: INSERT manager_property_assignments (status='ACTIVE')
+PropSvc -> DB: ActivityLog (MANAGER_ASSIGNED)
+PropSvc --> PropCtrl: AdminPropertyResponse
+deactivate PropSvc
+PropCtrl --> Admin: 200 OK
+deactivate PropCtrl
+
+== 4. Activate Property (Success) ==
+Admin -> PropCtrl: PUT /api/v1/admin/properties/{id}\n{ status: "ACTIVE" }
+activate PropCtrl
+PropCtrl -> PropSvc: updateProperty(id, request, admin)
+activate PropSvc
+
+PropSvc -> PropSvc: assertCanActivate(propertyId)
+PropSvc -> DB: existsByPropertyIdAndStatus(ACTIVE)
+note right of DB: Returns TRUE
+PropSvc -> DB: UPDATE properties SET status='ACTIVE'
+PropSvc -> DB: ActivityLog (PROPERTY_STATUS_CHANGED)
+PropSvc --> PropCtrl: AdminPropertyResponse
+deactivate PropSvc
+PropCtrl --> Admin: 200 OK
+deactivate PropCtrl
+@enduml

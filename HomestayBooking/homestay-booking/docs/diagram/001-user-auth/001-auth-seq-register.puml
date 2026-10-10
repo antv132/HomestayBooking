@@ -1,0 +1,82 @@
+@startuml 001-auth-seq-register
+title Registration & OTP Verification Sequence
+
+actor Guest
+participant "AuthController" as Ctrl
+participant "AuthService" as Svc
+participant "EmailService" as Email
+database "Database" as DB
+
+== Registration ==
+Guest -> Ctrl: POST /register (RegisterRequest)
+activate Ctrl
+
+Ctrl -> Svc: registerUser(request)
+activate Svc
+
+Svc -> DB: findByEmail(request.email)
+activate DB
+DB --> Svc: null (not found)
+deactivate DB
+
+Svc -> Svc: hashPassword()
+Svc -> Svc: generateOTP()
+
+Svc -> DB: save(User[status=INACTIVE])
+activate DB
+DB --> Svc: User Entity
+deactivate DB
+
+Svc -> DB: save(OtpVerification)
+activate DB
+DB --> Svc: void
+deactivate DB
+
+Svc -> Email: sendOtpEmail(email, OTP)
+activate Email
+Email --> Svc: void
+deactivate Email
+
+Svc --> Ctrl: 201 Created (Message)
+deactivate Svc
+
+Ctrl --> Guest: 201 Created
+deactivate Ctrl
+
+== OTP Verification ==
+Guest -> Ctrl: POST /verify-otp (VerifyOtpRequest)
+activate Ctrl
+
+Ctrl -> Svc: verifyOtp(request)
+activate Svc
+
+Svc -> DB: findOtp(email, OTP)
+activate DB
+DB --> Svc: OtpVerification
+deactivate DB
+
+alt OTP Invalid or Expired
+    Svc --> Ctrl: throw Exception
+    Ctrl --> Guest: 400 Bad Request
+else OTP Valid
+    Svc -> DB: load User
+    activate DB
+    DB --> Svc: User[status=INACTIVE]
+    deactivate DB
+    
+    Svc -> Svc: update User status = ACTIVE
+    
+    Svc -> DB: save(User)
+    activate DB
+    DB --> Svc: void
+    deactivate DB
+    
+    Svc -> Svc: generate JWT Tokens
+    
+    Svc --> Ctrl: AuthResponse (Tokens)
+    
+    Ctrl --> Guest: 200 OK (JWT)
+end
+deactivate Svc
+deactivate Ctrl
+@enduml

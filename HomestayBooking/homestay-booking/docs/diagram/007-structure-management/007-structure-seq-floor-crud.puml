@@ -1,0 +1,62 @@
+@startuml 007-structure-seq-floor-crud
+title Manager Create & Delete Floor
+
+actor Manager
+participant "FloorController" as Ctrl
+participant "FloorService" as Svc
+database "Database" as DB
+
+== Create Floor ==
+Manager -> Ctrl: POST /properties/{propId}/floors (floorNumber, desc)
+activate Ctrl
+Ctrl -> Ctrl: @PropertyAccessValidator(propId)
+
+Ctrl -> Svc: createFloor(propId, request)
+activate Svc
+
+Svc -> DB: existsByPropertyIdAndFloorNumber(propId, floorNumber)
+activate DB
+DB --> Svc: exists (boolean)
+deactivate DB
+
+alt exists == true
+    Svc --> Ctrl: throw ValidationException
+    Ctrl --> Manager: 400 Bad Request (Duplicate floor)
+else exists == false
+    Svc -> DB: save(Floor)
+    activate DB
+    DB --> Svc: Floor Entity
+    deactivate DB
+    Svc --> Ctrl: FloorResponse
+    Ctrl --> Manager: 201 Created
+end
+deactivate Svc
+deactivate Ctrl
+
+== Delete Floor ==
+Manager -> Ctrl: DELETE /floors/{floorId}
+activate Ctrl
+Ctrl -> Ctrl: @PropertyAccessValidator(propId)
+
+Ctrl -> Svc: deleteFloor(floorId)
+activate Svc
+
+Svc -> DB: countRoomsByFloorId(floorId)
+activate DB
+DB --> Svc: count
+deactivate DB
+
+alt count > 0
+    Svc --> Ctrl: throw ValidationException
+    Ctrl --> Manager: 400 Bad Request (Cannot delete floor with rooms)
+else count == 0
+    Svc -> DB: deleteById(floorId)
+    activate DB
+    DB --> Svc: success
+    deactivate DB
+    Svc --> Ctrl: success
+    Ctrl --> Manager: 204 No Content
+end
+deactivate Svc
+deactivate Ctrl
+@enduml

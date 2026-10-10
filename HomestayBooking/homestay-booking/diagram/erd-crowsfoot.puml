@@ -1,0 +1,478 @@
+@startuml homestay-erd-crowsfoot
+title Homestay Booking System — Full ERD (Crow's Foot)\n29 entities · cột khớp com.homestay.entity · đường = quan hệ chính
+skinparam shadowing false
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontName SansSerif
+skinparam classFontSize 11
+skinparam classAttributeFontSize 10
+skinparam packageStyle rectangle
+skinparam packageBorderColor #4F5D75
+skinparam packageFontColor #4F5D75
+skinparam entityBorderColor #2D3142
+skinparam entityBackgroundColor #FFFFFF
+skinparam nodesep 80
+skinparam ranksep 130
+hide circle
+hide methods
+left to right direction
+
+' =========================================================
+' A · AUTH / USER
+' =========================================================
+package "A · Auth / User" as PKG_A #White {
+  entity "User" as User {
+    * **id** : UUID <<PK>>
+    --
+    * email : String <<UQ>>
+    * full_name : String
+    phone : String
+    * role : Enum
+    * status : Enum
+    password_hash : Text
+    google_id : String
+    avatar_url : String
+    otp_code : String
+    otp_expired_at : DateTime
+    * otp_send_count : Int
+    otp_send_window_start : DateTime
+  }
+
+  entity "RefreshToken" as RefreshToken {
+    * **id** : UUID <<PK>>
+    --
+    * user_id : UUID <<FK>>
+    * token : String
+    * expires_at : DateTime
+    revoked_at : DateTime
+  }
+
+  entity "Notification" as Notification {
+    * **id** : UUID <<PK>>
+    --
+    * user_id : UUID <<FK>>
+    * type : Enum
+    * title : String
+    content : Text
+    * is_read : Boolean
+    related_entity_type : String
+    related_entity_id : UUID
+    dedupe_key : String
+  }
+
+  entity "ActivityLog" as ActivityLog {
+    * **id** : UUID <<PK>>
+    --
+    user_id : UUID <<FK>>
+    * action : String
+    entity_type : String
+    entity_id : UUID
+    details : Text
+    ip_address : String
+  }
+
+  entity "Complaint" as Complaint {
+    * **id** : UUID <<PK>>
+    --
+    user_id : UUID <<FK>>
+    * subject : String
+    description : Text
+    * status : Enum
+    resolution_notes : Text
+    resolved_at : DateTime
+  }
+
+  entity "SystemSetting" as SystemSetting {
+    * **id** : UUID <<PK>>
+    --
+    * setting_key : String <<UQ>>
+    setting_value : Text
+    description : String
+    updated_by : UUID <<FK>>
+  }
+}
+
+' =========================================================
+' B · PROPERTY STRUCTURE
+' =========================================================
+package "B · Property / Room" as PKG_B #White {
+  entity "Property" as Property {
+    * **id** : UUID <<PK>>
+    --
+    * name : String
+    * address : String
+    description : Text
+    * status : Enum
+  }
+
+  entity "Floor" as Floor {
+    * **id** : UUID <<PK>>
+    --
+    * property_id : UUID <<FK>>
+    * floor_number : Int
+    description : String
+  }
+
+  entity "Room" as Room {
+    * **id** : UUID <<PK>>
+    --
+    * property_id : UUID <<FK>>
+    * floor_id : UUID <<FK>>
+    * room_number : String
+    room_type : String
+    * capacity : Int
+    * price_per_night : Decimal
+    area : Decimal
+    description : Text
+    * status : Enum
+    amenities : JSON
+    * average_rating : Decimal
+    * total_reviews : Int
+    deleted_at : DateTime
+  }
+
+  entity "RoomImage" as RoomImage {
+    * **id** : UUID <<PK>>
+    --
+    * room_id : UUID <<FK>>
+    * image_url : String
+    * is_primary : Boolean
+    * sort_order : Int
+  }
+
+  entity "RoomStatusBlock" as RoomStatusBlock {
+    * **id** : UUID <<PK>>
+    --
+    * room_id : UUID <<FK>>
+    * property_id : UUID <<FK>>
+    * status : Enum
+    * start_date : Date
+    * end_date : Date
+    reason : Text
+    created_by : UUID <<FK>>
+    * active : Boolean
+  }
+
+  entity "ManagerPropertyAssignment" as MgrAssign <<associative>> {
+    * **id** : UUID <<PK>>
+    --
+    * manager_id : UUID <<FK>>
+    * property_id : UUID <<FK>>
+    * assigned_by : UUID <<FK>>
+    * status : Enum
+    assigned_at : DateTime
+  }
+
+  entity "EmployeePropertyAssignment" as EmpAssign <<associative>> {
+    * **id** : UUID <<PK>>
+    --
+    * employee_id : UUID <<FK>>
+    * property_id : UUID <<FK>>
+    * assigned_by : UUID <<FK>>
+    * status : Enum
+    assigned_at : DateTime
+  }
+}
+
+' =========================================================
+' C · BOOKING / BILLING
+' =========================================================
+package "C · Booking / Billing" as PKG_C #FFF8F4 {
+  entity "Booking" as Booking <<focal>> {
+    * **id** : UUID <<PK>>
+    --
+    * customer_id : UUID <<FK>>
+    * room_id : UUID <<FK>>
+    * check_in_date : Date
+    * check_out_date : Date
+    * guest_count : Int
+    * total_amount : Decimal
+    * deposit_amount : Decimal
+    * remaining_amount : Decimal
+    damage_fee_amount : Decimal
+    special_requests : Text
+    * status : Enum
+    hold_expires_at : DateTime
+    * row_version : Int
+    cancelled_by : UUID <<FK>>
+    cancel_reason : Text
+    cancelled_at : DateTime
+  }
+
+  entity "BookingCheckVerification" as CheckVerify {
+    * **id** : UUID <<PK>>
+    --
+    * booking_id : UUID <<FK>>
+    * performed_by : UUID <<FK>>
+    * type : Enum
+    id_document_urls : JSON
+    remaining_collected : Boolean
+    key_handed_over : Boolean
+    key_returned : Boolean
+    note : Text
+  }
+
+  entity "Payment" as Payment {
+    * **id** : UUID <<PK>>
+    --
+    * booking_id : UUID <<FK>>
+    * customer_id : UUID <<FK>>
+    * type : Enum
+    * method : Enum
+    * amount : Decimal
+    * status : Enum
+    gateway_transaction_id : String
+    order_ref : String
+    gateway_response_code : String
+    ipn_received_at : DateTime
+    invoice_id : UUID <<FK>>
+    verified_by : UUID <<FK>>
+    verified_at : DateTime
+    paid_at : DateTime
+    verification_note : Text
+  }
+
+  entity "Invoice" as Invoice {
+    * **id** : UUID <<PK>>
+    --
+    * booking_id : UUID <<FK>>
+    * customer_id : UUID <<FK>>
+    * property_id : UUID <<FK>>
+    * type : Enum
+    * amount : Decimal
+    * status : Enum
+    * due_date : Date
+    paid_at : DateTime
+  }
+
+  entity "Contract" as Contract {
+    * **id** : UUID <<PK>>
+    --
+    * booking_id : UUID <<FK>> <<UQ>>
+    * customer_id : UUID <<FK>>
+    * room_id : UUID <<FK>>
+    * check_in_date : Date
+    * check_out_date : Date
+    * deposit_amount : Decimal
+    * total_amount : Decimal
+    pdf_url : String
+    * status : Enum
+    generated_at : DateTime
+    sent_at : DateTime
+  }
+
+  entity "Review" as Review {
+    * **id** : UUID <<PK>>
+    --
+    * booking_id : UUID <<FK>> <<UQ>>
+    * customer_id : UUID <<FK>>
+    * room_id : UUID <<FK>>
+    * rating : Int
+    comment : Text
+    * status : Enum
+    moderated_by : UUID <<FK>>
+    moderated_at : DateTime
+  }
+}
+
+' =========================================================
+' D · OPERATIONS
+' =========================================================
+package "D · Operations" as PKG_D #White {
+  entity "HousekeepingTask" as HK {
+    * **id** : UUID <<PK>>
+    --
+    * property_id : UUID <<FK>>
+    * room_id : UUID <<FK>>
+    booking_id : UUID <<FK>>
+    assigned_employee_id : UUID <<FK>>
+    * status : Enum
+    note : Text
+    started_at : DateTime
+    completed_at : DateTime
+  }
+
+  entity "MaintenanceTicket" as MT {
+    * **id** : UUID <<PK>>
+    --
+    * customer_id : UUID <<FK>>
+    * room_id : UUID <<FK>>
+    * booking_id : UUID <<FK>>
+    * title : String
+    description : Text
+    photo_urls : Text
+    assigned_employee_id : UUID <<FK>>
+    assigned_at : DateTime
+    * status : Enum
+    resolution_note : Text
+    work_note : Text
+    verified_by : UUID <<FK>>
+    verified_at : DateTime
+    deleted_at : DateTime
+  }
+
+  entity "ChecklistItemDefinition" as ChecklistDef {
+    * **id** : UUID <<PK>>
+    --
+    * code : String
+    * label : String
+    icon : String
+    * sort_order : Int
+    property_id : UUID <<FK>>
+    * is_active : Boolean
+  }
+
+  entity "RoomInspection" as Inspection {
+    * **id** : UUID <<PK>>
+    --
+    * booking_id : UUID <<FK>> <<UQ>>
+    * room_id : UUID <<FK>>
+    * property_id : UUID <<FK>>
+    inspected_by : UUID <<FK>>
+    * status : Enum
+    note : Text
+    inspected_at : DateTime
+  }
+
+  entity "InspectionChecklistAnswer" as ChecklistAns {
+    * **id** : UUID <<PK>>
+    --
+    * inspection_id : UUID <<FK>>
+    * checklist_item_id : UUID <<FK>>
+    * passed : Boolean
+  }
+
+  entity "DamageReport" as DamageReport {
+    * **id** : UUID <<PK>>
+    --
+    * inspection_id : UUID <<FK>> <<UQ>>
+    * booking_id : UUID <<FK>>
+    total_estimated_cost : Decimal
+    approved_amount : Decimal
+    approved_by : UUID <<FK>>
+    approved_at : DateTime
+    * requires_admin_escalation : Boolean
+    admin_approver_id : UUID <<FK>>
+    * status : Enum
+    note : Text
+    dispute_note : Text
+    disputed_at : DateTime
+  }
+
+  entity "DamageItem" as DamageItem {
+    * **id** : UUID <<PK>>
+    --
+    * damage_report_id : UUID <<FK>>
+    * item_name : String
+    description : Text
+    * estimated_cost : Decimal
+  }
+
+  entity "Attachment" as Attachment {
+    * **id** : UUID <<PK>>
+    --
+    * entity_type : String
+    * entity_id : UUID
+    * file_url : String
+    file_name : String
+    file_size : Long
+    * uploaded_at : DateTime
+  }
+}
+
+' =========================================================
+' E · INFRA / CMS (standalone — không FK domain)
+' =========================================================
+package "E · Infra / CMS" as PKG_E #White {
+  entity "OutboxEvent" as Outbox {
+    * **id** : UUID <<PK>>
+    --
+    * event_type : String
+    * payload : Text
+    * status : Enum
+    * retry_count : Int
+    last_error : String
+    processed_at : DateTime
+  }
+
+  entity "Promotion" as Promotion {
+    * **id** : UUID <<PK>>
+    --
+    * subtitle : String
+    * title : String
+    description : String
+    * cta_text : String
+    * cta_url : String
+    image_url : String
+    * color_theme : String
+    * is_active : Boolean
+    * sort_order : Int
+  }
+}
+
+' =========================================================
+' RELATIONSHIPS — chỉ ownership / spine chính
+' FK phụ vẫn ghi trong entity; không vẽ đường (tránh chồng chéo)
+' =========================================================
+
+' A · Auth (User hub trong package)
+User ||--o{ RefreshToken
+User ||--o{ Notification
+User ||--o{ ActivityLog
+User ||--o{ Complaint
+
+' B · Property tree (không vẽ Property→Room: đã có qua Floor; property_id vẫn trên Room)
+Property ||--|{ Floor
+Floor ||--|{ Room
+Room ||--o{ RoomImage
+Room ||--o{ RoomStatusBlock
+
+' Layout hints (tránh đè khối)
+User -[hidden]right-> Property
+Property -[hidden]right-> Booking
+Booking -[hidden]right-> HK
+
+' N–N (2 cầu nối; assigned_by chỉ là cột FK)
+User ||--o{ MgrAssign
+Property ||--o{ MgrAssign
+User ||--o{ EmpAssign
+Property ||--o{ EmpAssign
+
+' C · Booking spine (1 đường từ User/Room; child bám Booking)
+User ||--o{ Booking
+Room ||--o{ Booking
+Booking ||--o{ Payment
+Booking ||--o{ Invoice
+Invoice ||--o{ Payment
+Booking ||--o| Contract
+Booking ||--o| Review
+Booking ||--o{ CheckVerify
+
+' D · Ops (bám Room / Booking / Inspection — không kéo User lần nữa)
+Room ||--o{ HK
+Room ||--o{ MT
+Booking ||--o| Inspection
+Inspection ||--o{ ChecklistAns
+ChecklistDef ||--o{ ChecklistAns
+Inspection ||--o| DamageReport
+DamageReport ||--|{ DamageItem
+
+' Attachment: polymorphic — không vẽ đường chéo
+note bottom of Attachment
+  Polymorphic: entity_type + entity_id
+  (DamageItem / MaintenanceTicket…)
+  MT còn cột photo_urls riêng
+end note
+
+legend right
+  |= Ghi chú |= |
+  | Cột / <<FK>> | Khớp JPA entity (đầy đủ) |
+  | Đường vẽ | Chỉ quan hệ ownership / spine |
+  | FK phụ không vẽ | assigned_by, verified_by, moderated_by, cancelled_by, created_by, performed_by, admin_approver_id, inspected_by; customer_id/room_id/property_id denormalized trên Payment/Invoice/Contract/Review/Inspection/HK… |
+  | Audit | created_at / updated_at bỏ khỏi hộp |
+  | Booking.status | PENDING_DEPOSIT → … → CHECKED_OUT \| CANCELLED \| NO_SHOW |
+  | Payment.type | DEPOSIT \| REMAINING_BALANCE \| DAMAGE_FEE |
+  | CheckVerify.type | CHECK_IN \| CHECK_OUT |
+  | Source | com.homestay.entity |
+endlegend
+
+@enduml

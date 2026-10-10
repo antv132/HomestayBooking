@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Backend Package Diagram | Homestay Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f5f5f5;font-family:'Geist',sans-serif;color:#2d3142;padding:48px 40px 80px;max-width:1080px;margin:0 auto}
+.eyebrow{font-family:'Geist Mono',monospace;font-size:8px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#4f5d75;margin-bottom:8px}
+h1{font-family:'Instrument Serif',serif;font-size:1.75rem;font-weight:400;margin-bottom:6px}
+.sub{font-size:14px;color:#7a8399;margin-bottom:12px}
+.nav{font-family:'Geist Mono',monospace;font-size:11px;margin-bottom:36px}
+.nav a{color:#eb6c36;text-decoration:none;border-bottom:1px solid rgba(235,108,54,.35)}
+.sl{font-family:'Geist Mono',monospace;font-size:8px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#4f5d75;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid rgba(45,49,66,.12)}
+.note{font-size:13px;color:#7a8399;line-height:1.6;margin-bottom:16px}
+.dw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12px}
+thead tr{border-bottom:2px solid rgba(45,49,66,.14)}
+th{font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#4f5d75;padding:8px 10px;text-align:left}
+td{padding:8px 10px;border-bottom:1px solid rgba(45,49,66,.08);vertical-align:top}
+td.m{font-family:'Geist Mono',monospace;font-size:11px;color:#4f5d75;white-space:nowrap}
+td.d{color:#7a8399;font-size:11px}
+.footer{margin-top:56px;padding-top:16px;border-top:1px solid rgba(45,49,66,.12);font-family:'Geist Mono',monospace;font-size:8px;color:#7a8399}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.chip{font-family:'Geist Mono',monospace;font-size:10px;padding:6px 10px;background:#fff;border:1px solid rgba(45,49,66,.12);color:#4f5d75}
+</style>
+</head>
+<body>
+<p class="eyebrow">HomestayBooking &middot; BACKEND PACKAGE DIAGRAM &middot; v4.0</p>
+<h1>Backend Package Diagram</h1>
+<p class="sub">Java 17 · Spring Boot · JPA — package <code>com.homestay</code></p>
+<p class="nav"><a href="package-diagram.html">← Mục lục</a> &nbsp;·&nbsp; <a href="package-diagram-frontend.html">← Frontend</a></p>
+
+<p class="sl">01 &mdash; Luồng tầng chính (DAG)</p>
+<p class="note">Tên trên <strong>tab</strong>. Một chiều: Controller → Service → Repository → Entity · Repository «import» Entity · Repository «use» Database. Không chu trình.</p>
+<div class="dw">
+<svg viewBox="0 0 1040 280" width="1040" height="280" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="u" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <polyline points="0 0,9 4,0 8" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+  </marker>
+  <marker id="i" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <polyline points="0 0,9 4,0 8" fill="none" stroke="#eb6c36" stroke-width="1.2"/>
+  </marker>
+</defs>
+<rect width="1040" height="280" fill="#f5f5f5"/>
+
+<!-- Backend tab hint -->
+<text x="20" y="22" font-size="10" font-family="'Geist Mono',monospace" fill="#7a8399">Backend (nesting parent)</text>
+
+<!-- Controller -->
+<rect x="16" y="36" width="80" height="15" rx="2" fill="rgba(235,108,54,.18)" stroke="#eb6c36"/>
+<text x="56" y="47" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#eb6c36" text-anchor="middle">Controller</text>
+<rect x="16" y="51" width="176" height="200" fill="rgba(235,108,54,.05)" stroke="#eb6c36" stroke-width="1.2"/>
+<text x="28" y="74" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ AuthController</text>
+<text x="28" y="92" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ BookingV1Controller</text>
+<text x="28" y="110" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ PaymentV1Controller</text>
+<text x="28" y="128" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ ManagerBookingV1…</text>
+<text x="28" y="146" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ ContractV1Controller</text>
+<text x="28" y="164" font-size="11" font-family="'Geist Mono',monospace" fill="#7a8399">+ … (68 total)</text>
+<text x="28" y="230" font-size="10" font-family="'Geist Mono',monospace" fill="#eb6c36">@RestController</text>
+
+<path d="M192,140 L220,140" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-dasharray="6,3" marker-end="url(#u)"/>
+<text x="206" y="128" font-size="10" font-family="'Geist Mono',monospace" fill="#4f5d75" text-anchor="middle">«use»</text>
+
+<!-- Service -->
+<rect x="220" y="36" width="64" height="15" rx="2" fill="rgba(45,49,66,.1)" stroke="#2d3142"/>
+<text x="252" y="47" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#2d3142" text-anchor="middle">Service</text>
+<rect x="220" y="51" width="188" height="200" fill="#fff" stroke="#2d3142" stroke-width="1.2"/>
+<text x="232" y="74" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ AuthService</text>
+<text x="232" y="92" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ BookingService</text>
+<text x="232" y="110" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ PaymentService</text>
+<text x="232" y="128" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ ContractService</text>
+<text x="232" y="146" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ InvoiceIssuance…</text>
+<text x="232" y="164" font-size="11" font-family="'Geist Mono',monospace" fill="#7a8399">+ … (54 *Service)</text>
+<text x="232" y="230" font-size="10" font-family="'Geist Mono',monospace" fill="#7a8399">− OutboxPublisher…</text>
+
+<path d="M408,140 L436,140" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-dasharray="6,3" marker-end="url(#u)"/>
+<text x="422" y="128" font-size="10" font-family="'Geist Mono',monospace" fill="#4f5d75" text-anchor="middle">«use»</text>
+
+<!-- Repository -->
+<rect x="436" y="36" width="84" height="15" rx="2" fill="rgba(79,93,117,.12)" stroke="#4f5d75"/>
+<text x="478" y="47" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#4f5d75" text-anchor="middle">Repository</text>
+<rect x="436" y="51" width="176" height="200" fill="rgba(45,49,66,.03)" stroke="#4f5d75" stroke-width="1.2"/>
+<text x="448" y="74" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ UserRepository</text>
+<text x="448" y="92" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ BookingRepository</text>
+<text x="448" y="110" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ PaymentRepository</text>
+<text x="448" y="128" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ ContractRepository</text>
+<text x="448" y="146" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ RoomRepository</text>
+<text x="448" y="164" font-size="11" font-family="'Geist Mono',monospace" fill="#7a8399">+ … (28 total)</text>
+<text x="448" y="230" font-size="10" font-family="'Geist Mono',monospace" fill="#4f5d75">«interface» JpaRepo</text>
+
+<path d="M612,140 L644,140" fill="none" stroke="#eb6c36" stroke-width="1.4" stroke-dasharray="6,3" marker-end="url(#i)"/>
+<text x="628" y="128" font-size="10" font-family="'Geist Mono',monospace" fill="#eb6c36" text-anchor="middle">«import»</text>
+
+<!-- Entity -->
+<rect x="644" y="36" width="56" height="15" rx="2" fill="rgba(79,93,117,.12)" stroke="#4f5d75"/>
+<text x="672" y="47" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#4f5d75" text-anchor="middle">Entity</text>
+<rect x="644" y="51" width="160" height="200" fill="rgba(45,49,66,.03)" stroke="#4f5d75" stroke-width="1.2"/>
+<text x="656" y="74" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ User · Booking</text>
+<text x="656" y="92" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ Payment · Contract</text>
+<text x="656" y="110" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ Invoice · Room</text>
+<text x="656" y="128" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ Property · …</text>
+<text x="656" y="164" font-size="11" font-family="'Geist Mono',monospace" fill="#7a8399">29 @Entity</text>
+<text x="656" y="230" font-size="10" font-family="'Geist Mono',monospace" fill="#7a8399">không lộ qua API</text>
+
+<path d="M804,140 L836,140" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-dasharray="6,3" marker-end="url(#u)"/>
+<text x="820" y="128" font-size="10" font-family="'Geist Mono',monospace" fill="#4f5d75" text-anchor="middle">«use»</text>
+
+<!-- Database -->
+<rect x="836" y="36" width="72" height="15" rx="2" fill="rgba(79,93,117,.12)" stroke="#4f5d75"/>
+<text x="872" y="47" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#4f5d75" text-anchor="middle">Database</text>
+<rect x="836" y="51" width="184" height="200" fill="rgba(79,93,117,.04)" stroke="#4f5d75" stroke-width="1.2"/>
+<text x="848" y="80" font-size="12" font-weight="600" font-family="'Geist',sans-serif" fill="#2d3142">SQL Server</text>
+<text x="848" y="102" font-size="10" font-family="'Geist Mono',monospace" fill="#7a8399">Hibernate / JPA</text>
+<text x="848" y="130" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ bookings</text>
+<text x="848" y="148" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ payments · users</text>
+<text x="848" y="166" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ contracts · invoices</text>
+<text x="848" y="184" font-size="11" font-family="'Geist Mono',monospace" fill="#7a8399">+ room_status_blocks…</text>
+<text x="848" y="230" font-size="10" font-family="'Geist Mono',monospace" fill="#7a8399">~29 tables</text>
+</svg>
+</div>
+
+<p class="sl">02 &mdash; Gói hỗ trợ (Dto · Security · Job · Config)</p>
+<p class="note">Đặt dưới tầng chính. Mũi tên ngắn, ít giao cắt. Chi tiết phụ trong bảng.</p>
+<div class="dw">
+<svg viewBox="0 0 1040 280" width="1040" height="280" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="u2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <polyline points="0 0,9 4,0 8" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+  </marker>
+  <marker id="a2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <polyline points="0 0,9 4,0 8" fill="none" stroke="#2e5aa8" stroke-width="1.2"/>
+  </marker>
+</defs>
+<rect width="1040" height="280" fill="#f5f5f5"/>
+
+<!-- Dto -->
+<rect x="40" y="30" width="40" height="15" rx="2" fill="rgba(45,49,66,.1)" stroke="#2d3142"/>
+<text x="60" y="41" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#2d3142" text-anchor="middle">Dto</text>
+<rect x="40" y="45" width="200" height="90" fill="#fff" stroke="#2d3142"/>
+<text x="52" y="70" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ BookingDetailResponse</text>
+<text x="52" y="90" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ CreateBookingRequest</text>
+<text x="52" y="114" font-size="10" font-family="'Geist Mono',monospace" fill="#7a8399">biên API · không Entity</text>
+
+<!-- Security -->
+<rect x="280" y="30" width="68" height="15" rx="2" fill="rgba(235,108,54,.14)" stroke="#eb6c36"/>
+<text x="314" y="41" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#eb6c36" text-anchor="middle">Security</text>
+<rect x="280" y="45" width="200" height="90" fill="rgba(235,108,54,.04)" stroke="#eb6c36"/>
+<text x="292" y="70" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">+ SecurityConfig</text>
+<text x="292" y="90" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75"># JwtAuthFilter</text>
+<text x="292" y="114" font-size="11" font-family="'Geist Mono',monospace" fill="#7a8399">− JwtTokenProvider</text>
+
+<!-- Job -->
+<rect x="520" y="30" width="40" height="15" rx="2" fill="rgba(45,49,66,.08)" stroke="#4f5d75"/>
+<text x="540" y="41" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#4f5d75" text-anchor="middle">Job</text>
+<rect x="520" y="45" width="220" height="90" fill="#fff" stroke="#4f5d75"/>
+<text x="532" y="70" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">− BookingNoShowJob</text>
+<text x="532" y="90" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">− BookingHoldTimeoutJob</text>
+<text x="532" y="114" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">− OutboxProcessorJob</text>
+
+<!-- Config -->
+<rect x="780" y="30" width="56" height="15" rx="2" fill="rgba(45,49,66,.08)" stroke="#4f5d75"/>
+<text x="808" y="41" font-size="9" font-family="'Geist Mono',monospace" font-weight="600" fill="#4f5d75" text-anchor="middle">Config</text>
+<rect x="780" y="45" width="220" height="90" fill="#fff" stroke="#4f5d75"/>
+<text x="792" y="70" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">− VNPayConfig</text>
+<text x="792" y="90" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">− WebSocketConfig</text>
+<text x="792" y="114" font-size="11" font-family="'Geist Mono',monospace" fill="#4f5d75">− WebConfig · MailConfig</text>
+
+<!-- Relationship summary boxes (readable, no spaghetti) -->
+<rect x="40" y="160" width="960" height="96" fill="#fff" stroke="rgba(45,49,66,.18)"/>
+<text x="56" y="186" font-size="12" font-family="'Geist Mono',monospace" fill="#2d3142">Controller / Service  «use»  Dto</text>
+<text x="56" y="208" font-size="12" font-family="'Geist Mono',monospace" fill="#2e5aa8">Security  «access»  Controller &nbsp;·&nbsp; Security  «use»  Repository</text>
+<text x="56" y="230" font-size="12" font-family="'Geist Mono',monospace" fill="#4f5d75">Job  «use»  Service &nbsp;·&nbsp; Service / Controller  «use»  Config &nbsp;·&nbsp; Config  «use»  Security · Repository</text>
+</svg>
+</div>
+
+<div class="chips">
+  <span class="chip">«use» phụ thuộc</span>
+  <span class="chip">«import» Entity vào Repository</span>
+  <span class="chip">«access» Security → Controller</span>
+  <span class="chip">+ public · # protected · − private</span>
+  <span class="chip">DAG — không cyclic</span>
+</div>
+
+<p class="sl">03 &mdash; Bảng quan hệ Backend</p>
+<table>
+<thead><tr><th>Nguồn</th><th>QH</th><th>Đích</th><th>Ý nghĩa</th></tr></thead>
+<tbody>
+<tr><td class="m">Controller</td><td class="m">«use»</td><td class="m">Service</td><td class="d">Ủy thác nghiệp vụ</td></tr>
+<tr><td class="m">Controller</td><td class="m">«use»</td><td class="m">Dto</td><td class="d">Request/Response — không Entity</td></tr>
+<tr><td class="m">Controller</td><td class="m">«use»</td><td class="m">Config</td><td class="d">VNPayConfig (payment)</td></tr>
+<tr><td class="m">Service</td><td class="m">«use»</td><td class="m">Repository</td><td class="d">Đọc/ghi JPA</td></tr>
+<tr><td class="m">Service</td><td class="m">«use»</td><td class="m">Dto</td><td class="d">Map Entity ↔ DTO</td></tr>
+<tr><td class="m">Service</td><td class="m">«use»</td><td class="m">Config</td><td class="d">VNPayConfig</td></tr>
+<tr><td class="m">Repository</td><td class="m">«import»</td><td class="m">Entity</td><td class="d">Generic type JpaRepository</td></tr>
+<tr><td class="m">Repository</td><td class="m">«use»</td><td class="m">Database</td><td class="d">ORM → SQL Server</td></tr>
+<tr><td class="m">Security</td><td class="m">«access»</td><td class="m">Controller</td><td class="d">Filter chain bọc endpoint</td></tr>
+<tr><td class="m">Security</td><td class="m">«use»</td><td class="m">Repository</td><td class="d">UserRepository khi auth</td></tr>
+<tr><td class="m">Job</td><td class="m">«use»</td><td class="m">Service</td><td class="d">Scheduled nền</td></tr>
+<tr><td class="m">Config</td><td class="m">«use»</td><td class="m">Security</td><td class="d">WS auth → JwtTokenProvider</td></tr>
+<tr><td class="m">Config</td><td class="m">«use»</td><td class="m">Repository</td><td class="d">Seed / WS auth</td></tr>
+</tbody>
+</table>
+
+<p class="sl">04 &mdash; Visibility &amp; Naming</p>
+<table>
+<thead><tr><th>Ký hiệu / Gói</th><th>Quy tắc</th><th>Ví dụ</th></tr></thead>
+<tbody>
+<tr><td class="m">+</td><td>Public API / bean nghiệp vụ</td><td class="d">Controller, Service, Repository, Entity, Dto</td></tr>
+<tr><td class="m">#</td><td>Protected / filter nội bộ</td><td class="d">JwtAuthFilter</td></tr>
+<tr><td class="m">−</td><td>Private / hạ tầng</td><td class="d">Job, JwtTokenProvider, VNPayConfig</td></tr>
+<tr><td class="m">Controller</td><td>*Controller · V1 khi versioned</td><td class="m">BookingV1Controller</td></tr>
+<tr><td class="m">Service</td><td>*Service</td><td class="m">BookingService</td></tr>
+<tr><td class="m">Repository</td><td>*Repository extends JpaRepository</td><td class="m">BookingRepository</td></tr>
+<tr><td class="m">Entity</td><td>PascalCase số ít</td><td class="m">RoomStatusBlock</td></tr>
+<tr><td class="m">Job</td><td>*Job @Scheduled</td><td class="m">BookingNoShowJob</td></tr>
+</tbody>
+</table>
+
+<div class="footer">HomestayBooking · Backend Package Diagram · 26/07/2026 · v4.0 · dễ nhìn · đúng codebase (68 / 54 / 28 / 29)</div>
+</body>
+</html>

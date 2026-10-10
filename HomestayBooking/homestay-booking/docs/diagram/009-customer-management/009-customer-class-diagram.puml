@@ -1,0 +1,152 @@
+@startuml 009-customer-class-diagram
+title Customer Management - Class Diagram
+
+package "Controllers" {
+    class AdminUserController {
+        + list(role, status, keyword, page, size) : Page<AdminUserResponse>
+        + getById(id) : AdminUserResponse
+        + createManager(req) : AdminUserResponse
+        + updateManager(id, req) : AdminUserResponse
+        + customerBookings(id, page, size) : Page<AdminCustomerBookingSummaryResponse>
+        + updateCustomerStatus(id, req, actor) : AdminUserResponse
+        + update(id, req, actor) : AdminUserResponse
+    }
+    note right of AdminUserController
+        @PreAuthorize("hasRole('ADMIN')")
+        Paths: /api/admin/users
+               /api/v1/admin/users
+        SCR-50/51
+    end note
+
+    class UserController {
+        + getMyProfile(currentUser) : UserProfileResponse
+        + updateMyProfile(currentUser, req) : UserProfileResponse
+        + changePassword(currentUser, req) : void
+        + getAllCustomers(page, size, status, search) : Page<CustomerSummaryResponse>
+        + getCustomerDetail(id) : CustomerDetailResponse
+        + updateCustomerStatus(id, body) : void
+    }
+    note right of UserController
+        /api/users
+        getAllCustomers/Detail: @PreAuthorize("hasRole('MANAGER')")
+        Profile endpoints: any authenticated user
+    end note
+
+    class UserV1Controller {
+        + getMyProfile(currentUser) : UserProfileResponse
+        + updateMyProfile(currentUser, req) : UserProfileResponse
+        + changePassword(currentUser, req) : void
+    }
+    note right of UserV1Controller
+        /api/v1/users
+        SCR-10/11/12
+    end note
+
+    class CustomerDashboardV1Controller {
+        + getDashboard(currentUser) : CustomerDashboardResponse
+    }
+    note right of CustomerDashboardV1Controller
+        /api/v1/customer/dashboard
+        @PreAuthorize("hasRole('CUSTOMER')")
+        SCR-15
+    end note
+}
+
+package "Services" {
+    class AdminUserService {
+        - userRepository: UserRepository
+        - managerAssignmentRepository: ManagerPropertyAssignmentRepository
+        - bookingRepository: BookingRepository
+        - paymentRepository: PaymentRepository
+        - refreshTokenRepository: RefreshTokenRepository
+        - activityLogService: ActivityLogService
+        - passwordEncoder: PasswordEncoder
+        + listUsers(role, status, keyword, pageable) : PageResponse<AdminUserResponse>
+        + getById(id) : AdminUserResponse
+        + createManager(req) : AdminUserResponse
+        + updateManager(id, req) : AdminUserResponse
+        + listCustomerBookings(customerId, page, size) : PageResponse<AdminCustomerBookingSummaryResponse>
+        + updateCustomerStatus(id, req, actor) : AdminUserResponse
+        + updateUser(id, req, actor) : AdminUserResponse
+        - applyCustomerStatus(user, newStatus, actor) : AdminUserResponse
+    }
+
+    class UserService {
+        - userRepository: UserRepository
+        + getMyProfile(userId) : UserProfileResponse
+        + updateMyProfile(userId, req) : UserProfileResponse
+        + changePassword(userId, req) : void
+        + getAllCustomers(page, size, status, search) : PageResponse<CustomerSummaryResponse>
+        + getCustomerDetail(id) : CustomerDetailResponse
+        + updateCustomerStatus(id, status) : void
+    }
+
+    class CustomerDashboardService {
+        - bookingRepository: BookingRepository
+        - paymentRepository: PaymentRepository
+        + getDashboard(currentUser) : CustomerDashboardResponse
+    }
+}
+
+package "Repositories" {
+    interface UserRepository {
+        + findByRoleWithFilters(role, status, keyword, pageable) : Page<User>
+        + existsByEmail(email) : boolean
+        + countByCustomerId(id) : long
+    }
+
+    interface BookingRepository {
+        + findByCustomerIdWithDetails(customerId, pageable) : Page<Booking>
+        + countByCustomerId(id) : long
+        + countBookingsByCustomerIds(ids) : List<Object[]>
+    }
+
+    interface PaymentRepository {
+        + sumPaidAmountByCustomerId(id) : BigDecimal
+        + sumPaidAmountByCustomerIds(ids) : List<Object[]>
+    }
+
+    interface RefreshTokenRepository {
+        + revokeAllByUser(user) : void
+    }
+
+    interface ManagerPropertyAssignmentRepository {
+        + countByManager_IdAndStatus(managerId, status) : long
+        + countActiveAssignmentsByManagerIds(ids, status) : List<Object[]>
+    }
+}
+
+package "Entities" {
+    class User {
+        - id : UUID
+        - full_name : String
+        - email : String
+        - phone : String
+        - password_hash : String
+        - role : Role {ADMIN, MANAGER, CUSTOMER, EMPLOYEE}
+        - status : Status {INACTIVE, ACTIVE, SUSPENDED}
+        - created_at : Timestamp
+        - updated_at : Timestamp
+    }
+}
+
+' Relationships
+AdminUserController ..> AdminUserService
+UserController ..> UserService
+UserV1Controller ..> UserService
+CustomerDashboardV1Controller ..> CustomerDashboardService
+
+AdminUserService --> UserRepository
+AdminUserService --> BookingRepository
+AdminUserService --> PaymentRepository
+AdminUserService --> RefreshTokenRepository
+AdminUserService --> ManagerPropertyAssignmentRepository
+AdminUserService ..> ActivityLogService
+
+UserService --> UserRepository
+
+CustomerDashboardService --> BookingRepository
+CustomerDashboardService --> PaymentRepository
+
+UserRepository --> User
+@enduml

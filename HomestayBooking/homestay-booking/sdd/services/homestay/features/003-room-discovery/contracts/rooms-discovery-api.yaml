@@ -1,0 +1,246 @@
+openapi: 3.0.3
+info:
+  title: FR-03 Room Discovery API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-03 public discovery endpoints.
+    SCR-01, SCR-07, SCR-08, SCR-09 from docs/api-spec-by-screen.md.
+    Extended query params align with frontend useRoomSearch.ts.
+    Envelope: { success, message, data } | paginated { content, page, size, totalElements, totalPages }
+
+servers:
+  - url: /api/v1
+
+components:
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    PaginatedRooms:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomListItem'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    RoomListItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        roomNumber: { type: string }
+        roomType: { type: string }
+        pricePerNight: { type: number }
+        capacity: { type: integer }
+        area: { type: number }
+        status: { type: string }
+        primaryImageUrl: { type: string, nullable: true }
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        floorNumber: { type: integer, nullable: true }
+        averageRating: { type: number, nullable: true }
+        totalReviews: { type: integer, nullable: true }
+
+    RoomDetail:
+      allOf:
+        - $ref: '#/components/schemas/RoomListItem'
+        - type: object
+          properties:
+            description: { type: string }
+            propertyAddress: { type: string }
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  url: { type: string }
+                  isPrimary: { type: boolean }
+                  sortOrder: { type: integer }
+            amenities:
+              type: array
+              items: { type: string }
+
+    SearchSuggestion:
+      type: object
+      properties:
+        type: { type: string, enum: [property, location] }
+        label: { type: string }
+
+    PlatformStats:
+      type: object
+      properties:
+        totalProperties: { type: integer }
+        totalRooms: { type: integer }
+        totalAvailableRooms: { type: integer }
+        averageRating: { type: number }
+        totalReviews: { type: integer }
+
+paths:
+  /rooms:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-07 — Search & list rooms
+      description: Guest/Customer public read. Paginated with filters.
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, default: 12 } }
+        - { name: sort, in: query, schema: { type: string, example: pricePerNight,asc } }
+        - { name: propertyId, in: query, schema: { type: string, format: uuid } }
+        - { name: location, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: roomType, in: query, schema: { type: string } }
+        - { name: minPrice, in: query, schema: { type: number } }
+        - { name: maxPrice, in: query, schema: { type: number } }
+        - { name: capacity, in: query, schema: { type: integer } }
+        - { name: checkIn, in: query, schema: { type: string, format: date } }
+        - { name: checkOut, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Paginated room list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedRooms'
+        '400':
+          description: Invalid date range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /rooms/{id}:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-08 — Room detail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Room detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RoomDetail'
+        '404':
+          description: Room or property not found/inactive
+
+  /rooms/{id}/availability:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-09 — Availability (month or date range)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: month, in: query, schema: { type: integer, minimum: 1, maximum: 12 } }
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: checkIn, in: query, schema: { type: string, format: date } }
+        - { name: checkOut, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: bookedDates (month mode) or available+bookedRanges (range mode)
+
+  /rooms/{id}/calendar:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-08/09 — Calendar with booked ranges (frontend compat)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: roomStatus + bookedRanges
+
+  /rooms/featured:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-01 — Featured rooms
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 8 } }
+      responses:
+        '200':
+          description: Featured room list
+
+  /rooms/price-stats:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-07 — Min/max price for filter slider
+      responses:
+        '200':
+          description: { minPrice, maxPrice }
+
+  /properties/featured:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-01 — Featured properties
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 6 } }
+      responses:
+        '200':
+          description: Featured property list
+
+  /promotions/active:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-01 — Active promotion banners
+      responses:
+        '200':
+          description: Promotion list
+
+  /public/stats:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-01 — Platform statistics
+      responses:
+        '200':
+          description: PlatformStats
+
+  /public/search-suggestions:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-07/01 — Search autocomplete
+      parameters:
+        - { name: q, in: query, schema: { type: string, minLength: 2 } }
+      responses:
+        '200':
+          description: SearchSuggestion array
+
+  /rooms/{id}/reviews:
+    get:
+      tags: [Room Discovery]
+      summary: SCR-08 — Room reviews (read-only, paginated)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: page, in: query, schema: { type: integer, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, default: 5 } }
+      responses:
+        '200':
+          description: Paginated reviews

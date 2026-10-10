@@ -1,0 +1,451 @@
+openapi: 3.0.3
+info:
+  title: FR-08 Room Management API
+  version: 1.1.0
+  description: |
+    Homestay / Resort Booking — FR-08 manager room CRUD and gallery.
+    Screens: SCR-29 (list), SCR-30 (create), SCR-31 (edit/detail), SCR-32 (gallery), SCR-65 (employee read).
+    DELETE soft-deletes (deletedAt); lists exclude soft-deleted rooms.
+    Gallery: jpeg/png/webp, max 10MB/file, max 10 images/room.
+    Status PATCH (SCR-33) belongs to FR-05 — not included here.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    RoomStatus:
+      type: string
+      enum:
+        - AVAILABLE
+        - PENDING_DEPOSIT
+        - RESERVED
+        - OCCUPIED
+        - PENDING_CLEANING
+        - CLEANING_IN_PROGRESS
+        - MAINTENANCE
+        - OUT_OF_SERVICE
+
+    RoomSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        roomNumber: { type: string }
+        name:
+          type: string
+          deprecated: true
+          description: Alias of roomNumber (SCR-29 api-spec)
+        roomType: { type: string }
+        floorId: { type: string, format: uuid }
+        floorNumber: { type: integer }
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        pricePerNight: { type: number }
+        capacity: { type: integer }
+        area: { type: number, nullable: true }
+        status: { $ref: '#/components/schemas/RoomStatus' }
+        primaryImageUrl: { type: string, nullable: true }
+
+    RoomPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/RoomSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    RoomImage:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        imageUrl: { type: string }
+        isPrimary: { type: boolean }
+        sortOrder: { type: integer }
+
+    RoomDetail:
+      allOf:
+        - $ref: '#/components/schemas/RoomSummary'
+        - type: object
+          properties:
+            description: { type: string, nullable: true }
+            amenities:
+              type: array
+              items: { type: string }
+            images:
+              type: array
+              maxItems: 10
+              items: { $ref: '#/components/schemas/RoomImage' }
+            deletedAt:
+              type: string
+              format: date-time
+              nullable: true
+              description: Set when soft-deleted; normally omitted from list responses
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+
+    CreateRoomRequest:
+      type: object
+      required: [propertyId, floorId, roomNumber, roomType, pricePerNight, capacity]
+      properties:
+        propertyId: { type: string, format: uuid }
+        floorId: { type: string, format: uuid }
+        roomNumber: { type: string, maxLength: 32 }
+        name:
+          type: string
+          deprecated: true
+          description: Alias for roomNumber
+        roomType: { type: string }
+        pricePerNight: { type: number, minimum: 0.01 }
+        capacity: { type: integer, minimum: 1 }
+        area: { type: number, minimum: 0 }
+        description: { type: string }
+        amenities:
+          type: array
+          items: { type: string }
+        pricingRule:
+          type: object
+          deprecated: true
+          description: v1 ignored; use pricePerNight
+
+    UpdateRoomRequest:
+      type: object
+      properties:
+        floorId: { type: string, format: uuid }
+        roomNumber: { type: string }
+        roomType: { type: string }
+        pricePerNight: { type: number }
+        capacity: { type: integer }
+        area: { type: number }
+        description: { type: string }
+        amenities:
+          type: array
+          items: { type: string }
+
+    AddImageRequest:
+      type: object
+      properties:
+        imageUrl: { type: string }
+      description: Multipart upload also supported on same endpoint
+
+    ReorderImagesRequest:
+      type: object
+      required: [imageIds]
+      properties:
+        imageIds:
+          type: array
+          items: { type: string, format: uuid }
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, default: 0 }
+    SizeParam:
+      name: size
+      in: query
+      schema: { type: integer, default: 10 }
+    PropertyIdParam:
+      name: propertyId
+      in: query
+      schema: { type: string, format: uuid }
+    FloorIdParam:
+      name: floorId
+      in: query
+      schema: { type: string, format: uuid }
+    StatusParam:
+      name: status
+      in: query
+      schema: { $ref: '#/components/schemas/RoomStatus' }
+    SearchParam:
+      name: search
+      in: query
+      schema: { type: string }
+    RoomTypeParam:
+      name: roomType
+      in: query
+      schema: { type: string }
+
+paths:
+  /manager/rooms:
+    get:
+      summary: SCR-29 — Manager room list with filters
+      tags: [Manager Room]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/PropertyIdParam'
+        - $ref: '#/components/parameters/FloorIdParam'
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/RoomTypeParam'
+      responses:
+        '200':
+          description: Paginated room list scoped to assigned properties
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RoomPage' }
+    post:
+      summary: SCR-30 — Create room
+      tags: [Manager Room]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateRoomRequest' }
+      responses:
+        '201':
+          description: Room created (status AVAILABLE)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RoomDetail' }
+        '409':
+          description: Duplicate room number in property
+        '403':
+          description: Not assigned to property
+
+  /manager/rooms/{id}:
+    get:
+      summary: SCR-31 — Room detail
+      tags: [Manager Room]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Room detail with images
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RoomDetail' }
+        '403':
+          description: Not assigned
+        '404':
+          description: Not found
+    put:
+      summary: SCR-31 — Update room
+      tags: [Manager Room]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateRoomRequest' }
+      responses:
+        '200':
+          description: Updated room
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RoomDetail' }
+        '409':
+          description: Duplicate room number
+    delete:
+      summary: Soft-delete room (no blocking bookings)
+      tags: [Manager Room]
+      security: [{ bearerAuth: [] }]
+      description: |
+        Sets deletedAt; hides room from manager/guest lists. Keeps row for booking FK.
+        Blocked when booking status in PENDING_DEPOSIT, CONFIRMED, CHECKED_IN,
+        PENDING_INSPECTION, PENDING_DAMAGE_PAYMENT.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Room soft-deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+        '403':
+          description: Not assigned to property
+        '404':
+          description: Not found or already soft-deleted
+        '409':
+          description: Blocking booking exists
+
+  /manager/rooms/{id}/images:
+    post:
+      summary: SCR-32 — Add room image
+      tags: [Room Gallery]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+          application/json:
+            schema: { $ref: '#/components/schemas/AddImageRequest' }
+      responses:
+        '201':
+          description: Image added
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RoomImage' }
+        '400':
+          description: Invalid MIME (not jpeg/png/webp), file &gt;10MB, or room already has 10 images
+        '403':
+          description: Not assigned
+        '404':
+          description: Room not found or soft-deleted
+
+  /manager/rooms/{id}/images/reorder:
+    put:
+      summary: SCR-32 — Reorder gallery images
+      tags: [Room Gallery]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReorderImagesRequest' }
+      responses:
+        '200':
+          description: Images reordered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+
+  /manager/rooms/{id}/images/{imageId}:
+    delete:
+      summary: SCR-32 — Delete room image
+      tags: [Room Gallery]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: imageId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Image deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+
+  /manager/rooms/{id}/images/{imageId}/primary:
+    patch:
+      summary: SCR-32 — Set primary image
+      tags: [Room Gallery]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: imageId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Primary image set
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+
+  /employee/rooms:
+    get:
+      summary: SCR-65 — Employee read-only room list
+      tags: [Employee Room]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/PropertyIdParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '200':
+          description: Read-only room list for assigned property
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RoomPage' }
+        '403':
+          description: Not assigned to property

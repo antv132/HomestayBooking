@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Frontend Package Diagram | Homestay Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f4f5f7;font-family:'Geist',sans-serif;color:#2d3142;padding:40px 24px 72px;max-width:980px;margin:0 auto}
+.eyebrow{font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#6b7280;margin-bottom:10px}
+h1{font-family:'Instrument Serif',serif;font-size:2rem;font-weight:400;margin-bottom:8px}
+.sub{font-size:15px;color:#6b7280;margin-bottom:14px;line-height:1.5}
+.nav{font-family:'Geist Mono',monospace;font-size:12px;margin-bottom:40px}
+.nav a{color:#2563eb;text-decoration:none}
+.nav a:hover{text-decoration:underline}
+.sl{font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#6b7280;margin:48px 0 12px;padding-bottom:10px;border-bottom:1px solid #e5e7eb}
+.note{font-size:14px;color:#6b7280;line-height:1.65;margin-bottom:20px}
+.board{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:16px;font-family:'Geist Mono',monospace;font-size:12px;color:#4b5563}
+.legend i{display:inline-block;width:28px;height:0;border-top:2px dashed #2563eb;vertical-align:middle;margin-right:6px}
+.legend i.ext{border-color:#ea580c}
+.legend i.sec{border-color:#64748b}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+thead tr{background:#f9fafb;border-bottom:1px solid #e5e7eb}
+th{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;padding:12px 14px;text-align:left}
+td{padding:11px 14px;border-bottom:1px solid #f3f4f6}
+tr:last-child td{border-bottom:none}
+td.m{font-family:'Geist Mono',monospace;font-size:12px;color:#374151}
+td.d{color:#6b7280;font-size:13px}
+.footer{margin-top:56px;padding-top:16px;border-top:1px solid #e5e7eb;font-family:'Geist Mono',monospace;font-size:10px;color:#9ca3af}
+svg{display:block;max-width:100%;height:auto}
+</style>
+</head>
+<body>
+<p class="eyebrow">HomestayBooking · FRONTEND · v4.2</p>
+<h1>Frontend Package Diagram</h1>
+<p class="sub">React 18 · Vite · TanStack Query · Zustand — <code>Frontend/src</code></p>
+<p class="nav"><a href="package-diagram.html">← Mục lục</a> &nbsp;·&nbsp; <a href="package-diagram-backend.html">Backend →</a></p>
+
+<p class="sl">01 — Biểu đồ gói (có nối «use»)</p>
+<p class="note">
+  Nesting trong <strong>Frontend</strong>. Tên trên <strong>tab</strong>.
+  Mũi tên xanh = «use» nội bộ · cam = «use» sang Backend.
+</p>
+
+<div class="board">
+<svg viewBox="0 0 920 720" width="920" xmlns="http://www.w3.org/2000/svg" aria-label="Frontend package diagram with relationships">
+<defs>
+  <marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <polyline points="0 0,9 4,0 8" fill="none" stroke="#2563eb" stroke-width="1.4"/>
+  </marker>
+  <marker id="ax" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <polyline points="0 0,9 4,0 8" fill="none" stroke="#ea580c" stroke-width="1.4"/>
+  </marker>
+  <marker id="as" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+    <polyline points="0 0,9 4,0 8" fill="none" stroke="#64748b" stroke-width="1.3"/>
+  </marker>
+</defs>
+
+<!-- Parent Frontend -->
+<rect x="12" y="10" width="88" height="20" rx="3" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="56" y="24" font-size="12" font-family="'Geist Mono',monospace" font-weight="600" fill="#2563eb" text-anchor="middle">Frontend</text>
+<rect x="12" y="30" width="896" height="670" rx="4" fill="#fafbff" stroke="#93c5fd" stroke-width="1.5"/>
+
+<!-- ===== TOP: Pages → Api → Backend ===== -->
+<!-- Pages -->
+<rect x="40" y="52" width="64" height="18" rx="3" fill="#dbeafe" stroke="#2563eb"/>
+<text x="72" y="65" font-size="11" font-family="'Geist Mono',monospace" font-weight="600" fill="#1d4ed8" text-anchor="middle">Pages</text>
+<rect x="40" y="70" width="200" height="100" fill="#fff" stroke="#1e293b" stroke-width="1.5"/>
+<text x="54" y="96" font-size="13" font-family="'Geist Mono',monospace" fill="#334155">+ AdminDashboardPage</text>
+<text x="54" y="116" font-size="13" font-family="'Geist Mono',monospace" fill="#334155">+ BookingListPage</text>
+<text x="54" y="140" font-size="12" font-family="'Geist Mono',monospace" fill="#64748b">+ … 87 more (89)</text>
+<text x="54" y="158" font-size="11" font-family="'Geist Mono',monospace" fill="#2563eb">5 role folders</text>
+
+<!-- Pages → Api -->
+<line x1="240" y1="120" x2="300" y2="120" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="7,4" marker-end="url(#a)"/>
+<rect x="252" y="104" width="40" height="14" fill="#fafbff"/>
+<text x="272" y="115" font-size="11" font-family="'Geist Mono',monospace" fill="#2563eb" text-anchor="middle">«use»</text>
+
+<!-- Api -->
+<rect x="300" y="52" width="44" height="18" rx="3" fill="#dbeafe" stroke="#2563eb"/>
+<text x="322" y="65" font-size="11" font-family="'Geist Mono',monospace" font-weight="600" fill="#1d4ed8" text-anchor="middle">Api</text>
+<rect x="300" y="70" width="200" height="100" fill="#fff" stroke="#1e293b" stroke-width="1.5"/>
+<text x="314" y="96" font-size="13" font-family="'Geist Mono',monospace" fill="#334155">+ bookingApi</text>
+<text x="314" y="116" font-size="13" font-family="'Geist Mono',monospace" fill="#334155">+ paymentApi · authApi</text>
+<text x="314" y="140" font-size="12" font-family="'Geist Mono',monospace" fill="#64748b">+ … (31 modules)</text>
+<text x="314" y="158" font-size="11" font-family="'Geist Mono',monospace" fill="#2563eb">axios + React Query</text>
+
+<!-- Api → Backend -->
+<line x1="500" y1="120" x2="580" y2="120" stroke="#ea580c" stroke-width="1.6" stroke-dasharray="7,4" marker-end="url(#ax)"/>
+<rect x="518" y="104" width="40" height="14" fill="#fafbff"/>
+<text x="538" y="115" font-size="11" font-family="'Geist Mono',monospace" fill="#ea580c" text-anchor="middle">«use»</text>
+
+<!-- Backend external -->
+<rect x="580" y="52" width="88" height="18" rx="3" fill="#fff7ed" stroke="#ea580c" stroke-dasharray="4,2"/>
+<text x="624" y="65" font-size="10" font-family="'Geist Mono',monospace" font-weight="600" fill="#c2410c" text-anchor="middle">«external»</text>
+<rect x="580" y="70" width="300" height="100" fill="#fffaf5" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6,3"/>
+<text x="730" y="108" font-size="15" font-weight="600" font-family="'Geist',sans-serif" fill="#1e293b" text-anchor="middle">Backend.Controller</text>
+<text x="730" y="132" font-size="13" font-family="'Geist Mono',monospace" fill="#64748b" text-anchor="middle">REST /api/v1/…</text>
+<text x="730" y="154" font-size="12" font-family="'Geist Mono',monospace" fill="#ea580c" text-anchor="middle">→ Backend Package Diagram</text>
+
+<!-- ===== Pages → support packages (bus down) ===== -->
+<!-- Drop from Pages bottom to horizontal bus -->
+<line x1="140" y1="170" x2="140" y2="210" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6,4"/>
+<!-- Horizontal bus -->
+<line x1="100" y1="210" x2="820" y2="210" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6,4"/>
+<rect x="380" y="198" width="120" height="16" rx="2" fill="#fafbff"/>
+<text x="440" y="210" font-size="11" font-family="'Geist Mono',monospace" fill="#2563eb" text-anchor="middle">Pages «use» ↓</text>
+
+<!-- Drops to each support package (centers: Layouts 116, Comp 288, Store 460, Hooks 632, Utils 800) -->
+<line x1="116" y1="210" x2="116" y2="250" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<line x1="288" y1="210" x2="288" y2="250" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<line x1="460" y1="210" x2="460" y2="250" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<line x1="632" y1="210" x2="632" y2="250" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#a)"/>
+<line x1="800" y1="210" x2="800" y2="250" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#a)"/>
+
+<!-- ===== Support packages row ===== -->
+<!-- Layouts @ x=40 -->
+<rect x="40" y="250" width="72" height="17" rx="3" fill="#f1f5f9" stroke="#64748b"/>
+<text x="76" y="262" font-size="11" font-family="'Geist Mono',monospace" font-weight="600" fill="#475569" text-anchor="middle">Layouts</text>
+<rect x="40" y="267" width="152" height="118" fill="#fff" stroke="#64748b" stroke-width="1.3"/>
+<text x="52" y="292" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ AdminLayout</text>
+<text x="52" y="312" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ ManagerLayout</text>
+<text x="52" y="332" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ CustomerLayout</text>
+<text x="52" y="352" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ EmployeeLayout</text>
+<text x="52" y="372" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ PublicLayout</text>
+
+<!-- Components @ x=212 -->
+<rect x="212" y="250" width="96" height="17" rx="3" fill="#f1f5f9" stroke="#64748b"/>
+<text x="260" y="262" font-size="11" font-family="'Geist Mono',monospace" font-weight="600" fill="#475569" text-anchor="middle">Components</text>
+<rect x="212" y="267" width="152" height="118" fill="#fff" stroke="#64748b" stroke-width="1.3"/>
+<text x="224" y="296" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ RoomCard</text>
+<text x="224" y="318" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ BookingStatusBadge</text>
+<text x="224" y="340" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ ProtectedRoute</text>
+<text x="224" y="362" font-size="12" font-family="'Geist Mono',monospace" fill="#64748b">+ ui/ · rooms/</text>
+
+<!-- Store @ x=384 -->
+<rect x="384" y="250" width="56" height="17" rx="3" fill="#f1f5f9" stroke="#64748b"/>
+<text x="412" y="262" font-size="11" font-family="'Geist Mono',monospace" font-weight="600" fill="#475569" text-anchor="middle">Store</text>
+<rect x="384" y="267" width="152" height="118" fill="#fff" stroke="#64748b" stroke-width="1.3"/>
+<text x="396" y="308" font-size="13" font-family="'Geist Mono',monospace" fill="#334155">+ authStore</text>
+<text x="396" y="334" font-size="12" font-family="'Geist Mono',monospace" fill="#64748b">Zustand · 1 slice</text>
+<text x="396" y="358" font-size="12" font-family="'Geist Mono',monospace" fill="#64748b">server = React Query</text>
+
+<!-- Hooks @ x=556 -->
+<rect x="556" y="250" width="56" height="17" rx="3" fill="#f1f5f9" stroke="#64748b"/>
+<text x="584" y="262" font-size="11" font-family="'Geist Mono',monospace" font-weight="600" fill="#475569" text-anchor="middle">Hooks</text>
+<rect x="556" y="267" width="152" height="118" fill="#fff" stroke="#64748b" stroke-width="1.3"/>
+<text x="568" y="300" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ useRoomSearch</text>
+<text x="568" y="324" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">+ useNotification</text>
+<text x="568" y="344" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">  WebSocket</text>
+<text x="568" y="370" font-size="12" font-family="'Geist Mono',monospace" fill="#64748b">wrap Api + Store</text>
+
+<!-- Utils @ x=728 -->
+<rect x="728" y="250" width="52" height="17" rx="3" fill="#f1f5f9" stroke="#64748b"/>
+<text x="754" y="262" font-size="11" font-family="'Geist Mono',monospace" font-weight="600" fill="#475569" text-anchor="middle">Utils</text>
+<rect x="728" y="267" width="144" height="118" fill="#fff" stroke="#64748b" stroke-width="1.3"/>
+<text x="740" y="296" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">− roomCalendar</text>
+<text x="740" y="318" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">− mediaUrl</text>
+<text x="740" y="340" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">− amenities</text>
+<text x="740" y="362" font-size="12" font-family="'Geist Mono',monospace" fill="#334155">− filterInput</text>
+
+<!-- ===== Support → Api (bus up along right of Packages to Api bottom) ===== -->
+<!-- From each package top-right going up to y=198 then left/right to Api bottom center x=400 -->
+<!-- Simpler: from packages up to y=230 then right bus to x=400 then up into Api -->
+
+<!-- Vertical stubs from packages upward to secondary bus at y=420... wait packages end at 385. Put secondary bus BELOW packages. -->
+
+<!-- Bus below packages for Layouts/Hooks/Store/Components → Api -->
+<line x1="116" y1="385" x2="116" y2="430" stroke="#64748b" stroke-width="1.3" stroke-dasharray="5,4"/>
+<line x1="288" y1="385" x2="288" y2="430" stroke="#64748b" stroke-width="1.3" stroke-dasharray="5,4"/>
+<line x1="460" y1="385" x2="460" y2="430" stroke="#64748b" stroke-width="1.3" stroke-dasharray="5,4"/>
+<line x1="632" y1="385" x2="632" y2="430" stroke="#64748b" stroke-width="1.3" stroke-dasharray="5,4"/>
+<!-- Utils does not «use» Api primarily in same way - skip or optional; notificationDeepLink uses type - skip for clarity -->
+
+<line x1="116" y1="430" x2="632" y2="430" stroke="#64748b" stroke-width="1.3" stroke-dasharray="5,4"/>
+<rect x="300" y="418" width="160" height="16" rx="2" fill="#fafbff"/>
+<text x="380" y="430" font-size="11" font-family="'Geist Mono',monospace" fill="#64748b" text-anchor="middle">«use» → Api ↑</text>
+
+<!-- From bus center up to Api: go to x=400, up past packages to Api bottom y=170 -->
+<!-- Route: (400,430) → (400,200) but that crosses packages. Better: go right around Utils then up then left into Api. -->
+<!-- Path: 400,430 → 890,430 → 890,120 → 500,120 into Api right side... Api right is at 500, already used by Backend. -->
+<!-- Use left side: 200,430 → 28,430 → 28,120 → 40,120 into Pages... wrong. -->
+<!-- Into Api from bottom via left corridor: (116,430)-(20,430)-(20,185)-(300,185) into Api left-bottom -->
+
+<path d="M400,430 L20,430 L20,185 L300,185" fill="none" stroke="#64748b" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#as)"/>
+<rect x="8" y="300" width="24" height="40" fill="#fafbff"/>
+<text x="20" y="324" font-size="10" font-family="'Geist Mono',monospace" fill="#64748b" text-anchor="middle" transform="rotate(-90 20 324)">to Api</text>
+
+<!-- ===== Lateral: Hooks → Store ===== -->
+<line x1="556" y1="326" x2="536" y2="326" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#a)"/>
+<rect x="538" y="312" width="20" height="12" fill="#fff"/>
+<!-- label above gap -->
+<text x="546" y="308" font-size="10" font-family="'Geist Mono',monospace" fill="#2563eb" text-anchor="middle">«use»</text>
+
+<!-- ===== Layouts → Store (bottom path) ===== -->
+<path d="M116,385 L116,410 L460,410 L460,385" fill="none" stroke="#64748b" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#as)"/>
+<rect x="250" y="398" width="76" height="14" fill="#fafbff"/>
+<text x="288" y="409" font-size="10" font-family="'Geist Mono',monospace" fill="#64748b" text-anchor="middle">Layouts→Store</text>
+
+<!-- ===== Layouts → Hooks (bottom path lower) ===== -->
+<path d="M100,385 L100,450 L632,450 L632,385" fill="none" stroke="#64748b" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#as)"/>
+<rect x="320" y="438" width="80" height="14" fill="#fafbff"/>
+<text x="360" y="449" font-size="10" font-family="'Geist Mono',monospace" fill="#64748b" text-anchor="middle">Layouts→Hooks</text>
+
+<!-- ===== Summary footer inside board ===== -->
+<rect x="40" y="480" width="832" height="190" rx="6" fill="#fff" stroke="#cbd5e1"/>
+<text x="60" y="512" font-size="14" font-weight="600" font-family="'Geist',sans-serif" fill="#1e293b">Tóm tắt nối gói</text>
+<text x="60" y="542" font-size="13" font-family="'Geist Mono',monospace" fill="#2563eb">Pages → Api → Backend.Controller</text>
+<text x="60" y="566" font-size="13" font-family="'Geist Mono',monospace" fill="#2563eb">Pages → Layouts · Components · Store · Hooks · Utils</text>
+<text x="60" y="590" font-size="13" font-family="'Geist Mono',monospace" fill="#475569">Layouts · Components · Store · Hooks → Api</text>
+<text x="60" y="614" font-size="13" font-family="'Geist Mono',monospace" fill="#475569">Layouts → Store · Hooks &nbsp;|&nbsp; Hooks → Store</text>
+<text x="60" y="644" font-size="12" font-family="'Geist Mono',monospace" fill="#94a3b8">DAG · không cyclic · biên FE→BE chỉ qua Api</text>
+</svg>
+
+<div class="legend">
+  <span><i></i>«use» chính (Pages / Hooks→Store)</span>
+  <span><i class="sec"></i>«use» phụ (Layouts / → Api)</span>
+  <span><i class="ext"></i>«use» → Backend</span>
+  <span>+ public &nbsp; − private</span>
+</div>
+</div>
+
+<p class="sl">02 — Bảng quan hệ</p>
+<table>
+<thead><tr><th>Nguồn</th><th>QH</th><th>Đích</th><th>Ý nghĩa</th></tr></thead>
+<tbody>
+<tr><td class="m">Pages</td><td class="m">«use»</td><td class="m">Api</td><td class="d">Gọi HTTP</td></tr>
+<tr><td class="m">Pages</td><td class="m">«use»</td><td class="m">Layouts · Components · Store · Hooks · Utils</td><td class="d">Shell, UI, state, helpers</td></tr>
+<tr><td class="m">Layouts</td><td class="m">«use»</td><td class="m">Store · Api · Hooks</td><td class="d">Nav, bell, WebSocket</td></tr>
+<tr><td class="m">Hooks</td><td class="m">«use»</td><td class="m">Api · Store</td><td class="d">Bọc API + auth</td></tr>
+<tr><td class="m">Store</td><td class="m">«use»</td><td class="m">Api</td><td class="d">AuthSession type</td></tr>
+<tr><td class="m">Components</td><td class="m">«use»</td><td class="m">Api</td><td class="d">Một số component</td></tr>
+<tr><td class="m">Api</td><td class="m">«use»</td><td class="m">Backend.Controller</td><td class="d">Biên FE → BE</td></tr>
+</tbody>
+</table>
+
+<div class="footer">HomestayBooking · Frontend Package Diagram · v4.2 · nối đầy đủ «use»</div>
+</body>
+</html>

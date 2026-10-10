@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk -F, 'NR>1 {miss+=$4; cov+=$5} END {printf \"OVERALL LINE coverage: %.1f%% \\(%d/%d\\)\\\\n\", cov*100/\\(cov+miss\\), cov, cov+miss}' Backend/target/jacoco-report/jacoco.csv)",
+      "Bash(awk -F, 'NR>1 && \\($3==\"BookingService\"||$3==\"PaymentService\"||$3==\"AuthService\"||$3==\"VNPayService\"||$3==\"DamageFeeSettlementService\"\\) {printf \"%-30s %.1f%%\\\\n\", $3, $5*100/\\($5+$4\\)}' Backend/target/jacoco-report/jacoco.csv)",
+      "Bash(awk -F, 'NR>1 && $2 ~ /service/ && \\($4+$5\\)>50 {printf \"%.1f %s\\\\n\", $5*100/\\($5+$4\\), $3}' Backend/target/jacoco-report/jacoco.csv)",
+      "PowerShell($sqlcmd = Get-Command sqlcmd -ErrorAction SilentlyContinue; if \\($sqlcmd\\) { Write-Output \"sqlcmd: $\\($sqlcmd.Source\\)\"; & sqlcmd -S localhost -U sa -P 123 -Q \"SELECT name FROM sys.databases\" -h -1 -W } else { Write-Output \"sqlcmd NOT FOUND - se kiem tra bang JDBC khi boot\" })"
+    ]
+  }
+}

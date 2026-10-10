@@ -1,0 +1,174 @@
+@startuml system-architecture
+title Homestay Booking System — Context Architecture\n(docs/Architecture.md §3)
+skinparam shadowing false
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontName SansSerif
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowColor #4F5D75
+skinparam packageBorderColor #4F5D75
+skinparam componentBorderColor #2D3142
+skinparam databaseBorderColor #2D3142
+
+left to right direction
+
+actor "User\nADMIN · MANAGER\nEMPLOYEE · CUSTOMER" as Actor
+
+package "Frontend · React SPA (Vite :3000)" as FE #White {
+  component "pages + layouts\n(role shells)" as Pages
+  component "components/ui" as UI
+  component "api/*Api.ts\n(Axios)" as ApiClient
+  component "authStore\n(Zustand)" as Store
+  component "TanStack Query" as RQ
+  component "hooks\n(WS, search…)" as Hooks
+
+  Pages --> UI
+  Pages --> ApiClient
+  Pages --> Store
+  Pages --> RQ
+  Pages --> Hooks
+  RQ --> ApiClient
+  Hooks --> ApiClient
+}
+
+package "Backend · Spring Boot 3 (:8080)" as BE #FFF8F4 {
+  component "Security\nJwtAuthFilter · roles\nproperty scope" as Security
+  component "Controller\n/api · /api/v1/..." as Controller
+  component "DTO\nRequest / Response" as DTO
+  component "Service\nbusiness + TX" as Service
+  component "Job @Scheduled\nhold · no-show · outbox" as Jobs
+  component "Repository\nSpring Data JPA" as Repo
+  component "Entity\n29 tables" as Entity
+  component "Exception\nGlobalExceptionHandler" as ExHandler
+
+  Security --> Controller
+  Controller --> DTO
+  Controller --> Service
+  Controller ..> ExHandler : maps errors
+  Jobs --> Service
+  Service --> Repo
+  Repo --> Entity
+}
+
+cloud "External" as EXT #White {
+  database "SQL Server" as DB
+  component "VNPay\nReturn URL" as VNPay
+  component "SMTP / Email\n(+ Outbox)" as Mail
+  component "Google OAuth" as Google
+  folder "uploads/\n≤ 10MB" as Uploads
+}
+
+Actor --> Pages : Browser
+ApiClient -[#EB6C36]-> Security : HTTPS\nBearer access_token
+Entity --> DB
+Service --> VNPay
+Service --> Mail
+Service --> Uploads
+ApiClient ..> Google : optional login
+
+legend right
+  |= Rule |= |
+  | Controller | Validate + delegate — no business / no Repository |
+  | Service | Business rules + Entity↔DTO |
+  | Auth | JWT access + refresh · bcrypt · Google |
+  | Pay | VNPay online · CASH remaining at desk |
+  | Spec | sdd/features > AGENTS > Architecture.md |
+endlegend
+
+newpage
+title Homestay Booking System — Layered Backend\n(docs/Architecture.md §4)
+
+skinparam shadowing false
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontName SansSerif
+skinparam ArrowColor #4F5D75
+skinparam packageBorderColor #4F5D75
+skinparam rectangleBorderColor #2D3142
+
+top to bottom direction
+
+rectangle "HTTP · WebSocket · /uploads/**" as IN #White
+
+package "com.homestay.security" as PSec #White {
+  rectangle "JwtAuthFilter\nSecurityConfig\nPropertyAccessValidator" as Sec
+}
+
+package "com.homestay.controller (+ dto, exception)" as PWeb #White {
+  rectangle "*Controller\nResponseEntity<ApiResponse<T>>" as Ctrl
+  rectangle "dto.request / dto.response" as Dto
+  rectangle "GlobalExceptionHandler" as Geh
+}
+
+package "com.homestay.service (+ job, config)" as PDom #FFF8F4 {
+  rectangle "*Service\nBooking · Payment · Contract…" as Svc
+  rectangle "*Job @Scheduled\nHoldTimeout · NoShow · Outbox" as Job
+  rectangle "config\nVNPay · Mail · CORS · WS" as Cfg
+}
+
+package "com.homestay.repository + entity" as PPer #White {
+  rectangle "*Repository\nJpaRepository / JPQL" as Rep
+  rectangle "Entity (29)\nsnake_case tables" as Ent
+}
+
+database "SQL Server" as Db
+
+IN --> Sec
+Sec --> Ctrl
+Ctrl --> Dto
+Ctrl --> Svc
+Ctrl ..> Geh
+Job --> Svc
+Svc --> Cfg
+Svc --> Rep
+Rep --> Ent
+Ent --> Db
+
+note right of Job
+  Hold → cancel PENDING_DEPOSIT
+  NoShow → CONFIRMED → NO_SHOW
+  Outbox → email / contract PDF
+end note
+
+newpage
+title Homestay Booking System — Frontend Packages\n(docs/Architecture.md §5)
+
+skinparam shadowing false
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontName SansSerif
+skinparam ArrowColor #4F5D75
+skinparam packageBorderColor #4F5D75
+
+top to bottom direction
+
+package "Frontend/src" as FEsrc #White {
+  [App / React Router] as App
+  [layouts/*Layout] as Lay
+  [pages/admin|manager|employee|customer|public] as Pg
+  [api/*Api.ts] as Api
+  [store/authStore] as St
+  [hooks] as Hk
+  [components + ui] as Comp
+  [utils] as Ut
+}
+
+cloud "Backend Controllers" as BE2
+
+App --> Lay
+App --> Pg
+Pg --> Lay
+Pg --> Api
+Pg --> St
+Pg --> Hk
+Pg --> Comp
+Pg --> Ut
+Hk --> Api
+Hk --> St
+Api --> BE2 : Axios + Bearer JWT
+
+note bottom of Api
+  Biên duy nhất FE → BE
+  Server state: TanStack Query
+  Client state: Zustand (auth)
+end note
+
+@enduml

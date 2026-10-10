@@ -1,0 +1,64 @@
+@startuml 012-payment-seq-vnpay
+title Payment Management - VNPay Checkout Flow (FR-012 / US5 / SCR-20)
+
+actor Customer
+participant "PaymentV1Controller" as Ctrl
+participant "CustomerPaymentController" as Webhook
+participant "PaymentService" as Svc
+participant "VNPayService" as VNPay
+participant "InvoiceStatusSyncService" as InvSync
+participant "ContractService" as Contract
+database "Database" as DB
+participant "VNPay Gateway" as VNPayGW
+
+== 1. Create Payment URL ==
+Customer -> Ctrl: POST /api/v1/payments/vnpay\n{ bookingId: "..." }
+activate Ctrl
+Ctrl -> Svc: createVnpayPaymentUrl(bookingId, "DEPOSIT", user)
+activate Svc
+Svc -> DB: find booking
+Svc -> Svc: Validate status (PENDING_DEPOSIT) & hold window
+Svc -> DB: INSERT payments (type=DEPOSIT, method=VNPAY, status=PENDING, orderRef=UUID)
+Svc -> InvSync: markPendingPayment(invoiceId)
+Svc -> VNPay: createOrder(amount, orderInfo, returnUrl, orderRef)
+activate VNPay
+VNPay --> Svc: vnpay_url
+deactivate VNPay
+Svc --> Ctrl: { paymentUrl, paymentId, orderRef }
+deactivate Svc
+Ctrl --> Customer: 200 OK (vnpay_url)
+deactivate Ctrl
+
+Customer -> VNPayGW: Redirect to vnpay_url & complete payment
+activate VNPayGW
+
+== 2. VNPay Return / IPN (Webhook) ==
+VNPayGW -> Webhook: GET /api/payments/vnpay/return\n?vnp_ResponseCode=00&vnp_TxnRef=...
+activate Webhook
+Webhook -> VNPay: verifySignature(fields)
+activate VNPay
+VNPay --> Webhook: true
+deactivate VNPay
+
+Webhook -> Svc: completeVnpayReturn(paymentId, success=true, code, txnNo)
+activate Svc
+Svc -> DB: findById(paymentId)
+Svc -> DB: UPDATE payments SET status = 'PAID', paid_at = NOW(), gateway_transaction_id = txnNo
+Svc -> InvSync: syncFromPaymentEntity(payment)
+note right: Syncs status to Invoice (PAID)
+
+alt payment.type == DEPOSIT
+    Svc -> DB: UPDATE bookings SET status = 'CONFIRMED'
+    Svc -> Contract: autoGenerateAndSendContract(bookingId)
+    note right: Triggers Outbox (FR-10)
+else payment.type == DAMAGE_FEE
+    Svc -> DB: UPDATE damage_reports SET status = 'PAID'
+end
+
+Svc --> Webhook: Payment
+deactivate Svc
+Webhook --> VNPayGW: 302 Redirect to Frontend\n(?status=success&bookingId=...)
+deactivate Webhook
+VNPayGW --> Customer: Display success on Frontend UI
+deactivate VNPayGW
+@enduml

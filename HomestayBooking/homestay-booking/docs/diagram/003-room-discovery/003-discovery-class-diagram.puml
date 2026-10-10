@@ -1,0 +1,94 @@
+@startuml 003-discovery-class-diagram
+title Room Discovery - Class Diagram
+
+package "Controllers" {
+    class DiscoveryController {
+        + searchRooms(SearchCriteria) : Page<RoomListItem>
+        + getRoomDetail(UUID) : RoomDetail
+        + getRoomAvailability(UUID, year, month) : RoomAvailability
+        + getSearchSuggestions(query) : List<Suggestion>
+        + getFeaturedProperties() : List<PropertyDto>
+        + getActivePromotions() : List<PromotionDto>
+    }
+}
+
+package "Services" {
+    class DiscoveryService {
+        - roomRepository: RoomRepository
+        - propertyRepository: PropertyRepository
+        - bookingRepository: BookingRepository
+        - promotionRepository: PromotionRepository
+        + searchRooms(criteria): Page<RoomListItem>
+        + getRoomDetail(id): RoomDetail
+        + checkAvailability(roomId, dates): RoomAvailability
+    }
+}
+
+package "Repositories" {
+    interface RoomRepository {
+        + findAvailableRooms(filters, pageable): Page<Room>
+        + findByIdAndStatus(id, status): Optional<Room>
+    }
+    
+    interface BookingRepository {
+        + findOverlappingBookings(roomId, startDate, endDate, blockingStatuses): List<Booking>
+    }
+    
+    interface PropertyRepository {
+        + findFeatured(): List<Property>
+        + searchSuggestions(keyword): List<Suggestion>
+    }
+    
+    interface PromotionRepository {
+        + findActivePromotions(): List<Promotion>
+    }
+}
+
+package "Entities" {
+    class Property {
+        - id : UUID
+        - name : String
+        - status : StatusEnum
+    }
+    
+    class Room {
+        - id : UUID
+        - propertyId : UUID
+        - roomType : String
+        - capacity : int
+        - pricePerNight : BigDecimal
+        - status : StatusEnum
+    }
+    
+    class RoomImage {
+        - roomId : UUID
+        - imageUrl : String
+        - isPrimary : boolean
+    }
+    
+    class Booking {
+        - id : UUID
+        - roomId : UUID
+        - checkInDate : Date
+        - checkOutDate : Date
+        - status : StatusEnum
+    }
+    
+    class Promotion {
+        - id : UUID
+        - title : String
+        - isActive : boolean
+    }
+}
+
+' Relationships
+DiscoveryController ..> DiscoveryService : Uses
+DiscoveryService --> RoomRepository
+DiscoveryService --> BookingRepository
+DiscoveryService --> PropertyRepository
+DiscoveryService --> PromotionRepository
+
+Property "1" -- "0..N" Room
+Room "1" -- "0..N" RoomImage
+Room "1" -- "0..N" Booking
+@enduml

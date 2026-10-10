@@ -1,0 +1,67 @@
+@startuml 008-room-seq-crud
+title Room Soft-Delete & Validations
+
+actor Manager
+participant "RoomController" as Ctrl
+participant "RoomService" as Svc
+database "Database" as DB
+
+== Room Soft-Delete ==
+Manager -> Ctrl: DELETE /rooms/{roomId}
+activate Ctrl
+Ctrl -> Ctrl: @PropertyAccessValidator(propId)
+
+Ctrl -> Svc: softDelete(roomId)
+activate Svc
+
+Svc -> DB: findRoomById(roomId)
+activate DB
+DB --> Svc: Room
+deactivate DB
+
+Svc -> DB: countBlockingBookings(roomId, STATUS_LIST)
+note right of DB: Checks if any booking is:\nPENDING_DEPOSIT,\nCONFIRMED, CHECKED_IN,\netc.
+activate DB
+DB --> Svc: count
+deactivate DB
+
+alt count > 0
+    Svc --> Ctrl: throw ValidationException
+    Ctrl --> Manager: 400 Bad Request (Blocking bookings exist)
+else count == 0
+    Svc -> DB: update Room SET deleted_at = CURRENT_TIMESTAMP
+    activate DB
+    DB --> Svc: success
+    deactivate DB
+    Svc --> Ctrl: SoftDeleteResponse
+    Ctrl --> Manager: 200 OK (Room Soft-Deleted)
+end
+deactivate Svc
+deactivate Ctrl
+
+== Update Floor Validation ==
+Manager -> Ctrl: PUT /rooms/{roomId} (floorId)
+activate Ctrl
+Ctrl -> Ctrl: @PropertyAccessValidator
+
+Ctrl -> Svc: updateRoom(roomId, request)
+activate Svc
+
+Svc -> DB: load Room
+Svc -> DB: load new Floor
+activate DB
+DB --> Svc: Floor Entity
+deactivate DB
+
+alt Floor.property_id != Room.property_id
+    Svc --> Ctrl: throw ValidationException
+    Ctrl --> Manager: 400 Bad Request (Cannot move to different property)
+else Floor belongs to same property
+    Svc -> DB: update Room metadata
+    Svc --> Ctrl: RoomResponse
+    Ctrl --> Manager: 200 OK
+end
+
+deactivate Svc
+deactivate Ctrl
+@enduml

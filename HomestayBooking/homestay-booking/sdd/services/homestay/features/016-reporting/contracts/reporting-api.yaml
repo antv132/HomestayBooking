@@ -1,0 +1,389 @@
+openapi: 3.0.3
+info:
+  title: FR-16 Reporting API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-16 Read-only reports and KPIs.
+    Screens: SCR-27/44 (Manager), SCR-45/55 (Admin).
+    Revenue from PAID payments (FR-12). Manager scoped by property assignment (FR-06).
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    GroupBy:
+      type: string
+      enum: [month, week]
+      default: month
+
+    PeriodRevenue:
+      type: object
+      properties:
+        period: { type: string, example: "2026-01" }
+        revenue: { type: integer, format: int64 }
+        bookingCount: { type: integer }
+
+    PropertyRevenue:
+      type: object
+      properties:
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        revenue: { type: integer, format: int64 }
+        bookingCount: { type: integer }
+
+    RevenueReport:
+      type: object
+      properties:
+        totalRevenue: { type: integer, format: int64 }
+        depositRevenue: { type: integer, format: int64 }
+        balanceRevenue: { type: integer, format: int64 }
+        totalBookingCount: { type: integer }
+        byPeriod:
+          type: array
+          items: { $ref: '#/components/schemas/PeriodRevenue' }
+        byProperty:
+          type: array
+          items: { $ref: '#/components/schemas/PropertyRevenue' }
+
+    PeriodOccupancy:
+      type: object
+      properties:
+        period: { type: string }
+        occupancyRate: { type: number, format: double }
+        occupiedRoomNights: { type: integer }
+        availableRoomNights: { type: integer }
+
+    OccupancyReport:
+      type: object
+      properties:
+        overallOccupancyRate: { type: number, format: double }
+        totalRooms: { type: integer }
+        occupiedRooms: { type: integer }
+        availableRooms: { type: integer }
+        byPeriod:
+          type: array
+          items: { $ref: '#/components/schemas/PeriodOccupancy' }
+
+    PeriodBookingTrend:
+      type: object
+      properties:
+        period: { type: string }
+        bookingCount: { type: integer }
+
+    BookingTrendReport:
+      type: object
+      properties:
+        totalBookings: { type: integer }
+        byPeriod:
+          type: array
+          items: { $ref: '#/components/schemas/PeriodBookingTrend' }
+
+    PropertyKpis:
+      type: object
+      properties:
+        propertyId: { type: string, format: uuid }
+        totalRooms: { type: integer }
+        occupancyRate: { type: number, format: double }
+        revenue: { type: integer, format: int64 }
+        pendingCheckIns: { type: integer }
+        pendingApprovals: { type: integer }
+
+    GlobalKpis:
+      type: object
+      properties:
+        totalRevenue: { type: integer, format: int64 }
+        totalRevenueAllTime: { type: integer, format: int64 }
+        totalProperties: { type: integer }
+        totalFloors: { type: integer }
+        totalRooms: { type: integer }
+        availableRooms: { type: integer }
+        occupiedRooms: { type: integer }
+        totalBookings: { type: integer }
+        newCustomers: { type: integer }
+
+    PropertyReportSummary:
+      type: object
+      properties:
+        propertyId: { type: string, format: uuid }
+        revenue: { type: integer, format: int64 }
+        occupancyRate: { type: number, format: double }
+
+    MonthlyRevenue:
+      type: object
+      properties:
+        month: { type: integer, minimum: 1, maximum: 12 }
+        revenue: { type: integer, format: int64 }
+        bookingCount: { type: integer }
+
+    AdminYearlyRevenue:
+      type: object
+      properties:
+        year: { type: integer }
+        propertyId: { type: string, format: uuid, nullable: true }
+        totalRevenue: { type: integer, format: int64 }
+        monthlyData:
+          type: array
+          items: { $ref: '#/components/schemas/MonthlyRevenue' }
+
+security:
+  - bearerAuth: []
+
+paths:
+  /reports/property-kpis:
+    get:
+      summary: SCR-27 — Manager property KPI dashboard
+      tags: [Manager Reports]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Property KPIs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertyKpis' }
+        '403':
+          description: Property not assigned to manager
+
+  /reports/revenue:
+    get:
+      summary: SCR-44 — Revenue report (Manager)
+      tags: [Manager Reports]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: groupBy
+          in: query
+          schema: { $ref: '#/components/schemas/GroupBy' }
+      responses:
+        '200':
+          description: Revenue report
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/RevenueReport' }
+
+  /reports/occupancy:
+    get:
+      summary: SCR-44 — Occupancy report (Manager)
+      tags: [Manager Reports]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: groupBy
+          in: query
+          schema: { $ref: '#/components/schemas/GroupBy' }
+      responses:
+        '200':
+          description: Occupancy report
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/OccupancyReport' }
+
+  /reports/booking-trends:
+    get:
+      summary: SCR-44 — Booking trend report (Manager)
+      tags: [Manager Reports]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: groupBy
+          in: query
+          schema: { $ref: '#/components/schemas/GroupBy' }
+      responses:
+        '200':
+          description: Booking trends
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/BookingTrendReport' }
+
+  /reports/properties/{id}:
+    get:
+      summary: SCR-44 — Property report summary
+      tags: [Manager Reports]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Summary revenue + occupancy
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PropertyReportSummary' }
+
+  /reports/global-kpis:
+    get:
+      summary: SCR-45 — Admin global KPI dashboard
+      tags: [Admin Reports]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: System-wide KPIs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/GlobalKpis' }
+        '403':
+          description: Admin only
+
+  /admin/reports/revenue:
+    get:
+      summary: SCR-55 — Admin yearly revenue report
+      tags: [Admin Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer, example: 2026 }
+        - name: propertyId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Monthly revenue for year
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AdminYearlyRevenue' }
+
+  /admin/reports/occupancy:
+    get:
+      summary: SCR-55 — Admin occupancy report (optional property filter)
+      tags: [Admin Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer }
+        - name: propertyId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Yearly occupancy aggregates
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/OccupancyReport' }
+
+  /admin/reports/booking-trends:
+    get:
+      summary: SCR-55 — Admin booking trends (optional property filter)
+      tags: [Admin Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer }
+        - name: propertyId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Yearly booking trends
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/BookingTrendReport' }

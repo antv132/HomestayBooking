@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Tree Sequence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1000px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; color: var(--color-ink); margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 800px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Sequence · Diagram Design</p>
+    <h1>View Structure Tree</h1>
+
+    <svg viewBox="0 0 900 680" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+          </marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+        <!-- Lifelines -->
+        <line x1="128" y1="128" x2="128" y2="560" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="352" y1="128" x2="352" y2="560" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="576" y1="128" x2="576" y2="560" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="800" y1="128" x2="800" y2="560" stroke="rgba(45,49,66,0.22)" stroke-width="1" stroke-dasharray="3,3"/>
+
+        <!-- Activation Bars -->
+        <rect x="348" y="160" width="8" height="340" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+        <rect x="572" y="240" width="8" height="220" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+
+        <!-- User -> Controller -->
+        <line x1="128" y1="160" x2="348" y2="160" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <rect x="156" y="144" width="168" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="238" y="154" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GET /properties/{id}/structure</text>
+
+        <!-- Interceptor -->
+        <line x1="356" y1="180" x2="380" y2="180" stroke="#4f5d75" stroke-width="1.2"/>
+        <line x1="380" y1="180" x2="380" y2="200" stroke="#4f5d75" stroke-width="1.2"/>
+        <line x1="380" y1="200" x2="356" y2="200" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="400" y="194" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">@PropertyAccessValidator</text>
+
+        <!-- Controller -> Service -->
+        <line x1="356" y1="240" x2="572" y2="240" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="460" y="234" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">getTree(propertyId)</text>
+
+        <!-- DB Join Query -->
+        <line x1="580" y1="280" x2="800" y2="280" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="690" y="274" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">Fetch Floors LEFT JOIN Rooms</text>
+
+        <line x1="800" y1="320" x2="580" y2="320" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <text x="690" y="314" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">Flat ResultSet</text>
+        
+        <!-- Group By -->
+        <line x1="580" y1="350" x2="600" y2="350" stroke="#4f5d75" stroke-width="1.2"/>
+        <line x1="600" y1="350" x2="600" y2="370" stroke="#4f5d75" stroke-width="1.2"/>
+        <line x1="600" y1="370" x2="580" y2="370" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="610" y="364" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace">Group by Floor in Memory</text>
+
+        <!-- Service -> Controller -->
+        <line x1="572" y1="420" x2="356" y2="420" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <text x="464" y="414" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">StructureTreeResponse</text>
+
+        <!-- Controller -> User -->
+        <line x1="348" y1="480" x2="128" y2="480" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <text x="238" y="474" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">200 OK (Tree JSON)</text>
+
+        <!-- Actors -->
+        <rect x="56" y="72" width="144" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="56" y="72" width="144" height="56" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <text x="128" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">User (Admin/Mgr)</text>
+
+        <rect x="280" y="72" width="144" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="280" y="72" width="144" height="56" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="352" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">TreeController</text>
+
+        <rect x="504" y="72" width="144" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="504" y="72" width="144" height="56" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+        <text x="576" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">TreeService</text>
+
+        <rect x="728" y="72" width="144" height="56" rx="6" fill="#f5f5f5"/>
+        <rect x="728" y="72" width="144" height="56" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+        <text x="800" y="104" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Database</text>
+
+      </svg>
+  </div>
+</body>
+</html>

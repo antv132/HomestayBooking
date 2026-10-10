@@ -1,0 +1,123 @@
+@startuml 017-administration-class-diagram
+title Administration Module - Class Diagram
+
+package "Controllers" {
+    class AdminUserController {
+        + createManager(...) : AdminUserResponse
+        + updateManager(...) : AdminUserResponse
+        + listUsers(...) : PageResponse
+        + getById(...) : AdminUserResponse
+        + updateUser(...) : AdminUserResponse
+        + updateCustomerStatus(...) : AdminUserResponse
+    }
+    note top of AdminUserController
+        /api/v1/admin/users
+        @PreAuthorize("hasRole('ADMIN')")
+        SCR-50, SCR-51
+    end note
+
+    class AdminPropertyController {
+        + createProperty(...) : AdminPropertyResponse
+        + updateProperty(...) : AdminPropertyResponse
+        + assignManager(...) : AdminPropertyResponse
+        + listProperties(...) : PageResponse
+    }
+    note top of AdminPropertyController
+        /api/v1/admin/properties
+        @PreAuthorize("hasRole('ADMIN')")
+        SCR-46 - SCR-49
+    end note
+
+    class AdminSettingsController {
+        + getSettings() : SystemSettingsResponse
+        + updateSettings(...) : SystemSettingsResponse
+    }
+    note top of AdminSettingsController
+        /api/v1/admin/settings
+        @PreAuthorize("hasRole('ADMIN')")
+        SCR-60
+    end note
+}
+
+package "Services" {
+    class AdminUserService {
+        - userRepository: UserRepository
+        - managerAssignmentRepository: ManagerPropertyAssignmentRepository
+        - bookingRepository: BookingRepository
+        - paymentRepository: PaymentRepository
+        + createManager(...) : AdminUserResponse
+        + updateCustomerStatus(...) : AdminUserResponse
+    }
+    
+    class AdminPropertyService {
+        - propertyRepository: PropertyRepository
+        - assignmentRepository: ManagerPropertyAssignmentRepository
+        - userRepository: UserRepository
+        + createProperty(...) : AdminPropertyResponse
+        + updateProperty(...) : AdminPropertyResponse
+        + assignManager(...) : AdminPropertyResponse
+    }
+    
+    class AdminSettingsService {
+        - systemSettingRepository: SystemSettingRepository
+        + getSettings() : SystemSettingsResponse
+        + updateSettings(...) : SystemSettingsResponse
+    }
+    note bottom of AdminSettingsService
+        Handles Global Configs:
+        - DEPOSIT_PERCENTAGE
+        - CANCEL_TIMEOUT_HOURS
+    end note
+}
+
+package "Repositories" {
+    interface UserRepository {
+        + findByRoleWithFilters(...) : Page
+    }
+    interface PropertyRepository {
+        + searchForAdmin(...) : Page
+    }
+    interface ManagerPropertyAssignmentRepository {
+        + findActiveByPropertyIds(...) : List
+    }
+    interface SystemSettingRepository {
+        + findByKeyIn(...) : List
+    }
+}
+
+package "Entities" {
+    class User {
+        - role : Role {ADMIN, MANAGER, CUSTOMER, EMPLOYEE}
+        - status : Status {ACTIVE, INACTIVE, SUSPENDED}
+    }
+    class Property {
+        - status : Status {ACTIVE, INACTIVE, MAINTENANCE}
+    }
+    class SystemSetting {
+        - key : String
+        - value : String
+    }
+    class ManagerPropertyAssignment {
+        - status : Status {ACTIVE, INACTIVE}
+    }
+}
+
+AdminUserController ..> AdminUserService
+AdminPropertyController ..> AdminPropertyService
+AdminSettingsController ..> AdminSettingsService
+
+AdminUserService --> UserRepository
+AdminUserService --> ManagerPropertyAssignmentRepository
+
+AdminPropertyService --> PropertyRepository
+AdminPropertyService --> ManagerPropertyAssignmentRepository
+AdminPropertyService --> UserRepository
+
+AdminSettingsService --> SystemSettingRepository
+
+ManagerPropertyAssignmentRepository --> ManagerPropertyAssignment
+PropertyRepository --> Property
+UserRepository --> User
+SystemSettingRepository --> SystemSetting
+
+@enduml

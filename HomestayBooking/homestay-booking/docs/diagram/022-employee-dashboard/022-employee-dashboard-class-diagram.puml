@@ -1,0 +1,70 @@
+@startuml 022-employee-dashboard-class-diagram
+title Employee Dashboard - Class Diagram
+
+package "Controllers" {
+    class EmployeeDashboardController {
+        + getDashboard(currentUser) : ApiResponse
+        + getKpis(currentUser) : ApiResponse
+    }
+    note top of EmployeeDashboardController
+        /api/v1/employee
+        @PreAuthorize("hasRole('EMPLOYEE')")
+        SCR-59
+    end note
+}
+
+package "Services" {
+    class EmployeeDashboardService {
+        - housekeepingTaskRepository: HousekeepingTaskRepository
+        - maintenanceTicketRepository: MaintenanceTicketRepository
+        - roomInspectionRepository: RoomInspectionRepository
+        - employeePropertyAssignmentRepository: EmployeePropertyAssignmentRepository
+        
+        + getDashboard(employee) : EmployeeDashboardResponse
+        + getKpis(employee) : EmployeeKpisResponse
+        - toTask(...) : EmployeeTaskSummary
+    }
+    note bottom of EmployeeDashboardService
+        Aggregates Housekeeping, Maintenance, 
+        and Inspections for the active property.
+    end note
+}
+
+package "Repositories" {
+    interface HousekeepingTaskRepository {
+        + countForDashboard(...) : long
+        + findPreviewForDashboard(...) : List
+        + countCompletedToday(...) : long
+        + findCompletedToday(...) : List
+        + findTodayForDashboard(...) : List
+    }
+    
+    interface MaintenanceTicketRepository {
+        + countForDashboard(...) : long
+        + findPreviewForDashboard(...) : List
+        + countCompletedToday(...) : long
+        + findCompletedToday(...) : List
+        + findTodayForDashboard(...) : List
+    }
+    
+    interface RoomInspectionRepository {
+        + countForEmployeeDashboard(...) : long
+        + findForEmployee(...) : Page
+        + countCompletedToday(...) : long
+        + findCompletedToday(...) : List
+        + findTodayForDashboard(...) : List
+    }
+    
+    interface EmployeePropertyAssignmentRepository {
+        + findPropertyIdsByEmployeeIdAndStatus(...) : List<UUID>
+    }
+}
+
+EmployeeDashboardController ..> EmployeeDashboardService
+
+EmployeeDashboardService --> EmployeePropertyAssignmentRepository
+EmployeeDashboardService --> HousekeepingTaskRepository
+EmployeeDashboardService --> MaintenanceTicketRepository
+EmployeeDashboardService --> RoomInspectionRepository
+
+@enduml

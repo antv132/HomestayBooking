@@ -1,0 +1,109 @@
+@startuml 015-notification-class-diagram
+title Notification Engine - Class Diagram
+
+package "Controllers" {
+    class NotificationV1Controller {
+        + getNotifications(currentUser, page, size, unreadOnly) : ApiResponse
+        + getUnreadCount(currentUser) : ApiResponse
+        + markAllRead(currentUser) : ApiResponse
+        + getNotificationDetail(id, currentUser) : ApiResponse
+        + markAsRead(id, currentUser) : ApiResponse
+    }
+    note top of NotificationV1Controller
+        /api/v1/notifications
+        SCR-13 / SCR-14
+    end note
+}
+
+package "Services" {
+    class NotificationService {
+        - notificationRepository: NotificationRepository
+        - userRepository: UserRepository
+        - notificationOutboxPublisher: NotificationOutboxPublisher
+        + getNotifications(...) : Map
+        + getUnreadCount(userId) : long
+        + markAllRead(userId) : int
+        + getNotificationDetail(notifId, userId) : Map
+        + markAsRead(notifId, userId) : Map
+        + deleteNotification(notifId, userId) : void
+        + sendNotification(...) : Notification (Async via Outbox)
+    }
+    
+    class NotificationOutboxPublisher {
+        - outboxPublisher: OutboxPublisher
+        + enqueueDispatch(...) : OutboxEvent
+        + {static} buildDedupeKey(...) : String
+    }
+    note bottom of NotificationOutboxPublisher
+        Ensures transactional guarantee.
+        Saves OutboxEvent in the same TX
+        as the domain change.
+    end note
+    
+    class NotificationDispatchHandler {
+        - notificationRepository: NotificationRepository
+        - userRepository: UserRepository
+        - webSocketPublisher: NotificationWebSocketPublisher
+        + handle(OutboxEvent, JsonNode) : void
+    }
+    note bottom of NotificationDispatchHandler
+        Worker that consumes OutboxEvent,
+        creates Notification row, and 
+        pushes to WebSocket.
+    end note
+    
+    class NotificationWebSocketPublisher {
+        - messagingTemplate: SimpMessagingTemplate
+        + publishToUser(userId, notification) : void
+        + publishCalendarRefresh(propertyId, payload) : void
+    }
+}
+
+package "Repositories" {
+    interface NotificationRepository {
+        + findByUserIdOrderByCreatedAtDesc(...) : Page
+        + findByUserIdAndIsReadFalseOrderByCreatedAtDesc(...) : Page
+        + countByUserIdAndIsReadFalse(userId) : long
+        + markAllAsReadByUserId(userId) : int
+        + existsByDedupeKey(dedupeKey) : boolean
+    }
+}
+
+package "Entities" {
+    class Notification {
+        - id : UUID
+        - user_id : UUID
+        - type : Type
+        - title : String
+        - content : String
+        - is_read : Boolean
+        - related_entity_id : UUID
+        - related_entity_type : String
+        - dedupe_key : String
+    }
+    
+    class OutboxEvent {
+        - id : UUID
+        - aggregate_type : String
+        - aggregate_id : String
+        - event_type : String
+        - payload : String
+        - status : Status
+    }
+}
+
+NotificationV1Controller ..> NotificationService
+
+NotificationService --> NotificationRepository
+NotificationService --> NotificationOutboxPublisher
+
+NotificationOutboxPublisher ..> OutboxEvent : creates
+
+NotificationDispatchHandler ..> OutboxEvent : consumes
+NotificationDispatchHandler --> NotificationRepository : creates
+NotificationDispatchHandler --> NotificationWebSocketPublisher
+
+NotificationWebSocketPublisher ..> Notification : pushes
+
+NotificationRepository --> Notification
+@enduml

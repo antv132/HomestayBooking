@@ -1,0 +1,241 @@
+openapi: 3.0.3
+info:
+  title: FR-11 Billing Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-11 Invoice billing (deposit 40% + remaining 60%).
+    Screens: SCR-18, SCR-26 (Customer), SCR-35, SCR-36 (Manager).
+    Payment execution (VNPay, verify, receipts) — FR-12; not in this contract.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    InvoiceType:
+      type: string
+      enum: [DEPOSIT, REMAINING_BALANCE]
+
+    InvoiceStatus:
+      type: string
+      enum: [UNPAID, PENDING_PAYMENT, PAID, CANCELLED]
+
+    InvoiceSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        type: { $ref: '#/components/schemas/InvoiceType' }
+        amount: { type: number, format: double }
+        status: { $ref: '#/components/schemas/InvoiceStatus' }
+        dueDate: { type: string, format: date }
+        paidAt: { type: string, format: date-time, nullable: true }
+        isOverdue: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    InvoiceBreakdown:
+      type: object
+      properties:
+        invoices:
+          type: array
+          items: { $ref: '#/components/schemas/InvoiceSummary' }
+        totalAmount: { type: number }
+        paidAmount: { type: number }
+        remainingBalance: { type: number }
+
+    InvoicePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/InvoiceSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    BookingDetailWithInvoices:
+      type: object
+      description: Extends existing booking detail (SCR-18 / SCR-35)
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string }
+        totalAmount: { type: number }
+        depositAmount: { type: number }
+        remainingAmount: { type: number }
+        paidAmount: { type: number }
+        invoiceBreakdown: { $ref: '#/components/schemas/InvoiceBreakdown' }
+
+security:
+  - bearerAuth: []
+
+paths:
+  /invoices/me:
+    get:
+      summary: SCR-26 — Customer payment/billing history
+      description: Lists invoices for authenticated customer, newest first.
+      tags: [Customer Invoices]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/InvoiceStatus' }
+      responses:
+        '200':
+          description: Paginated invoice list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/InvoicePage' }
+        '401':
+          description: Unauthorized
+
+  /invoices/me/{id}:
+    get:
+      summary: Customer invoice detail
+      tags: [Customer Invoices]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Invoice detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/InvoiceSummary' }
+        '403':
+          description: Invoice not owned by customer
+        '404':
+          description: Not found
+
+  /bookings/me/{id}:
+    get:
+      summary: SCR-18 — Booking detail with invoice breakdown
+      description: Existing endpoint extended with invoiceBreakdown field.
+      tags: [Customer Bookings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Booking with invoices
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/BookingDetailWithInvoices' }
+
+  /manager/invoices:
+    get:
+      summary: SCR-36 — Manager invoice list (pending/unpaid filter)
+      tags: [Manager Invoices]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [UNPAID, PENDING_PAYMENT, PAID, CANCELLED]
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Property-scoped invoice page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/InvoicePage' }
+        '403':
+          description: Property not assigned to manager
+
+  /manager/bookings/{id}:
+    get:
+      summary: SCR-35 — Manager booking detail with Payment Breakdown
+      tags: [Manager Bookings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Booking with invoice breakdown
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/BookingDetailWithInvoices' }
+
+  /internal/invoices/sync-from-payment:
+    post:
+      summary: Internal hook — FR-12 payment status → invoice sync
+      description: |
+        Called by FR-12 PaymentService on payment lifecycle events.
+        Not exposed to frontend; may be in-process service call instead of HTTP v1.
+      tags: [Internal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [invoiceId, paymentStatus]
+              properties:
+                invoiceId: { type: string, format: uuid }
+                paymentStatus:
+                  type: string
+                  enum: [PENDING, PAID, FAILED, REFUNDED]
+                paidAt: { type: string, format: date-time, nullable: true }
+      responses:
+        '200':
+          description: Invoice status updated

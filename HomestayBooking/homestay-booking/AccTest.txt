@@ -1,0 +1,17 @@
+Admin
+admin@homestay.local
+Admin@123456
+
+Manager / Employee theo tung homestay (mat khau chung: A12345678)
+Homestay                    Manager                          Employee
+Ha Noi Old Quarter Inn      viet@gmail.com                   employee.hanoi@homestay.local
+Sunset Resort Da Nang       manager.danang@homestay.local    employee.danang@homestay.local
+Hoi An Garden Villa         manager.hoian@homestay.local     employee.hoian@homestay.local
+Phu Quoc Beach House        manager.phuquoc@homestay.local   employee.phuquoc@homestay.local
+Mountain View Da Lat        manager.dalat@homestay.local     employee.dalat@homestay.local
+Nha Trang Ocean Homestay    manager.nhatrang@homestay.local  employee.nhatrang@homestay.local
+
+Customer (mat khau chung: A1234567)
+thanhnxhe181198@fpt.edu.vn
+an.nguyen@demo.com
+binh.tran@demo.com

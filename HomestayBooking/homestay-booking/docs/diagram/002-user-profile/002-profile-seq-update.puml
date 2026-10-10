@@ -1,0 +1,33 @@
+@startuml 002-profile-seq-update
+title Update User Profile (Partial)
+
+actor "User" as User
+participant "ProfileController" as Ctrl
+participant "UserService" as Svc
+database "Database" as DB
+
+User -> Ctrl: PUT /users/me (UpdateProfileRequest)
+activate Ctrl
+
+Ctrl -> Svc: updateProfile(userId, request)
+activate Svc
+
+Svc -> DB: findById(userId)
+activate DB
+DB --> Svc: User Entity
+deactivate DB
+
+Svc -> Svc: Apply valid fields (fullName, phone, avatarUrl)
+
+Svc -> DB: save(updated User)
+activate DB
+DB --> Svc: User Entity
+deactivate DB
+
+Svc --> Ctrl: UserProfileResponse
+
+Ctrl --> User: 200 OK (Updated Profile)
+
+deactivate Svc
+deactivate Ctrl
+@enduml

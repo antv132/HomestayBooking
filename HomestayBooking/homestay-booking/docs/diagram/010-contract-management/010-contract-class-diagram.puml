@@ -1,0 +1,152 @@
+@startuml 010-contract-class-diagram
+title Contract Management - Class Diagram
+
+package "Controllers" {
+    class CustomerContractV1Controller {
+        + getMyContracts(page, size, status, search, sort, currentUser) : Page<ContractSummaryResponse>
+        + getMyContractDetail(id, currentUser) : ContractDetailResponse
+    }
+    note right of CustomerContractV1Controller
+        /api/v1/customers/me/contracts
+        @PreAuthorize("hasRole('CUSTOMER')")
+        SCR-21
+    end note
+
+    class ContractV1Controller {
+        + getMyContractsAlias(page, size, status, search, sort, currentUser) : Page<ContractSummaryResponse>
+        + getContractByBooking(bookingId, currentUser) : ContractDetailResponse
+        + getContractDetail(id, currentUser) : ContractDetailResponse
+        + downloadContractPdf(id, currentUser) : byte[]
+        + resendContractEmail(id, currentUser, body) : void
+    }
+    note right of ContractV1Controller
+        /api/v1/contracts
+        GET /me           → CUSTOMER
+        GET /booking/{id} → CUSTOMER | MANAGER | ADMIN
+        GET /{id}         → CUSTOMER | MANAGER | ADMIN
+        GET /{id}/pdf     → CUSTOMER | MANAGER | ADMIN
+        POST /{id}/resend → MANAGER only
+    end note
+
+    class ManagerContractV1Controller {
+        + list(currentUser, propertyId, page, size, status, search, sort) : Page<ContractSummaryResponse>
+        + getDetail(id, currentUser) : ContractDetailResponse
+        + downloadPdf(id, currentUser) : byte[]
+        + resend(id, currentUser, body) : void
+    }
+    note right of ManagerContractV1Controller
+        /api/v1/managers/contracts
+        /api/v1/manager/contracts (alias)
+        @PreAuthorize("hasRole('MANAGER')")
+        SCR-38
+    end note
+}
+
+package "Services" {
+    class ContractService {
+        - contractRepository: ContractRepository
+        - bookingRepository: BookingRepository
+        - pdfService: PdfService
+        - emailService: EmailService
+        - notificationService: NotificationService
+        - assignmentRepository: ManagerPropertyAssignmentRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        - outboxPublisher: OutboxPublisher
+        - activityLogService: ActivityLogService
+        - uploadDir: String
+        --
+        + getAllContracts(page, size, status, search, sort) : PageResponse
+        + getManagerContracts(manager, propertyId, page, size, status, search, sort) : PageResponse
+        + getMyContracts(currentUser, page, size, status, search, sort) : PageResponse
+        + getContractDetail(id, currentUser) : ContractDetailResponse
+        + getContractByBookingId(bookingId, currentUser) : ContractDetailResponse
+        + downloadContractPdf(id, currentUser) : byte[]
+        + resendContractEmail(id, currentUser, targetEmail) : void
+        + autoGenerateAndSendContract(bookingId, actor) : void
+        + processContractGenerateFromOutbox(bookingId, actor) : void
+        + processContractEmailSendFromOutbox(contractId, targetEmail, actor) : void
+        + processContractResendFromOutbox(contractId, targetEmail, actor) : void
+        - assertCanViewContract(contract, currentUser) : void
+        - persistContractPdf(contract, actor) : void
+        - loadStoredPdfStrict(contract) : byte[]
+        - sendContractEmailInternal(contract, targetEmail) : void
+    }
+
+    class PdfService {
+        + generateContractPdf(contract) : byte[]
+    }
+
+    class OutboxPublisher {
+        + enqueueContractGenerate(bookingId, actorId) : void
+        + enqueueContractEmailSend(contractId, actorId) : void
+        + enqueueContractResend(contractId, targetEmail, actorId) : void
+    }
+
+    class ReportPropertyScopeValidator {
+        + validateManagerAccess(manager, propertyId) : void
+    }
+}
+
+package "Repositories" {
+    interface ContractRepository {
+        + findAllWithFilters(status, search, pageable) : Page<Contract>
+        + findByPropertyIdsWithFilters(propertyIds, status, search, pageable) : Page<Contract>
+        + findByCustomerWithFilters(customerId, status, search, pageable) : Page<Contract>
+        + findByBookingId(bookingId) : Optional<Contract>
+    }
+    note right of ContractRepository
+        Unique index on booking_id
+        (1 booking = exactly 1 contract)
+    end note
+
+    interface BookingRepository {
+        + findById(id) : Optional<Booking>
+    }
+
+    interface ManagerPropertyAssignmentRepository {
+        + findActivePropertiesByManagerId(managerId) : List<Property>
+    }
+}
+
+package "Entities" {
+    class Contract {
+        - id : UUID
+        - booking_id : UUID [UNIQUE]
+        - customer_id : UUID
+        - room_id : UUID
+        - check_in_date : LocalDate
+        - check_out_date : LocalDate
+        - deposit_amount : BigDecimal
+        - total_amount : BigDecimal
+        - pdf_url : String [/uploads/contracts/{id}.pdf]
+        - status : Status {ACTIVE, COMPLETED, CANCELLED}
+        - generated_at : LocalDateTime
+        - sent_at : LocalDateTime
+        - created_at : LocalDateTime
+        - updated_at : LocalDateTime
+    }
+    note right of Contract
+        Immutable PDF snapshot:
+        written once, never regenerated.
+        "pdf_url" is null until Outbox worker
+        completes PDF generation.
+    end note
+}
+
+' Relationships
+CustomerContractV1Controller ..> ContractService
+ContractV1Controller ..> ContractService
+ManagerContractV1Controller ..> ContractService
+
+ContractService --> ContractRepository
+ContractService --> BookingRepository
+ContractService --> ManagerPropertyAssignmentRepository
+ContractService ..> PdfService
+ContractService ..> OutboxPublisher
+ContractService ..> ReportPropertyScopeValidator
+ContractService ..> ActivityLogService
+ContractService ..> EmailService
+ContractService ..> NotificationService
+
+ContractRepository --> Contract
+@enduml

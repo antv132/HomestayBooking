@@ -1,0 +1,104 @@
+@startuml 012-payment-class-diagram
+title Payment Management (VNPay) - Class Diagram
+
+package "Controllers" {
+    class PaymentV1Controller {
+        + createDepositVnpayUrl(req, currentUser) : Map
+        + createPaymentUrl(bookingId, type, currentUser) : Map
+        + getMyPayments(page, size, status, currentUser) : Page<PaymentSummaryResponse>
+        + getMyPaymentDetail(id, currentUser) : PaymentDetailResponse
+    }
+    note right of PaymentV1Controller
+        /api/v1/payments
+        @PreAuthorize("hasRole('CUSTOMER')")
+        SCR-20
+    end note
+
+    class CustomerPaymentController {
+        + vnpayReturn(request, response) : void
+    }
+    note right of CustomerPaymentController
+        /api/payments/vnpay/return
+        Public Webhook/Redirect endpoint
+    end note
+
+    class ManagerPaymentV1Controller {
+        + list(currentUser, propertyId, status, type, method, search, page, size) : Page<PaymentSummaryResponse>
+        + getDetail(id, currentUser) : PaymentDetailResponse
+    }
+    note right of ManagerPaymentV1Controller
+        /api/v1/manager/payments
+        @PreAuthorize("hasRole('MANAGER')")
+        SCR-36
+    end note
+}
+
+package "Services" {
+    class PaymentService {
+        - paymentRepository: PaymentRepository
+        - bookingRepository: BookingRepository
+        - contractService: ContractService
+        - vnPayService: VNPayService
+        - scopeValidator: ReportPropertyScopeValidator
+        - damageFeeSettlementService: DamageFeeSettlementService
+        - invoiceStatusSyncService: InvoiceStatusSyncService
+        + createVnpayPaymentUrl(bookingId, type, currentUser) : Map
+        + resolvePaymentIdForReturn(paymentId, vnpTxnRef) : UUID
+        + completeVnpayReturn(paymentId, success, responseCode, txnNo) : Payment
+        + getMyPayments(currentUser, page, size, status) : PageResponse
+        + getPaymentsForManagerScoped(...) : PageResponse
+        + getPaymentDetail(id, currentUser) : PaymentDetailResponse
+        - applyPaidSideEffects(payment) : void
+        - linkInvoiceIfPresent(payment, booking, type) : void
+    }
+
+    class VNPayService {
+        + createOrder(amount, orderInfo, returnUrl, vnp_TxnRef) : String
+        + verifySignature(fields) : boolean
+    }
+}
+
+package "Repositories" {
+    interface PaymentRepository {
+        + findByBookingIdOrderByCreatedAtDesc(bookingId) : List<Payment>
+        + findByOrderRef(orderRef) : Optional<Payment>
+        + findByCustomerIdOrderByCreatedAtDesc(customerId, pageable) : Page<Payment>
+        + findByCustomerIdAndStatusOrderByCreatedAtDesc(customerId, status, pageable) : Page<Payment>
+        + findForManagerWithFilters(propertyIds, status, type, method, search, pageable) : Page<Payment>
+        + sumPaidAmountByCustomerId(customerId) : BigDecimal
+    }
+}
+
+package "Entities" {
+    class Payment {
+        - id : UUID
+        - booking_id : UUID
+        - customer_id : UUID
+        - invoice_id : UUID
+        - type : Type {DEPOSIT, REMAINING_BALANCE, DAMAGE_FEE}
+        - amount : BigDecimal
+        - method : Method {BANK_TRANSFER, CASH, VNPAY}
+        - status : Status {PENDING, PAID, FAILED, REFUNDED, PARTIALLY_REFUNDED}
+        - gateway_transaction_id : String
+        - order_ref : String
+        - gateway_response_code : String
+        - paid_at : LocalDateTime
+        - created_at : LocalDateTime
+        - updated_at : LocalDateTime
+    }
+}
+
+' Relationships
+PaymentV1Controller ..> PaymentService
+CustomerPaymentController ..> PaymentService
+CustomerPaymentController ..> VNPayService
+ManagerPaymentV1Controller ..> PaymentService
+
+PaymentService --> PaymentRepository
+PaymentService --> VNPayService
+PaymentService ..> InvoiceStatusSyncService
+PaymentService ..> ContractService
+PaymentService ..> DamageFeeSettlementService
+
+PaymentRepository --> Payment
+@enduml

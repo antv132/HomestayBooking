@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Package Diagram — Mục lục | Homestay Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f5f5f5;font-family:'Geist',sans-serif;color:#2d3142;padding:48px 40px 80px;max-width:900px;margin:0 auto}
+.eyebrow{font-family:'Geist Mono',monospace;font-size:8px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#4f5d75;margin-bottom:8px}
+h1{font-family:'Instrument Serif',serif;font-size:1.75rem;font-weight:400;margin-bottom:8px}
+.sub{font-size:14px;color:#7a8399;margin-bottom:40px;line-height:1.5}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{display:block;background:#fff;border:1px solid rgba(45,49,66,.12);padding:28px 24px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
+.card:hover{border-color:#2e5aa8;box-shadow:0 4px 20px rgba(46,90,168,.08)}
+.card.be:hover{border-color:#eb6c36;box-shadow:0 4px 20px rgba(235,108,54,.08)}
+.card .tag{font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
+.card.fe .tag{color:#2e5aa8}
+.card.be .tag{color:#eb6c36}
+.card h2{font-family:'Instrument Serif',serif;font-size:1.35rem;font-weight:400;margin-bottom:8px}
+.card p{font-size:13px;color:#7a8399;line-height:1.55}
+.card .go{font-family:'Geist Mono',monospace;font-size:11px;margin-top:18px}
+.card.fe .go{color:#2e5aa8}
+.card.be .go{color:#eb6c36}
+.note{margin-top:40px;padding:16px 18px;background:#fff;border:1px solid rgba(45,49,66,.10);font-size:13px;color:#4f5d75;line-height:1.6}
+.footer{margin-top:56px;padding-top:16px;border-top:1px solid rgba(45,49,66,.12);font-family:'Geist Mono',monospace;font-size:8px;color:#7a8399;letter-spacing:.08em}
+@media (max-width:640px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<p class="eyebrow">HomestayBooking &middot; PACKAGE DIAGRAM &middot; v4.0</p>
+<h1>Package Diagram</h1>
+<p class="sub">Homestay Booking System — biểu đồ gói UML tách riêng Frontend và Backend (dễ đọc, đúng codebase).</p>
+
+<div class="cards">
+  <a class="card fe" href="package-diagram-frontend.html">
+    <div class="tag">Frontend · React / Vite</div>
+    <h2>Frontend Package Diagram</h2>
+    <p>Pages, Api, Layouts, Components, Store, Hooks, Utils — quan hệ «use» nội bộ và biên REST sang Backend.</p>
+    <div class="go">Mở sơ đồ Frontend →</div>
+  </a>
+  <a class="card be" href="package-diagram-backend.html">
+    <div class="tag">Backend · Spring Boot</div>
+    <h2>Backend Package Diagram</h2>
+    <p>Controller → Service → Repository → Entity → Database; kèm Dto, Security, Job, Config.</p>
+    <div class="go">Mở sơ đồ Backend →</div>
+  </a>
+</div>
+
+<div class="note">
+  <strong>Quy tắc UML:</strong> tên gói trên tab khi có phần tử con · mũi tên nét đứt «use» / «import» / «access» ·
+  visibility + / − / # · không phụ thuộc vòng (DAG).
+</div>
+
+<div class="footer">HomestayBooking &middot; Package Diagram index &middot; 26/07/2026 &middot; v4.0</div>
+</body>
+</html>

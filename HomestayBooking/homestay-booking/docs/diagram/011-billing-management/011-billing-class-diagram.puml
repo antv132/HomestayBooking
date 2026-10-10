@@ -1,0 +1,101 @@
+@startuml 011-billing-class-diagram
+title Billing Management (Invoice) - Class Diagram
+
+package "Controllers" {
+    class CustomerInvoiceController {
+        + list(currentUser, status, page, size) : Page<InvoiceSummaryResponse>
+        + detail(currentUser, id) : InvoiceDetailResponse
+    }
+    note right of CustomerInvoiceController
+        /api/v1/invoices/me
+        @PreAuthorize("hasRole('CUSTOMER')")
+        SCR-26 (FR-11)
+    end note
+
+    class ManagerInvoiceController {
+        + list(currentUser, propertyId, status, page, size) : Page<InvoiceSummaryResponse>
+    }
+    note right of ManagerInvoiceController
+        /api/v1/manager/invoices
+        @PreAuthorize("hasRole('MANAGER')")
+        SCR-36 (FR-11)
+    end note
+}
+
+package "Services" {
+    class InvoiceQueryService {
+        - invoiceRepository: InvoiceRepository
+        - bookingRepository: BookingRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        + listForCustomer(customerId, status, page, size) : PageResponse
+        + getDetailForCustomer(invoiceId, customerId) : InvoiceDetailResponse
+        + buildBreakdownForBooking(bookingId, customerId) : InvoiceBreakdownResponse
+        + buildBreakdownForManagerBooking(bookingId, manager) : InvoiceBreakdownResponse
+        + listForManager(manager, propertyId, status, page, size) : PageResponse
+        + buildBreakdown(booking) : InvoiceBreakdownResponse
+    }
+
+    class InvoiceIssuanceService {
+        - invoiceRepository: InvoiceRepository
+        - activityLogService: ActivityLogService
+        + issuePair(booking: Booking) : List<Invoice>
+    }
+    note bottom of InvoiceIssuanceService
+        Issues DEPOSIT + REMAINING_BALANCE
+        pair on booking creation.
+    end note
+
+    class InvoiceStatusSyncService {
+        - invoiceRepository: InvoiceRepository
+        - activityLogService: ActivityLogService
+        + markPendingPayment(invoiceId)
+        + markPaid(invoiceId, paidAt)
+        + markFailed(invoiceId)
+        + syncFromPayment(invoiceId, paymentStatus, paidAt)
+        + syncFromPaymentEntity(payment)
+    }
+    note bottom of InvoiceStatusSyncService
+        Listens to Payment (FR-12) lifecycle.
+    end note
+}
+
+package "Repositories" {
+    interface InvoiceRepository {
+        + findByCustomer_Id(customerId, pageable) : Page<Invoice>
+        + findByCustomer_IdAndStatus(customerId, status, pageable) : Page<Invoice>
+        + findByPropertyIdAndOptionalStatus(propertyId, status, pageable) : Page<Invoice>
+        + findByBooking_IdOrderByTypeAsc(bookingId) : List<Invoice>
+        + existsByBooking_IdAndType(bookingId, type) : boolean
+        + findByBooking_IdAndType(bookingId, type) : Optional<Invoice>
+    }
+}
+
+package "Entities" {
+    class Invoice {
+        - id : UUID
+        - booking_id : UUID
+        - customer_id : UUID
+        - property_id : UUID
+        - type : Type {DEPOSIT, REMAINING_BALANCE}
+        - amount : BigDecimal
+        - status : Status {UNPAID, PENDING_PAYMENT, PAID, CANCELLED}
+        - due_date : LocalDate
+        - paid_at : LocalDateTime
+        - created_at : LocalDateTime
+        - updated_at : LocalDateTime
+    }
+    note right of Invoice
+        Unique constraint: (booking_id, type)
+    end note
+}
+
+' Relationships
+CustomerInvoiceController ..> InvoiceQueryService
+ManagerInvoiceController ..> InvoiceQueryService
+
+InvoiceQueryService --> InvoiceRepository
+InvoiceIssuanceService --> InvoiceRepository
+InvoiceStatusSyncService --> InvoiceRepository
+
+InvoiceRepository --> Invoice
+@enduml

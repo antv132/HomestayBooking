@@ -1,0 +1,90 @@
+@startuml 008-room-class-diagram
+title Room Management - Class Diagram
+
+package "Controllers" {
+    class RoomController {
+        + getRooms(filter, page) : Page<RoomSummary>
+        + getRoomDetail(roomId) : RoomDetailResponse
+        + createRoom(propertyId, request) : RoomResponse
+        + updateRoom(roomId, request) : RoomResponse
+        + deleteRoom(roomId) : Response
+    }
+    
+    class RoomGalleryController {
+        + getImages(roomId) : List<RoomImage>
+        + uploadImage(roomId, file) : RoomImage
+        + deleteImage(imageId) : Response
+        + setPrimaryImage(imageId) : Response
+        + reorderImages(roomId, orderList) : Response
+    }
+}
+
+package "Services" {
+    class RoomService {
+        - roomRepository: RoomRepository
+        - bookingRepository: BookingRepository
+        - floorRepository: FloorRepository
+        + createRoom(req) : Room
+        + updateRoom(roomId, req) : Room
+        + softDelete(roomId) : void
+    }
+    
+    class RoomImageService {
+        - imageRepository: RoomImageRepository
+        + uploadImage(roomId, file) : RoomImage
+        + deleteImage(imageId) : void
+        + setPrimary(imageId) : void
+        + reorder(roomId, orderList) : void
+    }
+}
+
+package "Repositories" {
+    interface RoomRepository {
+        + searchActiveRooms(propertyId, floorId, status) : Page<Room>
+        + existsByPropertyIdAndRoomNumberAndDeletedAtIsNull(propertyId, roomNumber) : boolean
+    }
+    
+    interface RoomImageRepository {
+        + countByRoomId(roomId) : int
+        + findByRoomIdOrderBySortOrder(roomId) : List<RoomImage>
+        + unsetPrimaryForRoom(roomId) : void
+    }
+    
+    interface BookingRepository {
+        + countActiveOrBlockingBookings(roomId, statuses) : int
+    }
+}
+
+package "Entities" {
+    class Room {
+        - id : UUID
+        - property_id : UUID
+        - floor_id : UUID
+        - room_number : String
+        - status : String
+        - price_per_night : decimal
+        - capacity : int
+        - deleted_at : Date
+    }
+    
+    class RoomImage {
+        - id : UUID
+        - room_id : UUID
+        - image_url : String
+        - is_primary : boolean
+        - sort_order : int
+    }
+}
+
+' Relationships
+RoomController ..> RoomService
+RoomGalleryController ..> RoomImageService
+
+RoomService --> RoomRepository
+RoomService --> BookingRepository
+RoomService --> FloorRepository
+
+RoomImageService --> RoomImageRepository
+
+Room "1" -- "*" RoomImage : contains
+@enduml

@@ -1,0 +1,62 @@
+@startuml 019-customer-dashboard-class-diagram
+title Customer Dashboard - Class Diagram
+
+package "Controllers" {
+    class CustomerDashboardV1Controller {
+        + getDashboard(currentUser) : ApiResponse
+    }
+    note top of CustomerDashboardV1Controller
+        /api/v1/customer/dashboard
+        @PreAuthorize("hasRole('CUSTOMER')")
+        SCR-15
+    end note
+}
+
+package "Services" {
+    class CustomerDashboardService {
+        - bookingRepository: BookingRepository
+        - paymentRepository: PaymentRepository
+        - notificationRepository: NotificationRepository
+        - maintenanceTicketRepository: MaintenanceTicketRepository
+        + getDashboard(currentUser) : CustomerDashboardResponse
+        - toEvent(...) : UpcomingEvent
+        - toNotifSummary(...) : NotificationSummary
+    }
+    note bottom of CustomerDashboardService
+        Composite Service aggregating data
+        from multiple domains for the 
+        Customer's landing view.
+    end note
+}
+
+package "Repositories" {
+    interface BookingRepository {
+        + countActiveByCustomerId(customerId) : long
+        + countPendingDepositByCustomerId(...) : long
+        + findFirstByCustomerIdAndStatusAndCheckInDateGreaterThanEqualOrderByCheckInDateAsc(...) : Optional
+        + findUpcomingByCustomerId(...) : List
+    }
+    
+    interface PaymentRepository {
+        + countByCustomerIdAndStatus(...) : long
+        + findByCustomerIdOrderByCreatedAtDesc(...) : Page
+    }
+    
+    interface NotificationRepository {
+        + countByUserIdAndIsReadFalse(userId) : long
+        + findByUserIdOrderByCreatedAtDesc(...) : Page
+    }
+    
+    interface MaintenanceTicketRepository {
+        + countByCustomerIdAndStatusIn(...) : long
+    }
+}
+
+CustomerDashboardV1Controller ..> CustomerDashboardService
+
+CustomerDashboardService --> BookingRepository
+CustomerDashboardService --> PaymentRepository
+CustomerDashboardService --> NotificationRepository
+CustomerDashboardService --> MaintenanceTicketRepository
+
+@enduml

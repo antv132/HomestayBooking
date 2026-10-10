@@ -1,0 +1,100 @@
+@startuml 009-customer-seq-admin
+title Customer Management - Admin: List, View Detail & Suspend/Activate
+
+actor Admin
+participant "AdminUserController" as Ctrl
+participant "AdminUserService" as Svc
+database "Database" as DB
+
+== List Customers (SCR-51) ==
+Admin -> Ctrl: GET /api/v1/admin/users?role=CUSTOMER&status=&keyword=
+activate Ctrl
+Ctrl -> Svc: listUsers("CUSTOMER", status, keyword, pageable)
+activate Svc
+
+Svc -> DB: findByRoleWithFilters(CUSTOMER, status, keyword, pageable)
+activate DB
+DB --> Svc: Page<User>
+deactivate DB
+
+Svc -> DB: countBookingsByCustomerIds(customerIds)
+activate DB
+DB --> Svc: List<Object[]> [customerId, bookingCount]
+deactivate DB
+
+Svc -> DB: sumPaidAmountByCustomerIds(customerIds)
+activate DB
+DB --> Svc: List<Object[]> [customerId, totalSpend]
+deactivate DB
+
+Svc --> Ctrl: PageResponse<AdminUserResponse>
+deactivate Svc
+Ctrl --> Admin: 200 OK (paginated customer list with bookingCount + totalSpend)
+deactivate Ctrl
+
+== View Customer Booking History (Drawer — SCR-51) ==
+Admin -> Ctrl: GET /api/v1/admin/users/{id}/bookings
+activate Ctrl
+Ctrl -> Svc: listCustomerBookings(id, page, size)
+activate Svc
+
+Svc -> DB: findById(id)
+activate DB
+DB --> Svc: User
+deactivate DB
+
+alt user.role != CUSTOMER
+    Svc --> Ctrl: throw BusinessException
+    Ctrl --> Admin: 400 Bad Request
+else user is CUSTOMER
+    Svc -> DB: findByCustomerIdWithDetails(customerId, pageable)
+    activate DB
+    DB --> Svc: Page<Booking>
+    deactivate DB
+    Svc --> Ctrl: PageResponse<AdminCustomerBookingSummaryResponse>
+    Ctrl --> Admin: 200 OK
+end
+deactivate Svc
+deactivate Ctrl
+
+== Suspend / Activate Customer (FR-09 — SCR-51) ==
+Admin -> Ctrl: PATCH /api/v1/admin/users/{id}/status\n{status: "SUSPENDED" | "ACTIVE"}
+activate Ctrl
+Ctrl -> Svc: updateCustomerStatus(id, req, actor)
+activate Svc
+
+Svc -> DB: findById(id)
+activate DB
+DB --> Svc: User
+deactivate DB
+
+alt user.role != CUSTOMER
+    Svc --> Ctrl: throw BusinessException
+    Ctrl --> Admin: 400 Bad Request
+else user.status == INACTIVE
+    Svc --> Ctrl: throw ConflictException\n(email not verified)
+    Ctrl --> Admin: 409 Conflict
+else status unchanged (idempotent)
+    Svc --> Ctrl: return current AdminUserResponse
+    Ctrl --> Admin: 200 OK (no change)
+else valid transition
+    Svc -> DB: UPDATE users SET status = :newStatus
+    activate DB
+    DB --> Svc: saved User
+    deactivate DB
+
+    alt newStatus == SUSPENDED
+        Svc -> DB: revokeAllByUser(user)
+        note right: Invalidate all refresh tokens\nto force logout
+        activate DB
+        DB --> Svc: void
+        deactivate DB
+    end
+
+    Svc -> DB: activityLogService.log(actor, action, "User", userId, details)
+    Svc --> Ctrl: AdminUserResponse
+    Ctrl --> Admin: 200 OK
+end
+deactivate Svc
+deactivate Ctrl
+@enduml

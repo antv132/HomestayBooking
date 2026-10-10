@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luồng Đặt phòng & Lưu trú (Booking Lifecycle) · Standard Flowchart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Geist', sans-serif; background: #f5f5f5; padding: 2rem; }
+    .frame { max-width: 3080px; overflow-x: auto; background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    h1 { font-family: 'Instrument Serif', serif; font-size: 2rem; margin-bottom: 2rem; color: #2d3142; }
+    svg { min-width: 3080px; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <h1>Luồng Đặt phòng & Lưu trú (Booking Lifecycle)</h1>
+    <svg viewBox="0 0 3080 470" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#eb6c36"/></marker>
+      </defs>
+      <line x1="10" y1="60" x2="3070" y2="60" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="120" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">CUSTOMER</text>
+      <line x1="10" y1="170" x2="3070" y2="170" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="230" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">SYSTEM</text>
+      <line x1="10" y1="280" x2="3070" y2="280" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="340" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">MANAGER</text>
+      <line x1="10" y1="390" x2="3070" y2="390" stroke="#ddd" stroke-width="1"/>
+      <line x1="160" y1="60" x2="160" y2="390" stroke="#ddd" stroke-width="1"/>
+
+      <path d="M 310 120 L 360 120" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 490 120 L 540 120" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 670 120 L 687 120 Q 695 120 695 128 L 695 222 Q 695 230 703 230 L 720 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 850 230 L 900 230" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<line x1="965" y1="260" x2="965" y2="310" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="940" y="277" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="965" y="288" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">HẾT HẠN</text>
+<path d="M 1030 230 L 1047 230 Q 1055 230 1055 222 L 1055 128 Q 1055 120 1063 120 L 1080 120" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="1030" y="49" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="1055" y="60" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">ĐÚNG HẠN</text>
+<path d="M 1210 120 L 1227 120 Q 1235 120 1235 128 L 1235 222 Q 1235 230 1243 230 L 1260 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 1390 230 L 1440 230" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 1570 230 L 1587 230 Q 1595 230 1595 222 L 1595 128 Q 1595 120 1603 120 L 1620 120" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<line x1="1685" y1="150" x2="1685" y2="200" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="1660" y="167" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="1685" y="178" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">CÓ</text>
+<line x1="1685" y1="260" x2="1685" y2="310" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 1750 120 L 1767 120 Q 1775 120 1775 128 L 1775 222 Q 1775 230 1783 230 L 1800 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="1750" y="159" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="1775" y="170" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">KHÔNG</text>
+<line x1="1865" y1="260" x2="1865" y2="310" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="1840" y="277" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="1865" y="288" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">QUÁ 24H</text>
+<path d="M 1930 230 L 1947 230 Q 1955 230 1955 238 L 1955 332 Q 1955 340 1963 340 L 1980 340" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="1930" y="269" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="1955" y="280" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">ĐẾN ĐÚNG HẠN</text>
+<path d="M 2110 340 L 2160 340" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 2290 340 L 2307 340 Q 2315 340 2315 332 L 2315 128 Q 2315 120 2323 120 L 2340 120" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 2470 120 L 2487 120 Q 2495 120 2495 128 L 2495 332 Q 2495 340 2503 340 L 2520 340" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 2650 340 L 2667 340 Q 2675 340 2675 332 L 2675 128 Q 2675 120 2683 120 L 2700 120" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 2830 120 L 2880 120" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<!-- Start -->
+<ellipse cx="245" cy="120" rx="55" ry="25" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.5"/>
+<text x="245" y="124" fill="#eb6c36" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Bắt đầu</text>
+<!-- C1 -->
+<rect x="360" y="90" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="360" y="90" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="425" y="114" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Tìm kiếm phòng</text>
+<text x="425" y="130" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Lọc điều kiện</text>
+<!-- C2 -->
+<rect x="540" y="90" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="540" y="90" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="605" y="114" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Gửi Đặt phòng</text>
+<text x="605" y="130" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Yêu cầu Booking</text>
+<!-- S1 -->
+<rect x="720" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="720" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="785" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Khóa Date-Range</text>
+<text x="785" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Pending Deposit</text>
+<!-- D1 -->
+<polygon points="965,195 1040,230 965,265 890,230" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="965" y="228" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">10m Timeout?</text>
+<text x="965" y="240" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">?</text>
+<!-- S2 -->
+<ellipse cx="965" cy="340" rx="55" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="965" y="344" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Auto Cancel</text>
+<!-- C3 -->
+<rect x="1080" y="90" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1080" y="90" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1145" y="114" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Cọc qua VNPay</text>
+<text x="1145" y="130" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">40% Deposit</text>
+<!-- S3 -->
+<rect x="1260" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1260" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1325" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Xử lý IPN</text>
+<text x="1325" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- S4 -->
+<rect x="1440" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1440" y="200" width="130" height="60" rx="4" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.5"/>
+<text x="1505" y="224" fill="#eb6c36" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Booking Confirmed</text>
+<text x="1505" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- D3 -->
+<polygon points="1685,85 1760,120 1685,155 1610,120" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1685" y="118" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Khách yêu cầu Hủy?</text>
+<text x="1685" y="130" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">?</text>
+<!-- S5 -->
+<rect x="1620" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1620" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1685" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Áp dụng Policy</text>
+<text x="1685" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Hoàn 100% / 50% / 0%</text>
+<!-- S6 -->
+<ellipse cx="1685" cy="340" rx="55" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1685" y="344" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Đã Hủy Booking</text>
+<!-- D4 -->
+<polygon points="1865,195 1940,230 1865,265 1790,230" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1865" y="228" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">No-show (Quá 24h)?</text>
+<text x="1865" y="240" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">?</text>
+<!-- S7 -->
+<ellipse cx="1865" cy="340" rx="55" ry="25" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1865" y="344" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Hủy No-show</text>
+<!-- M2 -->
+<rect x="1980" y="310" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1980" y="310" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2045" y="334" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Xác nhận thu 60%</text>
+<text x="2045" y="350" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Khi check-in</text>
+<!-- M3 -->
+<rect x="2160" y="310" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2160" y="310" width="130" height="60" rx="4" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.5"/>
+<text x="2225" y="334" fill="#eb6c36" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Status = Checked-in</text>
+<text x="2225" y="350" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- C5 -->
+<rect x="2340" y="90" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2340" y="90" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2405" y="114" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Khách Lưu trú</text>
+<text x="2405" y="130" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Stay</text>
+<!-- M4 -->
+<rect x="2520" y="310" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2520" y="310" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2585" y="334" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Status = Checked-out</text>
+<text x="2585" y="350" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Manager xử lý</text>
+<!-- C6 -->
+<rect x="2700" y="90" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2700" y="90" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2765" y="114" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Đánh giá (Review)</text>
+<text x="2765" y="130" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- End -->
+<ellipse cx="2945" cy="120" rx="55" ry="25" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.5"/>
+<text x="2945" y="124" fill="#eb6c36" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Kết thúc</text>
+
+    </svg>
+  </div>
+</body>
+</html>

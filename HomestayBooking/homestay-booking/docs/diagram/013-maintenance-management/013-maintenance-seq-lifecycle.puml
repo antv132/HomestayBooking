@@ -1,0 +1,79 @@
+@startuml 013-maintenance-seq-lifecycle
+title Maintenance Ticket Lifecycle (Customer -> Manager -> Employee -> Manager)
+
+actor Customer
+actor Manager
+actor Employee
+participant "CustomerMaintenanceController" as CustCtrl
+participant "ManagerMaintenanceV1Controller" as MgrCtrl
+participant "EmployeeMaintenanceController" as EmpCtrl
+participant "MaintenanceTicketService" as Svc
+participant "MaintenanceTaskManagerService" as MgrSvc
+participant "EmployeeMaintenanceService" as EmpSvc
+database "Database" as DB
+
+== 1. Create (Customer) ==
+Customer -> CustCtrl: POST /tickets { bookingId, title, desc, photos }
+activate CustCtrl
+CustCtrl -> Svc: createTicketFromBooking(...)
+activate Svc
+Svc -> DB: find active booking (CONFIRMED/CHECKED_IN)
+Svc -> Svc: upload photos (max 5) -> /uploads/tickets/
+Svc -> DB: INSERT maintenance_tickets (status=OPEN)
+Svc --> CustCtrl: Ticket Map
+deactivate Svc
+CustCtrl --> Customer: 201 Created
+deactivate CustCtrl
+
+== 2. Assign (Manager) ==
+Manager -> MgrCtrl: POST /tasks/{id}/assign { assigneeId }
+activate MgrCtrl
+MgrCtrl -> MgrSvc: assignForManager(manager, ticketId, request)
+activate MgrSvc
+MgrSvc -> DB: validate Manager scope (propertyId)
+MgrSvc -> DB: validate Employee assignment (ACTIVE in property)
+MgrSvc -> DB: UPDATE maintenance_tickets SET status='ASSIGNED', assigned_employee_id=...
+MgrSvc -> DB: ActivityLog (TICKET_ASSIGNED)
+MgrSvc -> DB: Notification (Customer: "Ticket assigned")
+MgrSvc --> MgrCtrl: MaintenanceTaskSummaryResponse
+deactivate MgrSvc
+MgrCtrl --> Manager: 200 OK
+deactivate MgrCtrl
+
+== 3. Work Process (Employee) ==
+Employee -> EmpCtrl: PATCH /tickets/{id}/status { status='IN_PROGRESS' }
+activate EmpCtrl
+EmpCtrl -> EmpSvc: updateStatus(employee, ticketId, request)
+activate EmpSvc
+EmpSvc -> DB: assert assignee == employee
+EmpSvc -> DB: UPDATE maintenance_tickets SET status='IN_PROGRESS'
+EmpSvc --> EmpCtrl: Response
+deactivate EmpSvc
+EmpCtrl --> Employee: 200 OK
+deactivate EmpCtrl
+
+Employee -> EmpCtrl: PATCH /tickets/{id}/status { status='RESOLVED', resolutionNote='...' }
+activate EmpCtrl
+EmpCtrl -> EmpSvc: updateStatus(employee, ticketId, request)
+activate EmpSvc
+EmpSvc -> DB: assert note is provided
+EmpSvc -> DB: UPDATE maintenance_tickets SET status='RESOLVED', work_note=resolutionNote
+EmpSvc -> DB: Notification (Customer: "Ticket resolved, waiting for manager")
+EmpSvc --> EmpCtrl: Response
+deactivate EmpSvc
+EmpCtrl --> Employee: 200 OK
+deactivate EmpCtrl
+
+== 4. Verify & Close (Manager) ==
+Manager -> MgrCtrl: PATCH /tasks/{id}/status { status='CLOSED', resolutionNote='...' }
+activate MgrCtrl
+MgrCtrl -> MgrSvc: updateStatusForManager(manager, ticketId, request)
+activate MgrSvc
+MgrSvc -> DB: assert ticket status == RESOLVED
+MgrSvc -> DB: UPDATE maintenance_tickets SET status='CLOSED', resolution_note=...
+MgrSvc -> DB: Notification (Customer: "Ticket verified and closed")
+MgrSvc --> MgrCtrl: MaintenanceTaskSummaryResponse
+deactivate MgrSvc
+MgrCtrl --> Manager: 200 OK
+deactivate MgrCtrl
+@enduml

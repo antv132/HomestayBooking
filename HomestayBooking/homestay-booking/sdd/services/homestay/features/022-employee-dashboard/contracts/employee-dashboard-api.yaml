@@ -1,0 +1,243 @@
+openapi: 3.0.3
+info:
+  title: FR-22 Employee Dashboard API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-22 Employee Dashboard composite read.
+    Screen: SCR-59 (Employee Dashboard, route `/employee/dashboard`).
+    Read-only aggregate from housekeeping tasks, maintenance tickets, room inspections.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, example: Success }
+        data: { $ref: '#/components/schemas/EmployeeDashboardData' }
+
+    HousekeepingTaskSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        roomNumber: { type: string, example: "101" }
+        propertyName: { type: string, example: "Sunrise Homestay" }
+        status:
+          type: string
+          enum: [PENDING, IN_PROGRESS]
+        createdAt: { type: string, format: date-time }
+
+    MaintenanceTicketSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, example: "AC not cooling" }
+        roomNumber: { type: string }
+        propertyName: { type: string }
+        status:
+          type: string
+          enum: [ASSIGNED, IN_PROGRESS]
+        createdAt: { type: string, format: date-time }
+
+    RoomInspectionSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        roomNumber: { type: string }
+        propertyName: { type: string }
+        checkOutDate: { type: string, format: date }
+        status:
+          type: string
+          enum: [PENDING, IN_PROGRESS]
+
+    EmployeeTaskSummary:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [HOUSEKEEPING, MAINTENANCE, INSPECTION]
+        id: { type: string, format: uuid }
+        roomNumber: { type: string }
+        propertyName: { type: string }
+        status: { type: string }
+        label: { type: string, example: "Dọn phòng" }
+        checkOutDate:
+          type: string
+          format: date
+          nullable: true
+
+    AwaitingSummary:
+      type: object
+      properties:
+        housekeepingCount: { type: integer, minimum: 0 }
+        maintenanceCount: { type: integer, minimum: 0 }
+        inspectionCount: { type: integer, minimum: 0 }
+        previews:
+          type: array
+          maxItems: 9
+          items: { $ref: '#/components/schemas/EmployeeTaskSummary' }
+
+    CompletedTodaySummary:
+      type: object
+      properties:
+        housekeepingCount: { type: integer, minimum: 0 }
+        maintenanceCount: { type: integer, minimum: 0 }
+        inspectionCount: { type: integer, minimum: 0 }
+        previews:
+          type: array
+          maxItems: 9
+          items: { $ref: '#/components/schemas/EmployeeTaskSummary' }
+
+    EmployeeDashboardData:
+      type: object
+      required:
+        - fullName
+        - pendingHousekeeping
+        - pendingMaintenance
+        - pendingInspections
+        - housekeepingTasks
+        - maintenanceTickets
+        - inspections
+        - todayTasks
+        - awaiting
+        - completedToday
+        - noPropertyAssignment
+      properties:
+        fullName:
+          type: string
+          example: "Nguyễn Văn A"
+        pendingHousekeeping:
+          type: integer
+          minimum: 0
+          description: Assigned tasks PENDING or IN_PROGRESS
+        pendingMaintenance:
+          type: integer
+          minimum: 0
+          description: Assigned tickets ASSIGNED or IN_PROGRESS
+        pendingInspections:
+          type: integer
+          minimum: 0
+          description: Inspections PENDING or IN_PROGRESS assigned to employee
+        housekeepingTasks:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/HousekeepingTaskSummary' }
+        maintenanceTickets:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/MaintenanceTicketSummary' }
+        inspections:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/RoomInspectionSummary' }
+        todayTasks:
+          type: array
+          maxItems: 10
+          items: { $ref: '#/components/schemas/EmployeeTaskSummary' }
+        awaiting:
+          $ref: '#/components/schemas/AwaitingSummary'
+        completedToday:
+          $ref: '#/components/schemas/CompletedTodaySummary'
+        noPropertyAssignment:
+          type: boolean
+          description: true when employee has no FR-20 property assignments
+
+    EmployeeKpisData:
+      type: object
+      description: Subset alias for api-spec SCR-59 backward compatibility
+      required: [pendingHousekeeping, pendingMaintenance, pendingInspections]
+      properties:
+        pendingHousekeeping: { type: integer, minimum: 0 }
+        pendingMaintenance: { type: integer, minimum: 0 }
+        pendingInspections: { type: integer, minimum: 0 }
+
+paths:
+  /employee/dashboard:
+    get:
+      operationId: getEmployeeDashboard
+      summary: Composite employee dashboard (SCR-59)
+      description: |
+        Returns greeting name, KPI counts, preview lists (max 5 per type),
+        today's tasks (max 10), awaiting summary, and completed-today summary
+        for the authenticated employee. All data scoped to JWT employee and
+        FR-20 assigned properties — no query params for employee id.
+      tags: [Employee Dashboard]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+              example:
+                success: true
+                message: Success
+                data:
+                  fullName: "Nguyễn Văn A"
+                  pendingHousekeeping: 3
+                  pendingMaintenance: 2
+                  pendingInspections: 1
+                  housekeepingTasks: []
+                  maintenanceTickets: []
+                  inspections: []
+                  todayTasks: []
+                  awaiting:
+                    housekeepingCount: 3
+                    maintenanceCount: 2
+                    inspectionCount: 1
+                    previews: []
+                  completedToday:
+                    housekeepingCount: 0
+                    maintenanceCount: 0
+                    inspectionCount: 0
+                    previews: []
+                  noPropertyAssignment: false
+        '401':
+          description: Unauthorized — missing or invalid JWT
+        '403':
+          description: Forbidden — role is not EMPLOYEE or account suspended
+
+  /employee/kpis:
+    get:
+      operationId: getEmployeeKpis
+      summary: Employee KPI counts only (SCR-59 subset)
+      description: |
+        Returns pending task counts only. Prefer GET /employee/dashboard for full SCR-59 payload.
+        pendingInspections added beyond original api-spec (housekeeping + maintenance only).
+      tags: [Employee Dashboard]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: KPI counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/EmployeeKpisData' }
+              example:
+                success: true
+                message: Success
+                data:
+                  pendingHousekeeping: 5
+                  pendingMaintenance: 2
+                  pendingInspections: 1
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden — not EMPLOYEE

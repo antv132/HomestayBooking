@@ -1,0 +1,46 @@
+@startuml 021-housekeeping-management-seq-lifecycle
+title Housekeeping Task Lifecycle
+
+actor "Manager/System" as Manager
+actor "Employee" as Emp
+participant "BookingService" as Booking
+participant "HousekeepingTaskService" as MgrSvc
+participant "EmployeeHousekeepingService" as EmpSvc
+database "Database" as DB
+participant "NotificationService" as Notif
+
+== 1. Auto-Creation (Check-out) ==
+Booking -> MgrSvc: onBookingCheckedOut(booking)
+activate MgrSvc
+MgrSvc -> DB: existsByBooking_Id(bookingId)
+MgrSvc -> DB: INSERT housekeeping_tasks (status=PENDING)
+deactivate MgrSvc
+
+== 2. Manager Assigns Task ==
+Manager -> MgrSvc: assignTaskForManager(taskId, assigneeId)
+activate MgrSvc
+MgrSvc -> DB: validate Assignee is ACTIVE in Property
+MgrSvc -> DB: UPDATE housekeeping_tasks SET assigned_employee_id = ?
+MgrSvc --> Manager: TaskSummaryResponse
+deactivate MgrSvc
+
+== 3. Employee Starts Cleaning ==
+Emp -> EmpSvc: start(taskId)
+activate EmpSvc
+EmpSvc -> DB: findByIdAndAssignedEmployeeId
+EmpSvc -> DB: UPDATE housekeeping_tasks SET status=IN_PROGRESS, started_at=NOW()
+EmpSvc -> DB: UPDATE rooms SET status=CLEANING_IN_PROGRESS
+EmpSvc -> Notif: sendNotification(Managers)
+EmpSvc --> Emp: 200 OK
+deactivate EmpSvc
+
+== 4. Employee Finishes Cleaning ==
+Emp -> EmpSvc: finish(taskId)
+activate EmpSvc
+EmpSvc -> DB: findByIdAndAssignedEmployeeId
+EmpSvc -> DB: UPDATE housekeeping_tasks SET status=COMPLETED, completed_at=NOW()
+EmpSvc -> DB: UPDATE rooms SET status=AVAILABLE
+EmpSvc -> Notif: sendNotification(Managers)
+EmpSvc --> Emp: 200 OK
+deactivate EmpSvc
+@enduml

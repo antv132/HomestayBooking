@@ -1,0 +1,47 @@
+homestay01
+Homestay@Vps2026 đây a 
+	ssh root@36.50.135.79
+Username: root
+
+Tên VPS: homestay01
+
+Địa chỉ IP chính:
+
+36.50.135.79
+
+BACKEND
+cd /opt/homestay/Backend
+
+# 1. Lấy code mới từ GitHub
+git fetch origin
+git checkout DEV          # hoặc nhánh bạn dùng
+git pull origin DEV
+
+# 2. Giữ .env — đừng ghi đè
+# (file .env không nằm trên Git, thường an toàn)
+
+# 3. Tắt API cũ + chạy lại
+pkill -f spring-boot:run || true
+nohup ./mvnw -DskipTests spring-boot:run > /var/log/homestay-api.log 2>&1 &
+
+# 4. Đợi start
+tail -f /var/log/homestay-api.log
+# thấy Started HomestayApplication → Ctrl+C
+
+FRONTEND
+cd /opt/homestay/Frontend
+git fetch origin
+git checkout dev
+git pull origin dev
+
+# Quan trọng: API trỏ VPS
+echo 'VITE_API_URL=http://36.50.135.79:8080' > .env.production
+
+# Nếu vite.config vẫn envDir: '../' thì sửa thành '.'
+# sed -i "s/envDir: '..\/'/envDir: '.'/" vite.config.ts
+
+npm ci
+npm run build
+
+rm -rf /var/www/homestay/*
+cp -r dist/* /var/www/homestay/

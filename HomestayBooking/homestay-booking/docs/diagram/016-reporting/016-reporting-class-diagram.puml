@@ -1,0 +1,84 @@
+@startuml 016-reporting-class-diagram
+title Reporting & Analytics - Class Diagram
+
+package "Controllers" {
+    class ReportV1Controller {
+        + getPropertyKpis(propertyId, currentUser) : ApiResponse
+        + getRevenue(propertyId, from, to, groupBy, currentUser) : ApiResponse
+        + getBookingStatusBreakdown(propertyId, currentUser) : ApiResponse
+        + getOccupancy(propertyId, from, to, groupBy, currentUser) : ApiResponse
+        + getBookingTrends(propertyId, from, to, groupBy, currentUser) : ApiResponse
+    }
+    note top of ReportV1Controller
+        /api/v1/reports
+        @PreAuthorize("hasRole('MANAGER')")
+        SCR-27, SCR-44, SCR-59
+    end note
+}
+
+package "Services" {
+    class ReportPropertyScopeValidator {
+        + validateManagerAccess(manager, propertyId) : void
+    }
+
+    class ReportService {
+        - paymentRepository: PaymentRepository
+        - scopeValidator: ReportPropertyScopeValidator
+        - assignmentRepository: ManagerPropertyAssignmentRepository
+        + getRevenueReport(propertyId, from, to, groupBy) : RevenueReportResponse
+        + getRevenueReportForManager(manager, propertyId, ...) : RevenueReportResponse
+        - buildResponse(...) : RevenueReportResponse
+    }
+    note bottom of ReportService
+        Handles Revenue Reports.
+        Based on Payment data (DEPOSIT, REMAINING_BALANCE).
+    end note
+
+    class PropertyReportService {
+        - scopeValidator: ReportPropertyScopeValidator
+        - roomRepository: RoomRepository
+        - bookingRepository: BookingRepository
+        + getOccupancyReport(manager, propertyId, from, to, groupBy) : OccupancyReportResponse
+        + getBookingTrendReport(manager, propertyId, from, to, groupBy) : BookingTrendReportResponse
+    }
+    note bottom of PropertyReportService
+        Handles Occupancy and Booking Trends.
+        Based on Booking data (CONFIRMED, CHECKED_IN, CHECKED_OUT).
+    end note
+    
+    class PropertyKpisService {
+        + getPropertyKpis(...) : PropertyKpisResponse
+        + getBookingStatusBreakdown(...) : List
+    }
+}
+
+package "Repositories" {
+    interface PaymentRepository {
+        + sumRevenueByType(...) : BigDecimal
+        + countDistinctBookings(...) : long
+        + findRevenueRawData(...) : List<Object[]>
+    }
+    
+    interface BookingRepository {
+        + findOccupancyRawData(...) : List<Object[]>
+        + findBookingCreationTimes(...) : List<LocalDateTime>
+        + countByStatusForPropertyInRange(...) : List<Object[]>
+    }
+    
+    interface RoomRepository {
+        + countByPropertyId(propertyId) : long
+    }
+}
+
+ReportV1Controller ..> ReportService
+ReportV1Controller ..> PropertyReportService
+ReportV1Controller ..> PropertyKpisService
+
+ReportService --> PaymentRepository
+ReportService --> ReportPropertyScopeValidator
+
+PropertyReportService --> BookingRepository
+PropertyReportService --> RoomRepository
+PropertyReportService --> ReportPropertyScopeValidator
+
+@enduml

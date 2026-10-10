@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luồng Vận hành (Manager Ops) · Standard Flowchart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Geist', sans-serif; background: #f5f5f5; padding: 2rem; }
+    .frame { max-width: 3980px; overflow-x: auto; background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    h1 { font-family: 'Instrument Serif', serif; font-size: 2rem; margin-bottom: 2rem; color: #2d3142; }
+    svg { min-width: 3980px; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <h1>Luồng Vận hành (Manager Ops)</h1>
+    <svg viewBox="0 0 3980 690" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#eb6c36"/></marker>
+      </defs>
+      <line x1="10" y1="60" x2="3970" y2="60" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="120" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">CUSTOMER</text>
+      <line x1="10" y1="170" x2="3970" y2="170" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="230" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">MANAGER</text>
+      <line x1="10" y1="280" x2="3970" y2="280" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="340" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">ADMIN</text>
+      <line x1="10" y1="390" x2="3970" y2="390" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="450" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">EMPLOYEE</text>
+      <line x1="10" y1="500" x2="3970" y2="500" stroke="#ddd" stroke-width="1"/>
+      <text x="20" y="560" fill="#333" font-size="12" font-weight="600" font-family="'Geist Mono', monospace">SYSTEM</text>
+      <line x1="10" y1="610" x2="3970" y2="610" stroke="#ddd" stroke-width="1"/>
+      <line x1="160" y1="60" x2="160" y2="610" stroke="#ddd" stroke-width="1"/>
+
+      <path d="M 310 230 L 360 230" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 490 230 L 540 230" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 670 230 L 687 230 Q 695 230 695 222 L 695 128 Q 695 120 703 120 L 720 120" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 850 120 L 867 120 Q 875 120 875 128 L 875 222 Q 875 230 883 230 L 900 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="850" y="159" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="875" y="170" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">CÓ</text>
+<path d="M 1030 230 L 1047 230 Q 1055 230 1055 238 L 1055 442 Q 1055 450 1063 450 L 1080 450" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 1210 450 L 1227 450 Q 1235 450 1235 442 L 1235 238 Q 1235 230 1243 230 L 1260 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 1390 230 L 1440 230" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 850 120 L 1137 120 Q 1145 120 1145 128 L 1145 222 Q 1145 230 1153 230 L 1440 230" fill="none" stroke="#eb6c36" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow-accent)"/>
+<rect x="1120" y="159" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="1145" y="170" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">KHÔNG</text>
+<path d="M 1570 230 L 1587 230 Q 1595 230 1595 238 L 1595 442 Q 1595 450 1603 450 L 1620 450" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 1750 450 L 1800 450" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 1930 450 L 1980 450" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<rect x="1930" y="434" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="1955" y="445" fill="#4f5d75" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">CÓ</text>
+<path d="M 2110 450 L 2127 450 Q 2135 450 2135 442 L 2135 238 Q 2135 230 2143 230 L 2160 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 2290 230 L 2307 230 Q 2315 230 2315 238 L 2315 332 Q 2315 340 2323 340 L 2340 340" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="2290" y="269" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="2315" y="280" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">> 5TR</text>
+<path d="M 2290 230 L 2340 230" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<rect x="2290" y="214" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="2315" y="225" fill="#4f5d75" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle"><= 5TR</text>
+<path d="M 2470 340 L 2487 340 Q 2495 340 2495 332 L 2495 128 Q 2495 120 2503 120 L 2520 120" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 2470 230 L 2487 230 Q 2495 230 2495 222 L 2495 128 Q 2495 120 2503 120 L 2520 120" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 2650 120 L 2667 120 Q 2675 120 2675 128 L 2675 222 Q 2675 230 2683 230 L 2700 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="2650" y="159" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="2675" y="170" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">TỪ CHỐI/DISPUTE</text>
+<path d="M 2650 120 L 2757 120 Q 2765 120 2765 128 L 2765 222 Q 2765 230 2773 230 L 2880 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<rect x="2740" y="159" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="2765" y="170" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">ĐÃ TRẢ ĐỦ</text>
+<path d="M 2830 230 L 2880 230" fill="none" stroke="#4f5d75" stroke-width="1.2"  marker-end="url(#arrow)"/>
+<path d="M 1930 450 L 2397 450 Q 2405 450 2405 442 L 2405 238 Q 2405 230 2413 230 L 2880 230" fill="none" stroke="#eb6c36" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow-accent)"/>
+<rect x="2380" y="104" width="50" height="16" rx="2" fill="#fff" stroke="#eee"/>
+<text x="2405" y="115" fill="#eb6c36" font-size="8" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="middle">KHÔNG</text>
+<path d="M 3010 230 L 3027 230 Q 3035 230 3035 238 L 3035 552 Q 3035 560 3043 560 L 3060 560" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 3190 560 L 3207 560 Q 3215 560 3215 552 L 3215 238 Q 3215 230 3223 230 L 3240 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 3370 230 L 3387 230 Q 3395 230 3395 238 L 3395 442 Q 3395 450 3403 450 L 3420 450" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 3550 450 L 3567 450 Q 3575 450 3575 458 L 3575 552 Q 3575 560 3583 560 L 3600 560" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<path d="M 3730 560 L 3747 560 Q 3755 560 3755 552 L 3755 238 Q 3755 230 3763 230 L 3780 230" fill="none" stroke="#eb6c36" stroke-width="1.4"  marker-end="url(#arrow-accent)"/>
+<!-- Start -->
+<ellipse cx="245" cy="230" rx="55" ry="25" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.5"/>
+<text x="245" y="234" fill="#eb6c36" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Booking Confirmed</text>
+<!-- M1 -->
+<rect x="360" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="360" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="425" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Thu 60% Remaining</text>
+<text x="425" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- M2 -->
+<rect x="540" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="540" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="605" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Check-in</text>
+<text x="605" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Status = Checked-in</text>
+<!-- D1 -->
+<polygon points="785,85 860,120 785,155 710,120" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="785" y="118" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Yêu cầu bảo trì?</text>
+<text x="785" y="130" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">?</text>
+<!-- M3 -->
+<rect x="900" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="900" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="965" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Assign Ticket</text>
+<text x="965" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- E1 -->
+<rect x="1080" y="420" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1080" y="420" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1145" y="444" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Tiến hành Sửa chữa</text>
+<text x="1145" y="460" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- M4 -->
+<rect x="1260" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1260" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1325" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Đóng Ticket</text>
+<text x="1325" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- M5 -->
+<rect x="1440" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1440" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1505" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Trigger Inspection</text>
+<text x="1505" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Trước Check-out</text>
+<!-- E2 -->
+<rect x="1620" y="420" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1620" y="420" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1685" y="444" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Room Inspection</text>
+<text x="1685" y="460" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- D2 -->
+<polygon points="1865,415 1940,450 1865,485 1790,450" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="1865" y="448" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Phòng hư hỏng?</text>
+<text x="1865" y="460" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">?</text>
+<!-- E3 -->
+<rect x="1980" y="420" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="1980" y="420" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2045" y="444" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Ghi nhận lỗi</text>
+<text x="2045" y="460" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Pending Damage</text>
+<!-- D3 -->
+<polygon points="2225,195 2300,230 2225,265 2150,230" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2225" y="228" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Phí phạt > 5tr?</text>
+<text x="2225" y="240" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">?</text>
+<!-- A1 -->
+<rect x="2340" y="310" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2340" y="310" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2405" y="334" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Admin Co-Approve</text>
+<text x="2405" y="350" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Duyệt phí lớn</text>
+<!-- M6 -->
+<rect x="2340" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2340" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2405" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Manager Approve</text>
+<text x="2405" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Duyệt phí nhỏ</text>
+<!-- D4 -->
+<polygon points="2585,85 2660,120 2585,155 2510,120" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2585" y="118" fill="#2d3142" font-size="10" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Khách trả nợ?</text>
+<text x="2585" y="130" fill="#2d3142" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">?</text>
+<!-- M7 -->
+<rect x="2700" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2700" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2765" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Ghi nhận Nợ xấu</text>
+<text x="2765" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Outstanding Debt</text>
+<!-- M8 -->
+<rect x="2880" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="2880" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="2945" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Xác nhận Check-out</text>
+<text x="2945" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Status = Checked-out</text>
+<!-- S1 -->
+<rect x="3060" y="530" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="3060" y="530" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="3125" y="554" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Sinh HK Task</text>
+<text x="3125" y="570" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Housekeeping</text>
+<!-- M9 -->
+<rect x="3240" y="200" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="3240" y="200" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="3305" y="224" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Giao dọn phòng</text>
+<text x="3305" y="240" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- E4 -->
+<rect x="3420" y="420" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="3420" y="420" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="3485" y="444" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Dọn dẹp hoàn tất</text>
+<text x="3485" y="460" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle"></text>
+<!-- S2 -->
+<rect x="3600" y="530" width="130" height="60" rx="4" fill="#f5f5f5"/>
+<rect x="3600" y="530" width="130" height="60" rx="4" fill="#ffffff" stroke="#2d3142" stroke-width="1.5"/>
+<text x="3665" y="554" fill="#2d3142" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Nhả phòng</text>
+<text x="3665" y="570" fill="#666" font-size="9" font-family="'Geist', sans-serif" text-anchor="middle">Status = Available</text>
+<!-- End -->
+<ellipse cx="3845" cy="230" rx="55" ry="25" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.5"/>
+<text x="3845" y="234" fill="#eb6c36" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Kết thúc luồng</text>
+
+    </svg>
+  </div>
+</body>
+</html>

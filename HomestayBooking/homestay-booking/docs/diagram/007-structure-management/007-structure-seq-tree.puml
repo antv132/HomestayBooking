@@ -1,0 +1,33 @@
+@startuml 007-structure-seq-tree
+title Admin/Manager View Structure Tree Sequence
+
+actor User
+participant "StructureTreeController" as Ctrl
+participant "StructureTreeService" as Svc
+database "Database" as DB
+
+User -> Ctrl: GET /api/v1/properties/{propertyId}/structure
+activate Ctrl
+
+Ctrl -> Ctrl: @PropertyAccessValidator(propertyId)
+note left of Ctrl: If Manager: checks assignment\nIf Admin: allows all
+
+Ctrl -> Svc: getTree(propertyId)
+activate Svc
+
+Svc -> DB: fetchFloorsAndRooms(propertyId)
+note right of DB: SELECT f.*, r.* FROM floors f\nLEFT JOIN rooms r ON f.id = r.floor_id\nWHERE f.property_id = ?\nORDER BY f.floor_number, r.room_number
+activate DB
+DB --> Svc: Flat ResultSet
+deactivate DB
+
+Svc -> Svc: group by Floor
+Svc -> Svc: map to StructureTreeResponse
+note right of Svc: { propertyId,\n  floors: [ {\n    floorNumber,\n    rooms: [ ... ]\n  } ]\n}
+
+Svc --> Ctrl: StructureTreeResponse
+deactivate Svc
+
+Ctrl --> User: 200 OK
+deactivate Ctrl
+@enduml

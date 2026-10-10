@@ -1,0 +1,56 @@
+@startuml 020-employee-management-seq-lifecycle
+title Employee Creation & Assignment Sequence
+
+actor "Manager / Admin" as Actor
+participant "Controller" as Ctrl
+participant "EmployeeManagementService" as Svc
+participant "ReportPropertyScopeValidator" as Scope
+database "Database" as DB
+participant "EmailService" as Mail
+
+== 1. Create New Employee ==
+Actor -> Ctrl: POST /employees (email, fullName, propertyId)
+activate Ctrl
+Ctrl -> Svc: createEmployee(actor, request)
+activate Svc
+
+alt if actor is Manager
+    Svc -> Scope: validateManagerAccess(actor, propertyId)
+end
+
+Svc -> DB: existsByEmail
+Svc -> DB: findPropertyById (validate ACTIVE)
+
+Svc -> Svc: generateTempPassword()
+Svc -> DB: INSERT user (role=EMPLOYEE, status=ACTIVE)
+
+Svc -> DB: INSERT employee_property_assignments (status=ACTIVE)
+Svc -> DB: INSERT activity_log (EMPLOYEE_CREATED)
+
+Svc -> Mail: sendInviteEmail(email, tempPassword)
+note right of Mail: Non-blocking / Async
+Svc --> Ctrl: EmployeeSummaryResponse
+deactivate Svc
+Ctrl --> Actor: 201 Created
+deactivate Ctrl
+
+== 2. Reassign Employee (Admin Only) ==
+Actor -> Ctrl: PATCH /employees/{id}/reassign (newPropertyId)
+note right of Actor: Only Admin can reassign
+activate Ctrl
+Ctrl -> Svc: reassignEmployee(admin, employeeId, request)
+activate Svc
+
+Svc -> DB: findActiveAssignment(employeeId)
+Svc -> DB: UPDATE old_assignment SET status='INACTIVE'
+Svc -> DB: flush()
+note right of Svc: Unique index ensures only 1 ACTIVE assignment
+
+Svc -> DB: INSERT new_assignment (propertyId=newPropertyId, status=ACTIVE)
+Svc -> DB: INSERT activity_log (EMPLOYEE_REASSIGNED)
+
+Svc --> Ctrl: EmployeeSummaryResponse
+deactivate Svc
+Ctrl --> Actor: 200 OK
+deactivate Ctrl
+@enduml

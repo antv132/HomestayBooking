@@ -1,0 +1,66 @@
+@startuml 004-booking-seq-create
+title Customer Create Booking Sequence
+
+actor Customer
+participant "BookingController" as Ctrl
+participant "BookingService" as Svc
+participant "VNPayService" as VNPay
+database "Database" as DB
+
+Customer -> Ctrl: POST /api/v1/bookings (CreateBookingRequest)
+activate Ctrl
+
+Ctrl -> Svc: createBooking(request)
+activate Svc
+
+Svc -> DB: findRoomById(roomId)
+activate DB
+DB --> Svc: Room Entity
+deactivate DB
+
+Svc -> Svc: Validate check-in >= today & guestCount <= capacity
+
+Svc -> DB: begin transaction & lock room (PESSIMISTIC_WRITE)
+activate DB
+
+DB -> DB: existsOverlapBooking(roomId, checkIn, checkOut)
+DB --> Svc: hasOverlap (boolean)
+
+alt hasOverlap == true
+    Svc -> DB: rollback
+    Svc --> Ctrl: throw ConflictException (ROOM_NOT_AVAILABLE)
+    Ctrl --> Customer: 409 Conflict
+else hasOverlap == false
+    DB -> DB: existsActiveRoomStatusBlock(roomId, checkIn, checkOut)
+    DB --> Svc: isBlocked (boolean)
+    
+    alt isBlocked == true
+        Svc -> DB: rollback
+        Svc --> Ctrl: throw ConflictException (ROOM_MAINTENANCE)
+        Ctrl --> Customer: 409 Conflict
+    else Available
+        Svc -> Svc: Calculate totalAmount, deposit(40%), remaining(60%)
+        Svc -> Svc: Set status = PENDING_DEPOSIT
+        Svc -> Svc: Set holdExpiresAt = now + 10 mins
+        
+        Svc -> DB: save(Booking)
+        
+        Svc -> DB: save(Payment[type=DEPOSIT, status=PENDING])
+        
+        Svc -> DB: commit transaction
+        deactivate DB
+        
+        Svc -> VNPay: createPaymentUrl(bookingId, depositAmount)
+        activate VNPay
+        VNPay --> Svc: paymentUrl
+        deactivate VNPay
+        
+        Svc --> Ctrl: CreateBookingResponse(bookingId, paymentUrl)
+        
+        Ctrl --> Customer: 201 Created (with paymentUrl)
+    end
+end
+
+deactivate Svc
+deactivate Ctrl
+@enduml

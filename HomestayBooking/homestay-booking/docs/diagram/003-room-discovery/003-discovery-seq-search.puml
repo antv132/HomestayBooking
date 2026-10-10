@@ -1,0 +1,41 @@
+@startuml 003-discovery-seq-search
+title Room Search & Filter Sequence
+
+actor "Guest/Customer" as User
+participant "DiscoveryController" as Ctrl
+participant "DiscoveryService" as Svc
+database "Database" as DB
+
+User -> Ctrl: GET /api/v1/rooms?checkIn=...&capacity=...
+activate Ctrl
+
+Ctrl -> Svc: searchRooms(criteria)
+activate Svc
+
+Svc -> DB: findAvailableRooms(criteria)
+note right of Svc: DB query filters by Property ACTIVE,\nRoom NOT IN Maintenance,\nCapacity check,\nPrice range
+activate DB
+DB --> Svc: Page<Room>
+deactivate DB
+
+alt Dates Provided (checkIn/checkOut)
+    loop For each Room
+        Svc -> DB: check overlap Bookings(roomId, dates)
+        activate DB
+        DB --> Svc: Overlapping Bookings List
+        deactivate DB
+        
+        alt Has Blocking Overlap
+            Svc -> Svc: Exclude Room from Results
+        end
+    end
+end
+
+Svc -> Svc: Map to RoomListItem DTOs (attach Primary Image)
+
+Svc --> Ctrl: Page<RoomListItem>
+deactivate Svc
+
+Ctrl --> User: 200 OK (Paginated Room List)
+deactivate Ctrl
+@enduml

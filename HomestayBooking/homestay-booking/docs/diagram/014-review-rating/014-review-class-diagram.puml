@@ -1,0 +1,104 @@
+@startuml 014-review-class-diagram
+title Review & Rating Management - Class Diagram
+
+package "Controllers" {
+    class CustomerReviewController {
+        + submitReview(req, currentUser) : MyReviewResponse
+        + getMyReviews(pageable, currentUser) : PageResponse
+        + getReviewByIdForCustomer(id, currentUser) : MyReviewResponse
+        + updateReview(id, req, currentUser) : MyReviewResponse
+        + deleteReview(id, currentUser) : void
+    }
+    note top of CustomerReviewController
+        /api/v1/reviews/me
+        @PreAuthorize("hasRole('CUSTOMER')")
+    end note
+
+    class ManagerReviewController {
+        + listForManager(manager, propertyId, status, pageable) : PageResponse
+        + moderateForManager(manager, reviewId, req) : ModerationReviewResponse
+    }
+    note top of ManagerReviewController
+        /api/v1/manager/reviews
+        @PreAuthorize("hasRole('MANAGER')")
+    end note
+
+    class AdminReviewController {
+        + listForAdmin(status, pageable) : PageResponse
+        + moderateForAdmin(admin, reviewId, req) : ModerationReviewResponse
+    }
+}
+
+package "Services" {
+    class ReviewService {
+        - reviewRepository: ReviewRepository
+        - bookingRepository: BookingRepository
+        - roomRatingAggregateService: RoomRatingAggregateService
+        + submitReview(req, currentUser) : MyReviewResponse
+        + getMyReviews(...) : PageResponse
+        + updateReview(...) : MyReviewResponse
+        + deleteReview(...) : void
+    }
+
+    class ReviewModerationService {
+        - reviewRepository: ReviewRepository
+        - roomRatingAggregateService: RoomRatingAggregateService
+        - scopeValidator: ReportPropertyScopeValidator
+        + listForManager(...) : PageResponse
+        + listForAdmin(...) : PageResponse
+        + moderateForManager(...) : ModerationReviewResponse
+        + moderateForAdmin(...) : ModerationReviewResponse
+    }
+
+    class RoomRatingAggregateService {
+        - reviewRepository: ReviewRepository
+        - roomRepository: RoomRepository
+        + recalculate(roomId: UUID) : void
+    }
+    note right of RoomRatingAggregateService
+        Updates rooms.average_rating 
+        and rooms.total_reviews 
+        when reviews change.
+    end note
+}
+
+package "Repositories" {
+    interface ReviewRepository {
+        + existsByBooking_Id(bookingId) : boolean
+        + findByCustomer_IdOrderByCreatedAtDesc(...) : Page
+        + findByPropertyIdAndOptionalStatus(...) : Page
+        + averageRatingByRoomId(roomId) : Double
+        + countPublishedByRoomId(roomId) : long
+    }
+}
+
+package "Entities" {
+    class Review {
+        - id : UUID
+        - booking_id : UUID
+        - customer_id : UUID
+        - room_id : UUID
+        - rating : Integer
+        - comment : String
+        - status : Status {PUBLISHED, HIDDEN}
+        - moderated_by : UUID
+        - moderated_at : LocalDateTime
+    }
+    note right of Review
+        uq_review_booking
+    end note
+}
+
+CustomerReviewController ..> ReviewService
+ManagerReviewController ..> ReviewModerationService
+AdminReviewController ..> ReviewModerationService
+
+ReviewService --> ReviewRepository
+ReviewModerationService --> ReviewRepository
+
+ReviewService --> RoomRatingAggregateService
+ReviewModerationService --> RoomRatingAggregateService
+RoomRatingAggregateService --> ReviewRepository
+
+ReviewRepository --> Review
+@enduml

@@ -1,0 +1,88 @@
+@startuml 006-property-class-diagram
+title Property Management - Class Diagram
+
+package "Controllers" {
+    class AdminPropertyController {
+        + createProperty(request) : PropertyResponse
+        + updateProperty(id, request) : PropertyResponse
+        + setPropertyStatus(id, status) : Response
+        + getProperties(filter) : Page<PropertySummary>
+        + assignManager(id, request) : AssignmentResponse
+    }
+    
+    class ManagerPropertyController {
+        + getMyProperties() : List<PropertySummary>
+        + getPropertyDetail(id) : PropertyDetailResponse
+    }
+}
+
+package "Services" {
+    class PropertyService {
+        - propertyRepository: PropertyRepository
+        - assignmentRepository: ManagerPropertyAssignmentRepository
+        + createProperty(req) : Property
+        + updateProperty(id, req) : Property
+        + setStatus(id, status) : void
+        + getProperties(filter, page) : Page<Property>
+    }
+    
+    class ManagerAssignmentService {
+        - assignmentRepository: ManagerPropertyAssignmentRepository
+        - userRepository: UserRepository
+        + assignManager(propertyId, managerId, adminId) : Assignment
+        + getActiveAssignment(propertyId) : Assignment
+    }
+}
+
+package "Repositories" {
+    interface PropertyRepository {
+        + searchProperties(keyword, status, page) : Page<Property>
+    }
+    
+    interface ManagerPropertyAssignmentRepository {
+        + findActiveByProperty(propertyId) : Assignment
+        + findActiveByManager(managerId) : List<Assignment>
+        + deactivateCurrentAssignment(propertyId) : void
+    }
+}
+
+package "Entities" {
+    class Property {
+        - id : UUID
+        - name : String
+        - address : String
+        - description : String
+        - status : String (ACTIVE, INACTIVE)
+    }
+    
+    class ManagerPropertyAssignment {
+        - id : UUID
+        - manager_id : UUID
+        - property_id : UUID
+        - assigned_by : UUID
+        - assigned_at : Date
+        - status : String (ACTIVE, INACTIVE)
+    }
+    
+    class User {
+        - id : UUID
+        - role : Role (MANAGER, ADMIN)
+        - status : String
+    }
+}
+
+' Relationships
+AdminPropertyController ..> PropertyService
+AdminPropertyController ..> ManagerAssignmentService
+ManagerPropertyController ..> PropertyService
+
+PropertyService --> PropertyRepository
+PropertyService --> ManagerPropertyAssignmentRepository
+
+ManagerAssignmentService --> ManagerPropertyAssignmentRepository
+ManagerAssignmentService --> UserRepository
+
+ManagerPropertyAssignment "*" -- "1" Property : property_id
+ManagerPropertyAssignment "*" -- "1" User : manager_id
+ManagerPropertyAssignment "*" -- "1" User : assigned_by
+@enduml

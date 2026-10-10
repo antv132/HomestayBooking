@@ -1,0 +1,66 @@
+@startuml 008-room-seq-gallery
+title Room Gallery Management
+
+actor Manager
+participant "RoomGalleryController" as Ctrl
+participant "RoomImageService" as Svc
+participant "StorageService" as Storage
+database "Database" as DB
+
+== Upload Image ==
+Manager -> Ctrl: POST /rooms/{roomId}/images (multipart/form-data)
+activate Ctrl
+Ctrl -> Ctrl: @PropertyAccessValidator
+
+Ctrl -> Svc: uploadImage(roomId, file)
+activate Svc
+
+Svc -> Svc: Validate MIME (jpeg/png/webp)\nand Size (<=10MB)
+
+Svc -> DB: countImages(roomId)
+activate DB
+DB --> Svc: currentCount
+deactivate DB
+
+alt currentCount >= 10
+    Svc --> Ctrl: throw ValidationException
+    Ctrl --> Manager: 400 Bad Request (Max 10 images)
+else currentCount < 10
+    Svc -> Storage: saveFile(file, path)
+    activate Storage
+    Storage --> Svc: imageUrl
+    deactivate Storage
+    
+    Svc -> DB: maxSortOrder(roomId)
+    Svc -> DB: insert RoomImage(imageUrl, sortOrder=max+1)
+    
+    Svc --> Ctrl: RoomImage DTO
+    Ctrl --> Manager: 201 Created
+end
+deactivate Svc
+deactivate Ctrl
+
+== Set Primary Image ==
+Manager -> Ctrl: PATCH /rooms/{roomId}/images/{imageId}/primary
+activate Ctrl
+Ctrl -> Svc: setPrimary(roomId, imageId)
+activate Svc
+
+Svc -> DB: begin transaction
+activate DB
+
+Svc -> DB: unsetPrimaryForRoom(roomId)
+note right of DB: UPDATE room_images\nSET is_primary = false\nWHERE room_id = ?
+
+Svc -> DB: setPrimary(imageId)
+note right of DB: UPDATE room_images\nSET is_primary = true\nWHERE id = ?
+
+Svc -> DB: commit
+deactivate DB
+
+Svc --> Ctrl: success
+Ctrl --> Manager: 200 OK
+
+deactivate Svc
+deactivate Ctrl
+@enduml

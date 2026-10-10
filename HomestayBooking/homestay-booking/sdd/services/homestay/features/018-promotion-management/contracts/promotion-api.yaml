@@ -1,0 +1,179 @@
+openapi: 3.0.3
+info:
+  title: FR-18 Promotion Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-18 Marketing banners (Promotion).
+    Screens: SCR-01 (Guest view), SCR-57 (Admin list), SCR-58 (Admin create/edit).
+    Banner marketing only — no promo codes or booking discounts v1.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ColorTheme:
+      type: string
+      enum: [red, blue, green, purple, orange]
+
+    Promotion:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, example: "Giảm 20% mùa hè" }
+        subtitle: { type: string, example: "ƯU ĐÃI MÙA HÈ" }
+        description: { type: string, nullable: true }
+        ctaText: { type: string, example: "Đặt ngay →" }
+        ctaUrl: { type: string, example: "/search" }
+        colorTheme: { $ref: '#/components/schemas/ColorTheme' }
+        isActive: { type: boolean }
+        sortOrder: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PromotionList:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Promotion' }
+
+    CreatePromotionRequest:
+      type: object
+      required: [title, subtitle, ctaText, ctaUrl, colorTheme]
+      properties:
+        title: { type: string, minLength: 2, maxLength: 200 }
+        subtitle: { type: string, minLength: 2, maxLength: 200 }
+        description: { type: string, maxLength: 1000 }
+        ctaText: { type: string, minLength: 2, maxLength: 100 }
+        ctaUrl: { type: string, maxLength: 500 }
+        colorTheme: { $ref: '#/components/schemas/ColorTheme' }
+        isActive: { type: boolean, default: true }
+        sortOrder: { type: integer, minimum: 0, default: 0 }
+
+    UpdatePromotionRequest:
+      allOf:
+        - { $ref: '#/components/schemas/CreatePromotionRequest' }
+
+    PatchPromotionActiveRequest:
+      type: object
+      required: [isActive]
+      properties:
+        isActive: { type: boolean }
+
+paths:
+  /public/promotions:
+    get:
+      summary: SCR-01 — Guest active promotions for homepage
+      tags: [Public Promotions]
+      description: No authentication required. Returns only isActive=true, sorted by sortOrder ASC.
+      responses:
+        '200':
+          description: Active promotion banners
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/ApiSuccess' }
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Promotion' }
+
+  /admin/promotions:
+    get:
+      summary: SCR-57 — Admin list all promotions
+      tags: [Admin Promotions]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: All promotions (active and inactive)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/ApiSuccess' }
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PromotionList' }
+    post:
+      summary: SCR-58 — Create promotion banner
+      tags: [Admin Promotions]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePromotionRequest' }
+      responses:
+        '201':
+          description: Promotion created
+
+  /admin/promotions/{id}:
+    put:
+      summary: SCR-58 — Update promotion banner
+      tags: [Admin Promotions]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePromotionRequest' }
+      responses:
+        '200':
+          description: Promotion updated
+        '404':
+          description: Not found
+    delete:
+      summary: SCR-57 — Delete promotion
+      tags: [Admin Promotions]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+
+  /admin/promotions/{id}/active:
+    patch:
+      summary: SCR-57 — Toggle Active/Inactive
+      tags: [Admin Promotions]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PatchPromotionActiveRequest' }
+      responses:
+        '200':
+          description: isActive updated

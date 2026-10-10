@@ -1,0 +1,58 @@
+@startuml 011-billing-seq-query
+title Billing Management - Invoice Queries (FR-11)
+
+actor Customer
+actor Manager
+participant "CustomerInvoiceController" as CustCtrl
+participant "ManagerInvoiceController" as MgrCtrl
+participant "InvoiceQueryService" as Svc
+database "Database" as DB
+
+== Customer: View My Invoices (SCR-26) ==
+Customer -> CustCtrl: GET /api/v1/invoices/me?status=&page=&size=
+activate CustCtrl
+CustCtrl -> Svc: listForCustomer(customerId, status, page, size)
+activate Svc
+Svc -> DB: findByCustomer_IdAndStatus(customerId, status, pageable)
+activate DB
+DB --> Svc: Page<Invoice>
+deactivate DB
+Svc --> CustCtrl: PageResponse<InvoiceSummaryResponse>
+deactivate Svc
+CustCtrl --> Customer: 200 OK
+deactivate CustCtrl
+
+== Customer: View Invoice Detail ==
+Customer -> CustCtrl: GET /api/v1/invoices/me/{id}
+activate CustCtrl
+CustCtrl -> Svc: getDetailForCustomer(invoiceId, customerId)
+activate Svc
+Svc -> DB: findById(invoiceId)
+activate DB
+DB --> Svc: Invoice
+deactivate DB
+alt invoice.customer.id != customerId
+    Svc --> CustCtrl: throw ForbiddenException
+    CustCtrl --> Customer: 403 Forbidden
+else OK
+    Svc --> CustCtrl: InvoiceDetailResponse (with property & room info)
+    CustCtrl --> Customer: 200 OK
+end
+deactivate Svc
+deactivate CustCtrl
+
+== Manager: List Invoices by Property (SCR-36) ==
+Manager -> MgrCtrl: GET /api/v1/manager/invoices?propertyId=&status=
+activate MgrCtrl
+MgrCtrl -> Svc: listForManager(manager, propertyId, status, page, size)
+activate Svc
+Svc -> Svc: validateManagerAccess(manager, propertyId)
+Svc -> DB: findByPropertyIdAndOptionalStatus(propertyId, status, pageable)
+activate DB
+DB --> Svc: Page<Invoice>
+deactivate DB
+Svc --> MgrCtrl: PageResponse<InvoiceSummaryResponse>
+deactivate Svc
+MgrCtrl --> Manager: 200 OK
+deactivate MgrCtrl
+@enduml

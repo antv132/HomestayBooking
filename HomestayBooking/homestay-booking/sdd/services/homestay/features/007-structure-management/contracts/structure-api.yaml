@@ -1,0 +1,287 @@
+openapi: 3.0.3
+info:
+  title: FR-07 Structure Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-07 structure management endpoints.
+    Screen: SCR-28 (Structure Tree — Property → Floor → Room).
+    Floor CRUD: Manager only, property-scoped.
+    Tree: Manager (assigned) + Admin (read-only all properties).
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    ApiError:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    RoomTreeNode:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        roomNumber: { type: string }
+        name:
+          type: string
+          deprecated: true
+          description: Alias of roomNumber for api-spec SCR-28 compat
+        roomType: { type: string }
+        status:
+          type: string
+          description: Room operational status (FR-08/FR-05 enum)
+
+    FloorTreeNode:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        floorNumber: { type: integer, minimum: 1 }
+        name:
+          type: string
+          deprecated: true
+          description: Display alias e.g. "Floor 1" derived from floorNumber
+        description: { type: string, nullable: true }
+        roomCount: { type: integer }
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomTreeNode'
+
+    StructureTreeResponse:
+      type: object
+      properties:
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        floors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FloorTreeNode'
+
+    CreateFloorRequest:
+      type: object
+      required: [propertyId, floorNumber]
+      properties:
+        propertyId: { type: string, format: uuid }
+        floorNumber: { type: integer, minimum: 1 }
+        description: { type: string, maxLength: 2000 }
+
+    UpdateFloorRequest:
+      type: object
+      properties:
+        floorNumber: { type: integer, minimum: 1 }
+        description: { type: string, maxLength: 2000 }
+
+    FloorResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        propertyId: { type: string, format: uuid }
+        floorNumber: { type: integer }
+        description: { type: string, nullable: true }
+        roomCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+  parameters:
+    PropertyIdQuery:
+      name: propertyId
+      in: query
+      required: true
+      schema: { type: string, format: uuid }
+
+paths:
+  /properties/{propertyId}/tree:
+    get:
+      summary: SCR-28 — Structure tree (Property → Floor → Room)
+      tags: [Structure]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: propertyId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Hierarchical structure; rooms read-only
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/StructureTreeResponse' }
+        '403':
+          description: Manager not assigned to property
+        '404':
+          description: Property not found
+
+  /properties/{propertyId}/structure:
+    get:
+      summary: Legacy alias of /tree (migration compat)
+      tags: [Structure]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: propertyId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Same as GET /tree
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/StructureTreeResponse' }
+
+  /manager/floors:
+    get:
+      summary: List floors by property (Manager scoped)
+      tags: [Floor]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PropertyIdQuery'
+      responses:
+        '200':
+          description: Floor summaries with roomCount
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/FloorResponse' }
+        '403':
+          description: Not assigned to property
+    post:
+      summary: Create floor
+      tags: [Floor]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateFloorRequest' }
+      responses:
+        '201':
+          description: Floor created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/FloorResponse' }
+        '409':
+          description: Duplicate floor number in property
+        '403':
+          description: Not assigned to property
+
+  /manager/floors/{id}:
+    put:
+      summary: Update floor
+      tags: [Floor]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateFloorRequest' }
+      responses:
+        '200':
+          description: Floor updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/FloorResponse' }
+        '409':
+          description: Duplicate floor number or floor has rooms (on delete only)
+        '403':
+          description: Not assigned
+        '404':
+          description: Floor not found
+    delete:
+      summary: Delete floor (only when no rooms)
+      tags: [Floor]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Floor deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiSuccess' }
+        '409':
+          description: Floor has child rooms
+        '403':
+          description: Not assigned
+        '404':
+          description: Floor not found
+
+  /admin/properties/{propertyId}/tree:
+    get:
+      summary: Admin read-only structure tree (all properties)
+      tags: [Admin Structure]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: propertyId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Same payload as manager tree; Admin role only
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/StructureTreeResponse' }
+        '403':
+          description: Not ADMIN

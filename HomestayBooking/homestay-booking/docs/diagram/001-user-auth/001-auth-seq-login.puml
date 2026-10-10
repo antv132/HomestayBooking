@@ -1,0 +1,61 @@
+@startuml 001-auth-seq-login
+title Standard Email/Password Login Sequence
+
+actor User
+participant "AuthController" as Ctrl
+participant "AuthService" as Svc
+participant "JwtService" as Jwt
+database "Database" as DB
+
+User -> Ctrl: POST /login (LoginRequest)
+activate Ctrl
+
+Ctrl -> Svc: login(request)
+activate Svc
+
+Svc -> DB: findByEmail(request.email)
+activate DB
+
+alt User not found
+    DB --> Svc: null
+    Svc --> Ctrl: throw BadCredentialsException
+    Ctrl --> User: 401 Unauthorized
+else User found
+    DB --> Svc: User Entity
+    deactivate DB
+
+    Svc -> Svc: verifyPassword(request.password, hash)
+    
+    alt Invalid Password
+        Svc --> Ctrl: throw BadCredentialsException
+        Ctrl --> User: 401 Unauthorized
+    else Valid Password
+        alt Status != ACTIVE
+            Svc --> Ctrl: throw AccountException
+            Ctrl --> User: 403 Forbidden
+        else Status == ACTIVE
+            Svc -> Jwt: generateAccessToken(User)
+            activate Jwt
+            Jwt --> Svc: accessToken
+            deactivate Jwt
+            
+            Svc -> Jwt: generateRefreshToken(User)
+            activate Jwt
+            Jwt --> Svc: refreshToken
+            deactivate Jwt
+            
+            Svc -> DB: save(RefreshToken)
+            activate DB
+            DB --> Svc: void
+            deactivate DB
+            
+            Svc --> Ctrl: AuthResponse(tokens, UserDto)
+            
+            Ctrl --> User: 200 OK (AuthResponse)
+        end
+    end
+end
+
+deactivate Svc
+deactivate Ctrl
+@enduml

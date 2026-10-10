@@ -1,0 +1,55 @@
+@startuml 016-reporting-seq-lifecycle
+title Reporting Generation Sequence
+
+actor Manager
+participant "ReportV1Controller" as Ctrl
+participant "ReportPropertyScopeValidator" as Scope
+participant "ReportService" as RevSvc
+participant "PropertyReportService" as OccSvc
+database "Database" as DB
+
+== 1. Revenue Report (SCR-59) ==
+Manager -> Ctrl: GET /revenue?propertyId={id}&from={d1}&to={d2}&groupBy=month
+activate Ctrl
+Ctrl -> RevSvc: getRevenueReportForManager(manager, propertyId, from, to, groupBy)
+activate RevSvc
+RevSvc -> Scope: validateManagerAccess(manager, propertyId)
+activate Scope
+Scope -> DB: check assignments
+Scope --> RevSvc: ok
+deactivate Scope
+
+RevSvc -> DB: sumRevenueByType (Total)
+RevSvc -> DB: sumRevenueByType (DEPOSIT)
+RevSvc -> DB: sumRevenueByType (REMAINING_BALANCE)
+RevSvc -> DB: countDistinctBookings
+RevSvc -> DB: findRevenueRawData(from, to, propertyId)
+note right of DB: Returns List of (paidAt, amount, propertyId, bookingId)
+
+RevSvc -> RevSvc: groupByPeriod (Aggregate by Month/Week)
+RevSvc -> RevSvc: groupByProperty (Sort by Top Revenue)
+RevSvc --> Ctrl: RevenueReportResponse
+deactivate RevSvc
+Ctrl --> Manager: 200 OK
+deactivate Ctrl
+
+== 2. Occupancy Report (SCR-44) ==
+Manager -> Ctrl: GET /occupancy?propertyId={id}&from={d1}&to={d2}&groupBy=week
+activate Ctrl
+Ctrl -> OccSvc: getOccupancyReport(manager, propertyId, from, to, groupBy)
+activate OccSvc
+OccSvc -> Scope: validateManagerAccess(manager, propertyId)
+
+OccSvc -> DB: countByPropertyId() -> totalRooms
+OccSvc -> OccSvc: Initialize Time Buckets (from..to)
+
+OccSvc -> DB: findOccupancyRawData(propertyId, [CONFIRMED, CHECKED_IN, CHECKED_OUT])
+note right of DB: Returns Bookings overlapping with date range
+
+OccSvc -> OccSvc: Distribute Booking Nights into Time Buckets
+OccSvc -> OccSvc: Calculate Occupancy Rate (occupied / available)
+OccSvc --> Ctrl: OccupancyReportResponse
+deactivate OccSvc
+Ctrl --> Manager: 200 OK
+deactivate Ctrl
+@enduml

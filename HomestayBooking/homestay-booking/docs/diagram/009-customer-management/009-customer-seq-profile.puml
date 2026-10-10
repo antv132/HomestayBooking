@@ -1,0 +1,72 @@
+@startuml 009-customer-seq-profile
+title Customer Management - Self-Service: Profile Update & Password Change
+
+actor Customer
+participant "UserV1Controller" as Ctrl
+participant "UserService" as Svc
+database "Database" as DB
+
+== Get My Profile (SCR-10) ==
+Customer -> Ctrl: GET /api/v1/users/me
+activate Ctrl
+Ctrl -> Svc: getMyProfile(currentUser.getId())
+activate Svc
+Svc -> DB: findById(userId)
+activate DB
+DB --> Svc: User
+deactivate DB
+Svc --> Ctrl: UserProfileResponse
+deactivate Svc
+Ctrl --> Customer: 200 OK
+deactivate Ctrl
+
+== Update My Profile (SCR-11) ==
+Customer -> Ctrl: PUT /api/v1/users/me\n{fullName, phone, avatarUrl, ...}
+activate Ctrl
+Ctrl -> Ctrl: @Valid (bean validation)
+Ctrl -> Svc: updateMyProfile(userId, UpdateProfileRequest)
+activate Svc
+Svc -> DB: findById(userId)
+activate DB
+DB --> Svc: User
+deactivate DB
+Svc -> DB: save(updatedUser)
+activate DB
+DB --> Svc: User
+deactivate DB
+Svc --> Ctrl: UserProfileResponse
+deactivate Svc
+Ctrl --> Customer: 200 OK "Cập nhật thông tin thành công"
+deactivate Ctrl
+
+== Change Password (SCR-12) ==
+Customer -> Ctrl: PUT /api/v1/users/me/password\n{currentPassword, newPassword, confirmPassword}
+activate Ctrl
+Ctrl -> Ctrl: @Valid (bean validation)
+Ctrl -> Svc: changePassword(userId, ChangePasswordRequest)
+activate Svc
+
+Svc -> DB: findById(userId)
+activate DB
+DB --> Svc: User
+deactivate DB
+
+Svc -> Svc: passwordEncoder.matches(currentPassword, hash)
+
+alt currentPassword wrong
+    Svc --> Ctrl: throw BusinessException
+    Ctrl --> Customer: 400 Bad Request
+else newPassword == currentPassword
+    Svc --> Ctrl: throw BusinessException\n"Mật khẩu mới không được trùng mật khẩu cũ"
+    Ctrl --> Customer: 400 Bad Request
+else valid
+    Svc -> DB: save(user with new passwordHash)
+    activate DB
+    DB --> Svc: void
+    deactivate DB
+    Svc --> Ctrl: void
+    Ctrl --> Customer: 200 OK "Đổi mật khẩu thành công. Vui lòng đăng nhập lại."
+end
+deactivate Svc
+deactivate Ctrl
+@enduml

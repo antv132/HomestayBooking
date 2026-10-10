@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homestay Booking · System & Users Flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1400px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">ER / DATA MODEL · System & Users Flow</p>
+    <h1>Homestay Booking · System & Users Flow</h1>
+    <svg viewBox="0 0 1480 776" xmlns="http://www.w3.org/2000/svg">
+<defs>
+              <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="#f5f5f5"/>
+            <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+<path d="M 400,195 C 300,195 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 760,195 C 660,195 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 760,503 C 660,503 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<path d="M 1120,563 C 1020,563 400,180 300,180" fill="none" stroke="rgba(45,49,66,0.4)" stroke-width="1.5" />
+<g id="User">
+<rect x="40" y="120" width="260" height="348" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+<rect x="40" y="120" width="260" height="40" rx="6" fill="rgba(235,108,54,0.10)" stroke="none"/>
+<rect x="40" y="152" width="260" height="8" fill="rgba(235,108,54,0.10)"/>
+<line x1="40" y1="160" x2="300" y2="160" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+<text x="56" y="136" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE · AGGREGATE ROOT</text>
+<text x="56" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">users</text>
+<text x="56" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="284" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="56" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">full_name</text>
+<text x="284" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">email</text>
+<text x="284" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">password_hash</text>
+<text x="284" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">google_id</text>
+<text x="284" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">phone</text>
+<text x="284" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="300" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">avatar_url</text>
+<text x="284" y="300" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="320" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">role</text>
+<text x="284" y="320" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="340" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="284" y="340" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="360" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">otp_code</text>
+<text x="284" y="360" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="56" y="380" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">otp_expired_at</text>
+<text x="284" y="380" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="56" y="400" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">otp_send_count</text>
+<text x="284" y="400" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+<text x="56" y="420" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">otp_send_window_start</text>
+<text x="284" y="420" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="56" y="440" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="284" y="440" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="56" y="460" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="284" y="460" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="Notification">
+<rect x="400" y="120" width="260" height="248" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="400" y="120" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="400" y="152" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="400" y1="160" x2="660" y2="160" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="416" y="136" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="416" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">notifications</text>
+<text x="416" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="644" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="416" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="644" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">type</text>
+<text x="644" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">title</text>
+<text x="644" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">content</text>
+<text x="644" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">is_read</text>
+<text x="644" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">boolean</text>
+<text x="416" y="300" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">related_entity_id</text>
+<text x="644" y="300" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="416" y="320" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">related_entity_type</text>
+<text x="644" y="320" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="340" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">dedupe_key</text>
+<text x="644" y="340" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="416" y="360" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="644" y="360" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="ActivityLog">
+<rect x="760" y="120" width="260" height="208" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="760" y="120" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="760" y="152" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="760" y1="160" x2="1020" y2="160" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="776" y="136" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="776" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">activity_logs</text>
+<text x="776" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1004" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="776" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="1004" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">action</text>
+<text x="1004" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">entity_type</text>
+<text x="1004" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">entity_id</text>
+<text x="1004" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="776" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">details</text>
+<text x="1004" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="300" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">ip_address</text>
+<text x="1004" y="300" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="320" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="1004" y="320" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="OutboxEvent">
+<rect x="1120" y="120" width="260" height="228" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1120" y="120" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="1120" y="152" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="1120" y1="160" x2="1380" y2="160" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="1136" y="136" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="1136" y="152" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">outbox_events</text>
+<text x="1136" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1364" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="1136" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">event_type</text>
+<text x="1364" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">payload</text>
+<text x="1364" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="240" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+<text x="1364" y="240" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="260" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">retry_count</text>
+<text x="1364" y="260" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+<text x="1136" y="280" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">last_error</text>
+<text x="1364" y="280" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="300" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="1364" y="300" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="1136" y="320" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="1364" y="320" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="1136" y="340" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">processed_at</text>
+<text x="1364" y="340" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="RefreshToken">
+<rect x="760" y="408" width="260" height="168" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="760" y="408" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="760" y="440" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="760" y1="448" x2="1020" y2="448" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="776" y="424" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="776" y="440" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">refresh_tokens</text>
+<text x="776" y="468" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1004" y="468" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="776" y="488" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">token</text>
+<text x="1004" y="488" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="508" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="1004" y="508" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="776" y="528" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">expires_at</text>
+<text x="1004" y="528" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="776" y="548" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">revoked_at</text>
+<text x="1004" y="548" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+<text x="776" y="568" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">created_at</text>
+<text x="1004" y="568" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+<g id="SystemSetting">
+<rect x="1120" y="428" width="260" height="168" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1120" y="428" width="260" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+<rect x="1120" y="460" width="260" height="8" fill="rgba(45,49,66,0.04)"/>
+<line x1="1120" y1="468" x2="1380" y2="468" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+<text x="1136" y="444" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">TABLE</text>
+<text x="1136" y="460" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">system_settings</text>
+<text x="1136" y="488" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+<text x="1364" y="488" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+<text x="1136" y="508" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">key</text>
+<text x="1364" y="508" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="528" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">value</text>
+<text x="1364" y="528" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="548" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">description</text>
+<text x="1364" y="548" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="568" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ updated_by</text>
+<text x="1364" y="568" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">varchar</text>
+<text x="1136" y="588" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">updated_at</text>
+<text x="1364" y="588" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">datetime</text>
+</g>
+</svg>
+  </div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+@startuml 006-property-seq-manager
+title Manager View Assigned Properties
+
+actor Manager
+participant "ManagerPropertyController" as Ctrl
+participant "PropertyService" as Svc
+database "Database" as DB
+
+Manager -> Ctrl: GET /api/manager/properties
+activate Ctrl
+
+Ctrl -> Ctrl: Extract managerId from JWT
+
+Ctrl -> Svc: getMyProperties(managerId)
+activate Svc
+
+Svc -> DB: findActiveByManager(managerId)
+note right of DB: SELECT p.* FROM properties p\nJOIN manager_property_assignments mpa\nON p.id = mpa.property_id\nWHERE mpa.manager_id = ? AND mpa.status = 'ACTIVE'
+activate DB
+DB --> Svc: List<Property>
+deactivate DB
+
+Svc --> Ctrl: List<PropertySummary>
+deactivate Svc
+
+Ctrl --> Manager: 200 OK
+deactivate Ctrl
+
+== Interceptor / Validator Detail ==
+
+Manager -> Ctrl: GET /api/manager/properties/{propertyId}
+activate Ctrl
+
+Ctrl -> Ctrl: @PropertyAccessValidator(propertyId)
+note left of Ctrl: Custom annotation/interceptor\nruns before method execution
+
+Ctrl -> DB: checkActiveAssignment(propertyId, jwt.userId)
+activate DB
+DB --> Ctrl: isAuthorized (boolean)
+deactivate DB
+
+alt isAuthorized == false
+    Ctrl --> Manager: 403 Forbidden
+else isAuthorized == true
+    Ctrl -> Svc: getPropertyDetail(propertyId)
+    activate Svc
+    Svc -> DB: load Property + Stats
+    activate DB
+    DB --> Svc: Data
+    deactivate DB
+    Svc --> Ctrl: PropertyDetailResponse
+    deactivate Svc
+    Ctrl --> Manager: 200 OK
+end
+
+deactivate Ctrl
+@enduml

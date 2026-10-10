@@ -1,0 +1,357 @@
+openapi: 3.0.3
+info:
+  title: FR-13 Maintenance Management API
+  version: 1.0.0
+  description: |
+    Homestay / Resort Booking — FR-13 Maintenance tickets lifecycle.
+    Screens: SCR-22/23 (Customer), SCR-41 (Manager), SCR-61 (Employee).
+    Workflow: OPEN → ASSIGNED → IN_PROGRESS → RESOLVED → CLOSED.
+    Envelope: { success, message, data }
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        data: { type: object }
+
+    MaintenanceTicketStatus:
+      type: string
+      enum: [OPEN, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED]
+
+    AttachmentSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        fileUrl: { type: string }
+        fileName: { type: string }
+        fileSize: { type: integer, format: int64 }
+        uploadedAt: { type: string, format: date-time }
+
+    MaintenanceTicketSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        roomId: { type: string, format: uuid }
+        roomNumber: { type: string }
+        propertyId: { type: string, format: uuid }
+        propertyName: { type: string }
+        title: { type: string }
+        status: { $ref: '#/components/schemas/MaintenanceTicketStatus' }
+        assignedEmployeeId: { type: string, format: uuid, nullable: true }
+        assignedEmployeeName: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    MaintenanceTicketDetail:
+      allOf:
+        - $ref: '#/components/schemas/MaintenanceTicketSummary'
+        - type: object
+          properties:
+            customerId: { type: string, format: uuid }
+            customerName: { type: string }
+            description: { type: string }
+            photoUrls:
+              type: array
+              items: { type: string }
+            attachments:
+              type: array
+              items: { $ref: '#/components/schemas/AttachmentSummary' }
+            workNote: { type: string, nullable: true, description: Manager/Employee only }
+            resolutionNote: { type: string, nullable: true }
+            verifiedBy: { type: string, format: uuid, nullable: true }
+            verifiedAt: { type: string, format: date-time, nullable: true }
+            assignedAt: { type: string, format: date-time, nullable: true }
+
+    MaintenanceTicketPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/MaintenanceTicketSummary' }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+
+    AssignEmployeeRequest:
+      type: object
+      required: [assigneeId]
+      properties:
+        assigneeId: { type: string, format: uuid }
+
+    UpdateMaintenanceStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [IN_PROGRESS, RESOLVED]
+        workNote: { type: string, maxLength: 2000 }
+
+    CloseMaintenanceTicketRequest:
+      type: object
+      required: [resolutionNote]
+      properties:
+        resolutionNote: { type: string, minLength: 10, maxLength: 2000 }
+
+paths:
+  /maintenance-tickets/me:
+    get:
+      summary: SCR-22 — Customer ticket list
+      tags: [Customer Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/MaintenanceTicketStatus' }
+      responses:
+        '200':
+          description: Paginated own tickets
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - properties:
+                      data: { $ref: '#/components/schemas/MaintenanceTicketPage' }
+
+  /maintenance-tickets:
+    post:
+      summary: SCR-23 — Create maintenance ticket (multipart)
+      tags: [Customer Maintenance]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [bookingId, title, description]
+              properties:
+                bookingId: { type: string, format: uuid }
+                title: { type: string, maxLength: 200 }
+                description: { type: string, minLength: 20 }
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+                  maxItems: 5
+      responses:
+        '201':
+          description: Ticket created (OPEN)
+        '400':
+          description: Inactive booking or validation error
+
+  /maintenance-tickets/{id}:
+    get:
+      summary: Customer ticket detail
+      tags: [Customer Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Ticket detail (hides workNote from Customer)
+        '404':
+          description: Not found or not owned
+
+    put:
+      summary: Update ticket (OPEN only)
+      tags: [Customer Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                keepAttachmentIds:
+                  type: array
+                  items: { type: string, format: uuid }
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        '200':
+          description: Updated
+        '409':
+          description: Status not OPEN
+
+    delete:
+      summary: Soft-delete ticket (OPEN only)
+      tags: [Customer Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Deleted
+        '409':
+          description: Status not OPEN
+
+  /manager/maintenance-tickets:
+    get:
+      summary: SCR-41 — Manager ticket list (property scoped)
+      tags: [Manager Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: propertyId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/MaintenanceTicketStatus' }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Property-scoped tickets
+        '403':
+          description: UNAUTHORIZED_PROPERTY_ACCESS
+
+  /manager/maintenance-tickets/{id}:
+    get:
+      summary: SCR-41 — Manager ticket detail (with attachments, workNote)
+      tags: [Manager Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Detail with photos for Drawer
+
+  /manager/maintenance-tickets/{id}/assign:
+    patch:
+      summary: SCR-41 — Assign / reassign Employee
+      tags: [Manager Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignEmployeeRequest' }
+      responses:
+        '200':
+          description: Assigned (OPEN→ASSIGNED or reassign)
+        '400':
+          description: Assignee not in same property
+      description: |
+        Side-effect: emit MAINTENANCE_STATUS_CHANGED notification to Customer (FR-15).
+
+  /manager/maintenance-tickets/{id}/close:
+    patch:
+      summary: SCR-41 — Verify and close ticket
+      tags: [Manager Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CloseMaintenanceTicketRequest' }
+      responses:
+        '200':
+          description: RESOLVED→CLOSED
+        '409':
+          description: Status not RESOLVED
+
+  /employee/maintenance-tickets:
+    get:
+      summary: SCR-61 — Employee assigned tickets
+      tags: [Employee Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/MaintenanceTicketStatus' }
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        '200':
+          description: Tickets where assignedEmployeeId = current user
+
+  /employee/maintenance-tickets/{id}/status:
+    patch:
+      summary: SCR-61 — Update progress
+      tags: [Employee Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMaintenanceStatusRequest' }
+      responses:
+        '200':
+          description: ASSIGNED→IN_PROGRESS or IN_PROGRESS→RESOLVED
+        '409':
+          description: Invalid transition or not assignee
+
+  /admin/maintenance-tickets:
+    get:
+      summary: Admin read-only global list
+      tags: [Admin Maintenance]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/MaintenanceTicketStatus' }
+      responses:
+        '200':
+          description: All tickets (read-only)
