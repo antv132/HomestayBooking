@@ -1,0 +1,24 @@
+# Copy this file to backend/.env and replace every <required> value.
+# Never commit backend/.env.
+
+# Database
+DB_USERNAME=sa
+DB_PASSWORD=<required-strong-local-password>
+# DB_URL normally uses the application.yml default.
+
+# Authentication
+JWT_SECRET=<required-random-secret-at-least-32-characters>
+GOOGLE_CLIENT_ID=<required-for-google-login>
+
+# Mail
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=<required-for-email>
+MAIL_PASSWORD=<required-app-password>
+
+# VNPay sandbox
+VNPAY_TMN_CODE=<required-for-vnpay>
+VNPAY_HASH_SECRET=<required-for-vnpay>
+VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=http://localhost:8080/api/payments/vnpay/return
+VNPAY_FRONTEND_RESULT_URL=http://localhost:3000/customer/payments/vnpay-result

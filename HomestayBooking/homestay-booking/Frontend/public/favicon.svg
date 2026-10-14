@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Homestay">
+  <rect width="64" height="64" rx="12" fill="#F8FAFC"/>
+  <path
+    fill="#0F766E"
+    d="M32 10 10 28v4h4v22h14V40h8v14h14V32h4v-4L32 10zm0 6.5 16 13V50H40V36H24v14H16V29.5l16-13z"
+  />
+</svg>

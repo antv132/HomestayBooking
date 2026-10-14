@@ -1,0 +1,101 @@
+spring:
+  config:
+    # [.properties] hint required — bare ".env" has no extension Spring recognizes
+    import: optional:file:./.env[.properties],optional:file:../.env[.properties]
+  application:
+    name: homestay-backend
+
+  datasource:
+    url: ${DB_URL:jdbc:sqlserver://localhost:1433;databaseName=HomestayManagement;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:123}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+        format_sql: true
+        # String -> NVARCHAR so Vietnamese text is not stored as '?'
+        use_nationalized_character_data: true
+        default_batch_fetch_size: 20
+
+  # Cấu hình upload file — constitutional max 10MB (sdd/global/security.md)
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
+
+  # Cấu hình gửi email — credentials/host từ .env:
+  #   MAIL_USERNAME, MAIL_PASSWORD (Gmail/Google Workspace: App Password 16 ký tự)
+  #   MAIL_HOST (optional, default smtp.gmail.com), MAIL_PORT (optional, default 587)
+  # MailConfig binds MAIL_* explicitly. @fpt.edu.vn phải là Google Workspace + App Password
+  # mới gửi qua smtp.gmail.com; provider khác thì đặt MAIL_HOST phù hợp.
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:no-reply@dev.local}
+    password: ${MAIL_PASSWORD:dev-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+# JWT config — secret must be supplied by the local environment
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-insecure-default-secret-change-in-production-must-be-long}
+    expiration-ms: 900000        # 15 phút
+    refresh-expiration-days: 7   # 7 ngày (001 Assumptions / FR-007)
+
+  # Google OAuth2 - dùng để verify ID Token gửi từ frontend
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:dev-google-client-id}
+
+  # Thư mục lưu file upload — có thể override bằng UPLOAD_DIR (đường dẫn tuyệt đối)
+  upload:
+    dir: ${UPLOAD_DIR:uploads/}
+
+  # Booking hold (Pending Deposit unpaid timeout)
+  booking:
+    hold-timeout-minutes: ${BOOKING_HOLD_TIMEOUT_MINUTES:10}
+    hold-timeout-job-ms: ${BOOKING_HOLD_TIMEOUT_JOB_MS:60000}
+    # FR-008 no-show: hours after checkInDate.atStartOfDay()
+    no-show-after-hours: ${BOOKING_NO_SHOW_AFTER_HOURS:24}
+    no-show-job-ms: ${BOOKING_NO_SHOW_JOB_MS:60000}
+
+  # FR-10 Outbox worker
+  outbox:
+    poll-ms: ${OUTBOX_POLL_MS:15000}
+    batch-size: ${OUTBOX_BATCH_SIZE:20}
+    max-retries: ${OUTBOX_MAX_RETRIES:3}
+
+  # Tự động thêm dữ liệu demo khi khởi động (dev)
+  seed:
+    enabled: true
+
+vnpay:
+  tmnCode: ${VNPAY_TMN_CODE:YQ23CU6W}
+  hashSecret: ${VNPAY_HASH_SECRET:PSSN8ARRWUX199ZDTDY4Z6UTK1GCDOZB}
+  url: ${VNPAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+  returnUrl: ${VNPAY_RETURN_URL:http://localhost:8080/api/payments/vnpay/return}
+  # FE page after VNPay Return URL (FR-12)
+  frontendResultUrl: ${VNPAY_FRONTEND_RESULT_URL:http://localhost:3000/customer/payments/vnpay-result}

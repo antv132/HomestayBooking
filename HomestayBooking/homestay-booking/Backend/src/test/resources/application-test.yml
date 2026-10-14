@@ -1,0 +1,47 @@
+﻿spring:
+  application:
+    name: homestay-backend-test
+  datasource:
+    url: ${TEST_DB_URL:jdbc:h2:mem:homestay_test;MODE=MSSQLServer;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE}
+    username: ${TEST_DB_USER:sa}
+    password: ${TEST_DB_PASSWORD:}
+    driver-class-name: ${TEST_DB_DRIVER:org.h2.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: ${TEST_HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+
+app:
+  jwt:
+    secret: test-only-jwt-secret-must-be-long-enough-for-hs256-algorithm-0123456789
+    expiration-ms: 900000
+    refresh-expiration-days: 1
+  google:
+    client-id: test-google-client-id
+  upload:
+    dir: target/test-uploads/
+  booking:
+    hold-timeout-minutes: 10
+    hold-timeout-job-ms: 60000
+  seed:
+    enabled: false
+
+vnpay:
+  tmnCode: TESTTMN
+  hashSecret: TESTHASHSECRET0123456789
+  url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  returnUrl: http://localhost:8080/api/payments/vnpay/return
+  frontendResultUrl: http://localhost:3000/customer/payments/vnpay-result
+
+logging:
+  level:
+    root: WARN
+    com.homestay: INFO
